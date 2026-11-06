@@ -6,7 +6,9 @@ export default defineWebAuthnAuthenticateEventHandler({
 
   // Only used when a name was typed; otherwise the device offers its saved passkeys.
   async allowCredentials(_event, userName) {
-    const creds = await getUserCredentials(normalizeUserName(userName))
+    const user = await getUser(normalizeUserName(userName))
+    if (!user) return []
+    const creds = await getUserCredentials(user.id)
     return creds.map(c => ({ id: c.id, transports: c.transports }))
   },
 
@@ -22,11 +24,12 @@ export default defineWebAuthnAuthenticateEventHandler({
       throw createError({ statusCode: 401, message: 'verification_required' })
     }
 
-    // Keep the signature counter current (helps detect cloned authenticators).
-    await saveCredential({ ...(credential as StoredCredential), counter: authenticationInfo.newCounter })
-
-    const user = await getUser((credential as StoredCredential).userName)
+    const { id, userId } = credential as StoredCredential
+    const user = await getUserById(userId)
     if (!user) throw createError({ statusCode: 401, message: 'unknown_user' })
+
+    // Keep the signature counter current (helps detect cloned authenticators).
+    await updateCredentialCounter(id, authenticationInfo.newCounter)
 
     await setUserSession(event, {
       user: { id: user.id, userName: user.userName, displayName: user.displayName },

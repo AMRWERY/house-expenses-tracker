@@ -4,7 +4,6 @@ import tailwindcss from "@tailwindcss/vite";
 export default defineNuxtConfig({
   compatibilityDate: "2025-07-15",
   devtools: { enabled: true },
-
   modules: ["@nuxtjs/i18n", "@pinia/nuxt", "@vueuse/nuxt", "nuxt-auth-utils"],
 
   // Passkey (fingerprint / Face ID) sign-in. Set NUXT_SESSION_PASSWORD (32+ chars) in production;
@@ -13,23 +12,16 @@ export default defineNuxtConfig({
   runtimeConfig: {
     session: { maxAge: 60 * 60 * 24 * 30 }, // stay signed in for 30 days
   },
-
-  // Users, passkeys and expenses live here. Swap the driver (redis, db, ...) for multi-server / production.
-  nitro: {
-    storage: {
-      data: { driver: "fs", base: "./.data/kv" },
-    },
-  },
-
+  // Users, passkeys and expenses live in Supabase (server/utils/supabase.ts).
+  // Needs SUPABASE_URL and SUPABASE_SECRET_KEY in the environment; the secret key is server-only.
   css: ["~/assets/css/main.css"],
-
   vite: {
     plugins: [tailwindcss()],
   },
 
   app: {
     head: {
-      title: "مصروفات البيت",
+      title: "House Expenses Tracker",
       meta: [
         { name: "viewport", content: "width=device-width, initial-scale=1, viewport-fit=cover" },
       ],

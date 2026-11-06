@@ -32,21 +32,27 @@ export default defineWebAuthnRegisterEventHandler({
     if (!registrationInfo.userVerified) {
       throw createError({ statusCode: 400, message: 'verification_required' })
     }
-    if (await getUser(user.userName)) {
-      throw createError({ statusCode: 409, message: 'user_exists' }) // lost a race
+
+    // The unique constraint on user_name settles any race between two sign-ups with the same name.
+    let created: StoredUser
+    try {
+      created = await createUser({ userName: user.userName, displayName: user.displayName ?? user.userName })
+    } catch (e) {
+      if ((e as { statusCode?: number }).statusCode === 409) {
+        throw createError({ statusCode: 409, message: 'user_exists' })
+      }
+      throw e
     }
 
-    const stored: StoredUser = {
-      id: crypto.randomUUID(),
-      userName: user.userName,
-      displayName: user.displayName ?? user.userName,
-      createdAt: Date.now(),
+    try {
+      await saveCredential(created.id, credential)
+    } catch (e) {
+      await deleteUser(created.id) // don't leave an account nobody can sign in to
+      throw e
     }
-    await saveUser(stored)
-    await saveCredential({ ...credential, userName: stored.userName })
 
     await setUserSession(event, {
-      user: { id: stored.id, userName: stored.userName, displayName: stored.displayName },
+      user: { id: created.id, userName: created.userName, displayName: created.displayName },
     })
   },
 })

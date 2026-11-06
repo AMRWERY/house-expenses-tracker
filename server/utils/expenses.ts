@@ -16,7 +16,7 @@ const bad = (message: string) => createError({ statusCode: 400, message })
 const isInt = (v: unknown, min: number, max: number): v is number =>
   typeof v === 'number' && Number.isInteger(v) && v >= min && v <= max
 
-/** Validate a request body; never trust the client's shape. */
+/** Validate a request body; never trust the client's shape. (The database re-checks the same rules.) */
 export function parseExpenseInput(body: unknown): ExpenseInput {
   const b = (body ?? {}) as Record<string, unknown>
 
@@ -35,16 +35,58 @@ export function parseExpenseInput(body: unknown): ExpenseInput {
   return { cat: b.cat, amount: Math.round(b.amount * 100) / 100, y: b.y, m: b.m, day: b.day, note }
 }
 
-const key = (userId: string) => `expenses:${userId}`
-
-export const loadExpenses = async (userId: string) =>
-  (await useStorage('data').getItem<ExpenseRecord[]>(key(userId))) ?? []
-
-export const saveExpenses = (userId: string, list: ExpenseRecord[]) =>
-  useStorage('data').setItem(key(userId), list)
-
 export function parseId(raw: string | undefined) {
   const id = Number(raw)
   if (!Number.isInteger(id) || id < 1) throw bad('invalid_id')
   return id
+}
+
+// ---- Supabase access. Every query is scoped by user_id: the secret key bypasses RLS, so this is the guard. ----
+
+import type { Tables } from '../../app/types/database.types'
+
+const toRecord = (r: Tables<'expenses'>): ExpenseRecord => ({
+  id: Number(r.id),
+  cat: r.cat,
+  amount: Number(r.amount), // numeric(12,2): be safe if it ever arrives as a string
+  y: r.y,
+  m: r.m,
+  day: r.day,
+  ...(r.note ? { note: r.note } : {}),
+})
+
+export async function listExpenses(userId: string) {
+  const rows = must(
+    await useSupabase().from('expenses').select('*').eq('user_id', userId).order('y').order('m').order('day').order('id'),
+  )
+  return (rows ?? []).map(toRecord)
+}
+
+export async function createExpense(userId: string, input: ExpenseInput) {
+  const row = must(
+    await useSupabase().from('expenses').insert({ user_id: userId, ...input, note: input.note ?? null }).select().single(),
+  )
+  return toRecord(row!)
+}
+
+/** Returns null when the expense doesn't exist or belongs to someone else. */
+export async function updateExpense(userId: string, id: number, input: ExpenseInput) {
+  const row = must(
+    await useSupabase()
+      .from('expenses')
+      .update({ ...input, note: input.note ?? null })
+      .eq('id', id)
+      .eq('user_id', userId)
+      .select()
+      .maybeSingle(),
+  )
+  return row ? toRecord(row) : null
+}
+
+/** Returns false when the expense doesn't exist or belongs to someone else. */
+export async function deleteExpense(userId: string, id: number) {
+  const row = must(
+    await useSupabase().from('expenses').delete().eq('id', id).eq('user_id', userId).select('id').maybeSingle(),
+  )
+  return !!row
 }
