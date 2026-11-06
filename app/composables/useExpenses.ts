@@ -4,8 +4,27 @@ export const formatNumber = (n: number) => nf.format(n)
 const pad = (n: number) => String(n).padStart(2, '0')
 export const toISODate = (y: number, m: number, d: number) => `${y}-${pad(m + 1)}-${pad(d)}`
 
+/** Dev-only preview mode (?demo=1): local sample data, no sign-in. Never active in production builds. */
+export const isDemo = (query: Record<string, unknown>) => import.meta.dev && query.demo === '1'
+
+/** Load the signed-in user's expenses from the server (once per session). */
+export async function loadExpenses() {
+  const expenses = useState<Expense[]>('expenses', () => [])
+  const loaded = useState('expenses-loaded', () => false)
+  if (loaded.value) return
+  expenses.value = await useRequestFetch()<Expense[]>('/api/expenses')
+  loaded.value = true
+}
+
+/** Forget the previous user's data (on sign-out). */
+export function resetExpenses() {
+  useState<Expense[]>('expenses', () => []).value = []
+  useState('expenses-loaded', () => false).value = false
+}
+
 export function useExpenses() {
   const route = useRoute()
+  const demo = isDemo(route.query)
   const { t, locale } = useI18n()
   const dateLocale = computed(() => (locale.value === 'ar' ? 'ar-EG-u-nu-latn' : 'en-US'))
 
@@ -46,8 +65,9 @@ export function useExpenses() {
     })
     return [...current, ...past]
   }
-  // useState keeps the list when navigating between pages.
-  const expenses = useState<Expense[]>('expenses', initial)
+  // useState keeps the list when navigating between pages. Real users get theirs from the server
+  // (loaded by the auth middleware); sample data is only for the dev preview.
+  const expenses = useState<Expense[]>('expenses', () => (demo ? initial() : []))
 
   // ?empty=1 starts on a month with no data (next month).
   const view = ref({ y: base.y, m: route.query.empty ? base.m + 1 : base.m })
@@ -83,19 +103,29 @@ export function useExpenses() {
   })
 
   // Add (no id) or update (with id) from a sheet draft, then jump to that month so it's visible.
-  function save(draft: ExpenseDraft, id?: number) {
+  // Saved on the server first; the list only changes once the server accepts it (throws otherwise).
+  async function save(draft: ExpenseDraft, id?: number) {
     const [y = base.y, mo = base.m + 1, d = 1] = draft.date.split('-').map(Number)
     const data = { cat: draft.cat, amount: draft.amount, y, m: mo - 1, day: d, note: draft.note.trim() || undefined }
-    if (id !== undefined) {
-      expenses.value = expenses.value.map(e => (e.id === id ? { id, ...data } : e))
+    const editing = id !== undefined
+
+    let record: Expense
+    if (demo) {
+      record = { id: editing ? id : Math.max(0, ...expenses.value.map(e => e.id)) + 1, ...data }
     } else {
-      const nextId = Math.max(0, ...expenses.value.map(e => e.id)) + 1
-      expenses.value = [...expenses.value, { id: nextId, ...data }]
+      record = await $fetch<Expense>(editing ? `/api/expenses/${id}` : '/api/expenses', {
+        method: editing ? 'PUT' : 'POST',
+        body: data,
+      })
     }
+    expenses.value = editing ? expenses.value.map(e => (e.id === id ? record : e)) : [...expenses.value, record]
     view.value = { y, m: mo - 1 }
   }
 
-  const remove = (id: number) => { expenses.value = expenses.value.filter(e => e.id !== id) }
+  async function remove(id: number) {
+    if (!demo) await $fetch(`/api/expenses/${id}`, { method: 'DELETE' })
+    expenses.value = expenses.value.filter(e => e.id !== id)
+  }
 
   return { expenses, current: base, view, monthLabel, items, total, groups, todayISO, dateLocale, save, remove, prev: () => shift(-1), next: () => shift(1) }
 }

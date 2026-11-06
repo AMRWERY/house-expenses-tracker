@@ -15,8 +15,13 @@ const langOptions = [
   { value: 'en', label: 'English' },
 ] as const
 
-const bio = useBiometric()
-const toggleBiometric = () => (bio.enabled.value ? bio.disable() : bio.enable())
+// Account: shown when signed in (not in the dev-only preview).
+const { user, clear } = useUserSession()
+async function logout() {
+  await clear()
+  resetExpenses() // never leave one person's data in memory for the next
+  await navigateTo(localePath('/login'))
+}
 
 // "Back" points toward the inline-start edge, which flips with the language.
 const backIcon = computed<IconName>(() => (locale.value === 'ar' ? 'arrowRight' : 'arrowLeft'))
@@ -51,25 +56,18 @@ const backIcon = computed<IconName>(() => (locale.value === 'ar' ? 'arrowRight' 
         </div>
       </section>
 
-      <!-- Mobile only: shown when this device is a touch device with a fingerprint / Face ID sensor -->
-      <section v-if="bio.available.value" class="setting rise" style="--i: 2">
-        <h2>{{ t('security') }}</h2>
-        <div class="setting-card setting-row">
-          <span class="row-icon" style="--c: #10b981"><AppIcon name="fingerprint" /></span>
-          <div class="row-text">
-            <div class="row-title">{{ t('biometric_title') }}</div>
-            <div class="row-cat">{{ t('biometric_desc') }}</div>
+      <section v-if="user" class="setting rise" style="--i: 2">
+        <h2>{{ t('account') }}</h2>
+        <div class="setting-card">
+          <div class="setting-row account-row">
+            <span class="row-icon" style="--c: #10b981"><AppIcon name="user" /></span>
+            <div class="row-text">
+              <div class="row-title">{{ user.displayName }}</div>
+              <div class="row-cat">{{ t('signed_in_with_passkey') }}</div>
+            </div>
           </div>
-          <button
-            class="switch"
-            role="switch"
-            :aria-checked="bio.enabled.value"
-            :aria-label="t('biometric_title')"
-            :disabled="bio.busy.value"
-            @click="toggleBiometric"
-          />
+          <button class="btn-text danger" type="button" @click="logout">{{ t('logout') }}</button>
         </div>
-        <p v-if="bio.error.value" class="field-error" role="alert">{{ bio.error.value }}</p>
       </section>
     </main>
   </div>

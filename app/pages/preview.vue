@@ -1,7 +1,12 @@
 <script lang="ts" setup>
-// Design review page: every screen in Light and Dark, plus Home across mobile / tablet / desktop.
-const D = 'today=2026-11-06'
+// Dev-only design review page: every screen in Light and Dark, plus Home across mobile / tablet / desktop.
+// `demo=1` shows local sample data without signing in (only honoured in dev builds).
+const D = 'today=2026-11-06&demo=1'
 const frames = [
+  { group: 'Sign in', label: 'Sign in · Light', url: `/ar/login?theme=light`, w: 390, h: 800 },
+  { group: 'Sign in', label: 'Sign in · Dark', url: `/ar/login?theme=dark`, w: 390, h: 800 },
+  { group: 'Sign in', label: 'New account · Light', url: `/ar/login?theme=light&mode=signup`, w: 390, h: 800 },
+  { group: 'Sign in', label: 'New account · Dark', url: `/ar/login?theme=dark&mode=signup`, w: 390, h: 800 },
   { group: 'Home', label: 'Home · Light', url: `/ar?theme=light&${D}`, w: 390, h: 800 },
   { group: 'Home', label: 'Home · Dark', url: `/ar?theme=dark&${D}`, w: 390, h: 800 },
   { group: 'Home', label: 'Empty · Light', url: `/ar?theme=light&empty=1&${D}`, w: 390, h: 800 },
@@ -10,24 +15,21 @@ const frames = [
   { group: 'Add expense', label: 'Add · Dark', url: `/ar?theme=dark&sheet=add&${D}`, w: 390, h: 800 },
   { group: 'Add expense', label: 'Edit · Light', url: `/ar?theme=light&sheet=edit&${D}`, w: 390, h: 800 },
   { group: 'Add expense', label: 'Edit · Dark', url: `/ar?theme=dark&sheet=edit&${D}`, w: 390, h: 800 },
-  { group: 'Settings', label: 'Settings · Light', url: `/ar/settings?theme=light`, w: 390, h: 800 },
-  { group: 'Settings', label: 'Settings · Dark', url: `/ar/settings?theme=dark`, w: 390, h: 800 },
-  { group: 'Biometric', label: 'Lock · Light', url: `/ar?theme=light&lock=1&${D}`, w: 390, h: 800 },
-  { group: 'Biometric', label: 'Lock · Dark', url: `/ar?theme=dark&lock=1&${D}`, w: 390, h: 800 },
-  { group: 'Biometric', label: 'Settings · Light', url: `/ar/settings?theme=light&bio=1`, w: 390, h: 800 },
-  { group: 'Biometric', label: 'Settings · Dark', url: `/ar/settings?theme=dark&bio=1`, w: 390, h: 800 },
+  { group: 'Settings', label: 'Settings · Light', url: `/ar/settings?theme=light&${D}`, w: 390, h: 800 },
+  { group: 'Settings', label: 'Settings · Dark', url: `/ar/settings?theme=dark&${D}`, w: 390, h: 800 },
   { group: 'Compare', label: 'Compare · Light', url: `/ar/compare?theme=light&${D}`, w: 390, h: 800 },
   { group: 'Compare', label: 'Compare · Dark', url: `/ar/compare?theme=dark&${D}`, w: 390, h: 800 },
   { group: 'Small phone', label: 'Home · Light', url: `/ar?theme=light&${D}`, w: 320, h: 640 },
   { group: 'Small phone', label: 'Add · Dark', url: `/ar?theme=dark&sheet=add&${D}`, w: 320, h: 640 },
   { group: 'Tablet', label: 'Home · Light', url: `/ar?theme=light&${D}`, w: 768, h: 900 },
   { group: 'Tablet', label: 'Add · Dark', url: `/ar?theme=dark&sheet=add&${D}`, w: 768, h: 900 },
+  { group: 'Desktop', label: 'Sign in · Light', url: `/ar/login?theme=light`, w: 1280, h: 760 },
   { group: 'Desktop', label: 'Home · Light', url: `/ar?theme=light&${D}`, w: 1280, h: 760 },
   { group: 'Desktop', label: 'Home · Dark', url: `/ar?theme=dark&${D}`, w: 1280, h: 760 },
   { group: 'Desktop', label: 'Edit · Light', url: `/ar?theme=light&sheet=edit&${D}`, w: 1280, h: 760 },
   { group: 'Desktop', label: 'Compare · Light', url: `/ar/compare?theme=light&${D}`, w: 1280, h: 760 },
   { group: 'Desktop', label: 'Compare · Dark', url: `/ar/compare?theme=dark&${D}`, w: 1280, h: 760 },
-  { group: 'Desktop', label: 'Settings · Dark', url: `/ar/settings?theme=dark`, w: 1280, h: 760 },
+  { group: 'Desktop', label: 'Settings · Dark', url: `/ar/settings?theme=dark&${D}`, w: 1280, h: 760 },
   { group: 'Wide', label: 'Home · Light', url: `/ar?theme=light&${D}`, w: 1600, h: 800 },
 ]
 </script>

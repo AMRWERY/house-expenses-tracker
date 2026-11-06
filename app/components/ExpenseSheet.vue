@@ -67,6 +67,7 @@
           <input id="note" v-model="note" class="field field-input" type="text" maxlength="80" :placeholder="t('note_placeholder')" />
         </div>
 
+        <p v-if="error" class="field-error sheet-error" role="alert">{{ error }}</p>
         <button class="btn btn-block" type="submit">{{ t('save') }}</button>
         <button v-if="mode === 'edit'" class="btn-text danger" type="button" @click="emit('delete')">
           {{ t('delete') }}
@@ -82,6 +83,8 @@ const props = defineProps<{
   expense?: Expense
   today: string
   dateLocale: string
+  /** server-side failure message, shown above the save button */
+  error?: string
 }>()
 const emit = defineEmits<{ close: []; save: [draft: ExpenseDraft]; delete: [] }>()
 

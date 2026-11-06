@@ -14,17 +14,29 @@ const sheet = ref<SheetState>(
       : null,
 )
 
-const openAdd = () => (sheet.value = { mode: 'add' })
-const openEdit = (expense: Expense) => (sheet.value = { mode: 'edit', expense })
+const openAdd = () => { saveError.value = ''; sheet.value = { mode: 'add' } }
+const openEdit = (expense: Expense) => { saveError.value = ''; sheet.value = { mode: 'edit', expense } }
 const close = () => (sheet.value = null)
 
-function onSave(draft: ExpenseDraft) {
-  save(draft, sheet.value?.expense?.id)
-  close()
+// The server must accept a change before the sheet closes; if it doesn't, the sheet stays open with a message.
+const saveError = ref('')
+async function onSave(draft: ExpenseDraft) {
+  saveError.value = ''
+  try {
+    await save(draft, sheet.value?.expense?.id)
+    close()
+  } catch {
+    saveError.value = t('save_failed')
+  }
 }
-function onDelete() {
-  if (sheet.value?.expense) remove(sheet.value.expense.id)
-  close()
+async function onDelete() {
+  saveError.value = ''
+  try {
+    if (sheet.value?.expense) await remove(sheet.value.expense.id)
+    close()
+  } catch {
+    saveError.value = t('save_failed')
+  }
 }
 </script>
 
@@ -67,6 +79,7 @@ function onDelete() {
         :mode="sheet.mode"
         :expense="sheet.expense"
         :today="todayISO"
+        :error="saveError"
         :date-locale="dateLocale"
         @close="close"
         @save="onSave"
