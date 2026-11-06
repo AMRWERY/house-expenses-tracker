@@ -56,7 +56,7 @@
   "email_exists": "That email is already registered",
   "check_email": "We sent a confirmation message to your email. Open it, then sign in",
   "rate_limited": "Too many attempts. Wait a moment and try again",
-  "no_passkey": "No fingerprint is linked to this phone. Link it from your computer first",
+  "no_passkey": "That saved passkey is no longer valid. Tap sign in again and choose your email account from the list. If none is listed, link your phone from your computer first",
   "phone_link_help": "Haven't linked your phone yet? Sign in on a computer, then open Settings and choose \"Link phone\"",
   "link_phone_title": "Link phone fingerprint",
   "link_phone_desc": "Link your phone's fingerprint or face to this account. A QR code appears: scan it with your phone, then confirm with fingerprint or face",

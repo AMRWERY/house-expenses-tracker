@@ -1,27 +1,11 @@
-<script lang="ts" setup generic="T extends string">
-const props = defineProps<{
-  modelValue: T
-  options: { value: T; label: string }[]
-  label: string
-}>()
-const emit = defineEmits<{ 'update:modelValue': [value: T] }>()
-
-const index = computed(() => Math.max(0, props.options.findIndex(o => o.value === props.modelValue)))
-
-// Arrow keys move the selection; "next" follows the reading direction.
-const { locale } = useI18n()
-function onKey(e: KeyboardEvent) {
-  const dir = e.key === 'ArrowRight' ? 1 : e.key === 'ArrowLeft' ? -1 : 0
-  if (!dir) return
-  e.preventDefault()
-  const step = locale.value === 'ar' ? -dir : dir
-  const n = props.options.length
-  emit('update:modelValue', props.options[(index.value + step + n) % n]!.value)
-}
-</script>
-
 <template>
-  <div class="seg" role="radiogroup" :aria-label="label" :style="{ '--n': options.length, '--i': index }" @keydown="onKey">
+  <div
+    class="seg"
+    role="radiogroup"
+    :aria-label="label"
+    :style="{ '--n': options.length, '--i': index }"
+    @keydown="onKey"
+  >
     <span class="seg-ind" aria-hidden="true" />
     <button
       v-for="o in options"
@@ -36,3 +20,32 @@ function onKey(e: KeyboardEvent) {
     </button>
   </div>
 </template>
+
+<script lang="ts" setup generic="T extends string">
+const { locale } = useI18n();
+
+const props = defineProps<{
+  modelValue: T;
+  options: { value: T; label: string }[];
+  label: string;
+}>();
+
+const emit = defineEmits<{ "update:modelValue": [value: T] }>();
+
+const index = computed(() =>
+  Math.max(
+    0,
+    props.options.findIndex((o) => o.value === props.modelValue),
+  ),
+);
+
+// Arrow keys move the selection; "next" follows the reading direction.
+function onKey(e: KeyboardEvent) {
+  const dir = e.key === "ArrowRight" ? 1 : e.key === "ArrowLeft" ? -1 : 0;
+  if (!dir) return;
+  e.preventDefault();
+  const step = locale.value === "ar" ? -dir : dir;
+  const n = props.options.length;
+  emit("update:modelValue", props.options[(index.value + step + n) % n]!.value);
+}
+</script>

@@ -29,6 +29,7 @@ defineEmits<{ prev: []; next: [] }>();
 const prevIcon = computed<IconName>(() =>
   locale.value === "ar" ? "chevronRight" : "chevronLeft",
 );
+
 const nextIcon = computed<IconName>(() =>
   locale.value === "ar" ? "chevronLeft" : "chevronRight",
 );

@@ -5,12 +5,49 @@
  *             (nuxt-auth-utils' useWebAuthn, via /api/webauthn/*).
  * Both end the same way: the server sets a session cookie for the same Supabase user.
  */
+import { startAuthentication } from '@simplewebauthn/browser'
+
 export const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/ // e.g. test@house.com
+
+/**
+ * Passkey sign-in (same two-step exchange nuxt-auth-utils' authenticate() does), written out here so we
+ * can see WHICH passkey the person picked. If the server doesn't know it (e.g. an old passkey left on the
+ * phone from before accounts moved to email), we tell the phone to forget it with the WebAuthn Signal API
+ * (Chrome 132+), so it stops being offered. Browsers without the API just ignore this.
+ */
+async function authenticateWithPasskey(): Promise<boolean> {
+  const { requestOptions, attemptId } = await $fetch<{
+    requestOptions: Parameters<typeof startAuthentication>[0]['optionsJSON']
+    attemptId: string
+  }>('/api/webauthn/authenticate', { method: 'POST', body: { verify: false } })
+
+  const response = await startAuthentication({ optionsJSON: requestOptions })
+
+  try {
+    const result = await $fetch<{ verified?: boolean }>('/api/webauthn/authenticate', {
+      method: 'POST',
+      body: { attemptId, response, verify: true },
+    })
+    return !!result?.verified
+  } catch (e) {
+    const err = e as { data?: { message?: string } }
+    if (err.data?.message === 'unknown_credential') {
+      const pkc = (window as unknown as { PublicKeyCredential?: { signalUnknownCredential?: (o: object) => Promise<void> } })
+        .PublicKeyCredential
+      try {
+        await pkc?.signalUnknownCredential?.({ rpId: location.hostname, credentialId: response.id })
+      } catch {
+        /* best effort */
+      }
+    }
+    throw e
+  }
+}
 
 export function useAuthFlow() {
   const { t } = useI18n()
   const localePath = useLocalePath()
-  const { authenticate, isSupported } = useWebAuthn()
+  const { isSupported } = useWebAuthn()
   const { fetch: refreshSession } = useUserSession()
 
   const busy = ref(false)
@@ -73,7 +110,7 @@ export function useAuthFlow() {
     })
 
   /** Phone: the device offers the passkey linked to the account; the server verifies it. */
-  const signInWithPasskey = () => run(() => authenticate())
+  const signInWithPasskey = () => run(() => authenticateWithPasskey())
 
   return { isSupported, busy, error, notice, signInWithPassword, signUpWithPassword, signInWithPasskey }
 }

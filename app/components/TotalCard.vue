@@ -33,6 +33,8 @@ function animate(to: number) {
 }
 
 onMounted(() => animate(props.total));
+
 watch(() => props.total, animate);
+
 onBeforeUnmount(() => cancelAnimationFrame(raf));
 </script>

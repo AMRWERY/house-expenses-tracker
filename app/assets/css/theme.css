@@ -119,7 +119,10 @@ h1 { font-size: 28px; line-height: 38px; font-weight: 700; }
 .empty-ico .ico { width: 40px; height: 40px; }
 .empty p { font-size: 18px; font-weight: 600; margin-bottom: 20px; }
 .btn {
-  height: 48px; padding-inline: 28px; border-radius: 12px;
+  /* icon + label sit side by side, centered; a long label wraps and the button grows instead of overflowing */
+  display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+  min-height: 48px; padding-block: 8px; line-height: 1.3; text-align: center;
+  padding-inline: 28px; border-radius: 12px;
   background: var(--primary); color: var(--on-primary);
   font-weight: 700; font-size: 18px; transition: background-color .2s, transform .1s;
 }
@@ -270,6 +273,8 @@ html[data-touch] .only-desktop { display: none; }
 
 /* Settings: link phone */
 .setting-desc { margin-bottom: 12px; font-size: 14px; line-height: 22px; color: var(--text-2); }
+.setting-card .btn-block { margin-top: 0; }
+.btn .ico { flex: none; width: 20px; height: 20px; }
 .setting-card .auth-notice { margin-top: 12px; }
 .device-title { margin: 20px 4px 8px; font-size: 14px; line-height: 20px; font-weight: 600; color: var(--text-2); }
 .device-list { list-style: none; margin: 0; padding: 0; }
