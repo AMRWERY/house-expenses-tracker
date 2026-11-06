@@ -18,3 +18,13 @@ export interface ExpenseDraft {
   date: string;
   note: string;
 }
+
+export interface ExpenseRecord {
+  id: number
+  cat: string
+  amount: number
+  y: number
+  m: number
+  day: number
+  note?: string
+}

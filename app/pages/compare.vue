@@ -1,6 +1,5 @@
 <script lang="ts" setup>
 const { t, locale } = useI18n()
-const localePath = useLocalePath()
 useTheme()
 
 const { months, average, highest, lowest } = useMonthlyComparison()
@@ -14,7 +13,7 @@ const deltaText = (d: number) =>
 <template>
   <div class="app">
     <header class="page-head">
-      <nuxt-link-locale class="icon-btn" :to="localePath('/')" :aria-label="t('back')">
+      <nuxt-link-locale class="icon-btn" to="/" :aria-label="t('back')">
         <AppIcon :name="backIcon" />
       </nuxt-link-locale>
       <h1>{{ t('compare') }}</h1>

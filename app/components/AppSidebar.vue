@@ -6,16 +6,16 @@
     </div>
 
     <nav class="nav" :aria-label="t('app_title')">
-      <nuxt-link-locale class="nav-link" exact-active-class="active" :to="localePath('/')">
+      <nuxt-link-locale class="nav-link" exact-active-class="active" to="/">
         <AppIcon name="home" />{{ t("nav_home") }}
       </nuxt-link-locale>
-      <nuxt-link-locale class="nav-link" exact-active-class="active" :to="localePath('/compare')">
+      <nuxt-link-locale class="nav-link" exact-active-class="active" to="/compare">
         <AppIcon name="compare" />{{ t("compare") }}
       </nuxt-link-locale>
     </nav>
 
     <nav class="nav nav-bottom">
-      <nuxt-link-locale class="nav-link" exact-active-class="active" :to="localePath('/settings')">
+      <nuxt-link-locale class="nav-link" exact-active-class="active" to="/settings">
         <AppIcon name="settings" />{{ t("settings") }}
       </nuxt-link-locale>
     </nav>
@@ -24,5 +24,4 @@
 
 <script lang="ts" setup>
 const { t } = useI18n();
-const localePath = useLocalePath();
 </script>

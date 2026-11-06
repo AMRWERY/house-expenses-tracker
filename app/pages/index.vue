@@ -44,7 +44,8 @@ async function onDelete() {
   <div class="app">
     <AppHeader>
       <template #actions>
-        <button class="btn add-desktop" @click="openAdd">
+        <!-- Hidden on an empty month: the empty state already has its own "Add expense" button. -->
+        <button v-if="items.length" class="btn add-desktop" @click="openAdd">
           <AppIcon name="plus" />{{ t('add_expense') }}
         </button>
       </template>

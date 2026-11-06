@@ -1,4 +1,4 @@
-import type { DatetimeFormats, NumberFormats } from "../../types/i18n-types";
+import type { DatetimeFormats, NumberFormats } from "~/types/i18n-types";
 
 const datetimeFormats: DatetimeFormats = {
   en: {

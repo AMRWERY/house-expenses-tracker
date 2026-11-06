@@ -6,14 +6,14 @@
       <div class="header-actions">
         <nuxt-link-locale
           class="icon-btn"
-          :to="localePath('/compare')"
+          to="/compare"
           :aria-label="t('compare')"
         >
           <AppIcon name="compare" />
         </nuxt-link-locale>
         <nuxt-link-locale
           class="icon-btn"
-          :to="localePath('/settings')"
+          to="/settings"
           :aria-label="t('settings')"
         >
           <AppIcon name="settings" />
@@ -27,6 +27,4 @@
 
 <script lang="ts" setup>
 const { t } = useI18n();
-
-const localePath = useLocalePath();
 </script>

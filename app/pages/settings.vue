@@ -33,7 +33,7 @@ const backIcon = computed<IconName>(() => (locale.value === 'ar' ? 'arrowRight' 
 <template>
   <div class="app narrow">
     <header class="page-head">
-      <nuxt-link-locale class="icon-btn" :to="localePath('/')" :aria-label="t('back')">
+      <nuxt-link-locale class="icon-btn" to="/" :aria-label="t('back')">
         <AppIcon :name="backIcon" />
       </nuxt-link-locale>
       <h1>{{ t('settings') }}</h1>
