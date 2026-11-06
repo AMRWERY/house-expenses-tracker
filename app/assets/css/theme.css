@@ -239,6 +239,32 @@ a.icon-btn { color: var(--text-2); }
 .seg button { position: relative; height: 44px; border-radius: 10px; font-weight: 600; font-size: 16px; color: var(--text-2); transition: color .2s; }
 .seg button[aria-checked="true"] { color: var(--text); }
 
+/* Biometric lock: shown only while <html data-locked> (set before first paint) */
+.lock { display: none; position: fixed; inset: 0; z-index: 100; align-items: center; justify-content: center; padding: 24px; background: var(--bg); }
+html[data-locked] .lock { display: flex; }
+html[data-locked] .shell { visibility: hidden; }
+html[data-locked] body { overflow: hidden; }
+.lock-card { width: 100%; max-width: 360px; text-align: center; }
+.lock-ico { width: 96px; height: 96px; margin: 0 auto 24px; border-radius: 50%; display: grid; place-items: center; background: var(--primary-soft); color: var(--primary-hover); }
+:root[data-theme="dark"] .lock-ico { color: var(--primary); }
+.lock-ico .ico { width: 48px; height: 48px; stroke-width: 1.5; }
+.lock-hint { margin: 8px 0 28px; color: var(--text-2); }
+.lock-btn { display: inline-flex; align-items: center; justify-content: center; gap: 10px; width: 100%; }
+.lock-btn:disabled { opacity: .5; cursor: default; }
+.lock-card .field-error { margin-top: 16px; text-align: center; }
+
+/* Settings row with a switch */
+.setting-row { display: flex; align-items: center; gap: 12px; padding: 16px; }
+.setting + .setting .field-error, .setting .field-error { padding-inline: 4px; }
+.switch { flex: none; position: relative; width: 44px; height: 24px; border-radius: 999px; background: var(--border); transition: background-color .25s; }
+.switch::after { content: ""; position: absolute; inset-block-start: 2px; inset-inline-start: 2px; width: 20px; height: 20px; border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgba(15, 23, 42, .3); transition: inset-inline-start .25s cubic-bezier(.2, .9, .3, 1.2); }
+.switch[aria-checked="true"] { background: var(--primary-hover); }
+:root[data-theme="dark"] .switch[aria-checked="true"] { background: var(--primary); }
+.switch[aria-checked="true"]::after { inset-inline-start: 22px; }
+.switch:disabled { opacity: .5; }
+/* 44px touch target around the 24px switch */
+.switch::before { content: ""; position: absolute; inset: -10px -4px; }
+
 /* Responsive layout: mobile < 640 · tablet 640-1024 · desktop > 1024 */
 .layout { max-width: 720px; margin-inline: auto; }
 @media (hover: hover) { .row:hover { background: var(--surface-alt); } }

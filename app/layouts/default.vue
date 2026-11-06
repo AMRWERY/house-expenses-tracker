@@ -1,8 +1,11 @@
 <template>
-  <div class="shell">
-    <AppSidebar />
-    <div class="shell-main">
-      <slot />
+  <div>
+    <BiometricLock />
+    <div class="shell">
+      <AppSidebar />
+      <div class="shell-main">
+        <slot />
+      </div>
     </div>
   </div>
 </template>

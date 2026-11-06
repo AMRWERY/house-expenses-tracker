@@ -21,12 +21,14 @@ export default defineNuxtConfig({
       ],
       script: [
         {
-          // Runs before first paint so a refresh never flashes the wrong theme.
-          // Mirrors useTheme(): ?theme=light|dark wins, then the saved choice, then the OS setting.
+          // Runs before first paint so a refresh never flashes the wrong theme, or the app's
+          // content before the biometric lock.
+          // Theme mirrors useTheme(): ?theme=light|dark wins, then the saved choice, then the OS setting.
+          // Lock mirrors useBiometric(): a saved credential on a touch device that hasn't unlocked this session.
           tagPosition: "head",
           tagPriority: "critical",
           innerHTML:
-            "(function(){try{var q=new URLSearchParams(location.search).get('theme');var m=(q==='light'||q==='dark')?q:(localStorage.getItem('theme')||'system');var d=m==='dark'||(m!=='light'&&matchMedia('(prefers-color-scheme: dark)').matches);document.documentElement.dataset.theme=d?'dark':'light'}catch(e){}})()",
+            "(function(){try{var s=new URLSearchParams(location.search);var q=s.get('theme');var m=(q==='light'||q==='dark')?q:(localStorage.getItem('theme')||'system');var d=m==='dark'||(m!=='light'&&matchMedia('(prefers-color-scheme: dark)').matches);var e=document.documentElement;e.dataset.theme=d?'dark':'light';if(s.get('lock')==='1'||(localStorage.getItem('biometric-credential')&&matchMedia('(pointer: coarse) and (hover: none)').matches&&sessionStorage.getItem('unlocked')!=='true'))e.setAttribute('data-locked','')}catch(x){}})()",
         },
       ],
       link: [

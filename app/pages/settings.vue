@@ -15,6 +15,9 @@ const langOptions = [
   { value: 'en', label: 'English' },
 ] as const
 
+const bio = useBiometric()
+const toggleBiometric = () => (bio.enabled.value ? bio.disable() : bio.enable())
+
 // "Back" points toward the inline-start edge, which flips with the language.
 const backIcon = computed<IconName>(() => (locale.value === 'ar' ? 'arrowRight' : 'arrowLeft'))
 </script>
@@ -46,6 +49,27 @@ const backIcon = computed<IconName>(() => (locale.value === 'ar' ? 'arrowRight' 
             @update:model-value="setLocale($event as 'ar' | 'en')"
           />
         </div>
+      </section>
+
+      <!-- Mobile only: shown when this device is a touch device with a fingerprint / Face ID sensor -->
+      <section v-if="bio.available.value" class="setting rise" style="--i: 2">
+        <h2>{{ t('security') }}</h2>
+        <div class="setting-card setting-row">
+          <span class="row-icon" style="--c: #10b981"><AppIcon name="fingerprint" /></span>
+          <div class="row-text">
+            <div class="row-title">{{ t('biometric_title') }}</div>
+            <div class="row-cat">{{ t('biometric_desc') }}</div>
+          </div>
+          <button
+            class="switch"
+            role="switch"
+            :aria-checked="bio.enabled.value"
+            :aria-label="t('biometric_title')"
+            :disabled="bio.busy.value"
+            @click="toggleBiometric"
+          />
+        </div>
+        <p v-if="bio.error.value" class="field-error" role="alert">{{ bio.error.value }}</p>
       </section>
     </main>
   </div>
