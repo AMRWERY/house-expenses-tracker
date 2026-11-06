@@ -5,23 +5,39 @@ const { t, locale } = useI18n()
 const switchLocalePath = useSwitchLocalePath()
 useTheme()
 
-const { isSupported, busy, error, signIn, signUp } = useAuthFlow()
+const { isSupported, busy, error, notice, signInWithPassword, signUpWithPassword, signInWithPasskey } = useAuthFlow()
 
+// Desktop: email + password. Phone (touch devices): fingerprint / Face ID only.
+// Which one shows is decided by CSS from <html data-touch>, set before first paint.
 type Mode = 'signin' | 'signup'
 const mode = ref<Mode>(useRoute().query.mode === 'signup' ? 'signup' : 'signin')
-const name = ref('')
+const email = ref('')
+const password = ref('')
+const emailTouched = ref(false)
 
 const modes = computed<{ value: Mode; label: string }[]>(() => [
   { value: 'signin', label: t('signin') },
   { value: 'signup', label: t('signup') },
 ])
 
+const emailValid = computed(() => EMAIL_RE.test(email.value.trim()))
+const passwordValid = computed(() =>
+  mode.value === 'signup' ? password.value.length >= 8 && password.value.length <= 72 : password.value.length > 0,
+)
+const canSubmit = computed(() => emailValid.value && passwordValid.value && !busy.value)
+const showEmailError = computed(() => emailTouched.value && email.value.trim() !== '' && !emailValid.value)
+
 const otherLocale = computed(() => (locale.value === 'ar' ? 'en' : 'ar'))
 
 function submit() {
-  if (mode.value === 'signin') signIn()
-  else signUp(name.value)
+  if (!canSubmit.value) return
+  const e = email.value.trim().toLowerCase()
+  if (mode.value === 'signin') signInWithPassword(e, password.value)
+  else signUpWithPassword(e, password.value)
 }
+
+// Changing tabs clears the old message.
+watch(mode, () => { error.value = ''; notice.value = '' })
 </script>
 
 <template>
@@ -31,33 +47,67 @@ function submit() {
     </nuxt-link>
 
     <div class="lock-card">
-      <div class="lock-ico"><AppIcon name="fingerprint" /></div>
-      <h1>{{ t('app_title') }}</h1>
-      <p class="lock-hint">{{ mode === 'signin' ? t('signin_hint') : t('signup_hint') }}</p>
+      <!-- ============ Desktop: email + password ============ -->
+      <div class="only-desktop">
+        <div class="lock-ico"><AppIcon name="user" /></div>
+        <h1>{{ t('app_title') }}</h1>
+        <p class="lock-hint">{{ mode === 'signin' ? t('signin_pw_hint') : t('signup_pw_hint') }}</p>
 
-      <SegmentedControl v-model="mode" :options="modes" :label="t('app_title')" />
+        <SegmentedControl v-model="mode" :options="modes" :label="t('app_title')" />
 
-      <form class="auth-form" novalidate @submit.prevent="submit">
-        <template v-if="mode === 'signup'">
-          <label class="field-label" for="name">{{ t('name_label') }}</label>
+        <form class="auth-form" novalidate @submit.prevent="submit">
+          <label class="field-label" for="email">{{ t('email_label') }}</label>
           <input
-            id="name"
-            v-model="name"
+            id="email"
+            v-model="email"
             class="field field-input"
-            type="text"
-            maxlength="40"
-            autocomplete="username"
-            :placeholder="t('name_placeholder')"
+            type="email"
+            inputmode="email"
+            dir="ltr"
+            autocomplete="email"
+            maxlength="254"
+            placeholder="test@house.com"
+            :aria-invalid="showEmailError"
+            @blur="emailTouched = true"
           />
-        </template>
+          <p v-if="showEmailError" class="field-error field-error-inline">{{ t('invalid_email') }}</p>
 
-        <button class="btn lock-btn" type="submit" :disabled="busy || !isSupported || (mode === 'signup' && name.trim().length < 2)">
-          <AppIcon name="fingerprint" />{{ mode === 'signin' ? t('signin_btn') : t('signup_btn') }}
+          <label class="field-label field-label-gap" for="password">{{ t('password_label') }}</label>
+          <input
+            id="password"
+            v-model="password"
+            class="field field-input"
+            type="password"
+            dir="ltr"
+            maxlength="72"
+            :autocomplete="mode === 'signin' ? 'current-password' : 'new-password'"
+            :placeholder="mode === 'signup' ? t('password_hint') : ''"
+          />
+
+          <button class="btn lock-btn" type="submit" :disabled="!canSubmit">
+            {{ mode === 'signin' ? t('signin_pw_btn') : t('signup_pw_btn') }}
+          </button>
+
+          <p v-if="notice" class="auth-notice" role="status">{{ notice }}</p>
+          <p v-if="error" class="field-error" role="alert">{{ error }}</p>
+        </form>
+      </div>
+
+      <!-- ============ Phone: fingerprint / Face ID ============ -->
+      <div class="only-mobile">
+        <div class="lock-ico"><AppIcon name="fingerprint" /></div>
+        <h1>{{ t('app_title') }}</h1>
+        <p class="lock-hint">{{ t('signin_hint') }}</p>
+
+        <button class="btn lock-btn" type="button" :disabled="busy || !isSupported" @click="signInWithPasskey()">
+          <AppIcon name="fingerprint" />{{ t('signin_btn') }}
         </button>
 
         <p v-if="!isSupported" class="field-error">{{ t('auth_unsupported') }}</p>
         <p v-else-if="error" class="field-error" role="alert">{{ error }}</p>
-      </form>
+
+        <p class="auth-help">{{ t('phone_link_help') }}</p>
+      </div>
     </div>
   </div>
 </template>

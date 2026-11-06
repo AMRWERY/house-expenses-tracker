@@ -1,16 +1,10 @@
-// Sign in with a passkey. The server verifies the signed challenge against the stored public key.
+// Sign in on the phone with fingerprint / Face ID. The device offers the passkey that was linked to the
+// person's account; the server verifies the signed challenge, then loads THAT account (same email,
+// same expenses as on desktop).
 export default defineWebAuthnAuthenticateEventHandler({
   ...challengeStore,
 
   getOptions: () => ({ userVerification: 'required' }),
-
-  // Only used when a name was typed; otherwise the device offers its saved passkeys.
-  async allowCredentials(_event, userName) {
-    const user = await getUser(normalizeUserName(userName))
-    if (!user) return []
-    const creds = await getUserCredentials(user.id)
-    return creds.map(c => ({ id: c.id, transports: c.transports }))
-  },
 
   async getCredential(_event, credentialId) {
     const cred = await getCredential(credentialId)
@@ -25,14 +19,12 @@ export default defineWebAuthnAuthenticateEventHandler({
     }
 
     const { id, userId } = credential as StoredCredential
-    const user = await getUserById(userId)
-    if (!user) throw createError({ statusCode: 401, message: 'unknown_user' })
+    const email = await getAuthUserEmail(userId)
+    if (!email) throw createError({ statusCode: 401, message: 'unknown_user' }) // account was deleted
 
     // Keep the signature counter current (helps detect cloned authenticators).
     await updateCredentialCounter(id, authenticationInfo.newCounter)
 
-    await setUserSession(event, {
-      user: { id: user.id, userName: user.userName, displayName: user.displayName },
-    })
+    await setUserSession(event, { user: { id: userId, email } })
   },
 })

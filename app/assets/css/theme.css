@@ -255,6 +255,25 @@ a.icon-btn { color: var(--text-2); }
 .lock-btn:disabled { opacity: .5; cursor: default; }
 .lock-card .field-error { margin-top: 16px; text-align: center; }
 
+/* Desktop vs phone sign-in: decided by <html data-touch> (set before first paint) */
+.only-mobile { display: none; }
+html[data-touch] .only-mobile { display: block; }
+html[data-touch] .only-desktop { display: none; }
+.field-label-gap { margin-top: 14px; }
+.field-error-inline { margin-top: 6px; text-align: start; padding-inline: 4px; }
+.auth-notice { margin-top: 14px; padding: 12px 14px; border-radius: 12px; background: var(--primary-soft); color: var(--text); font-size: 14px; line-height: 22px; text-align: start; }
+.auth-help { margin-top: 24px; font-size: 14px; line-height: 22px; color: var(--text-2); }
+.row-email { overflow-wrap: anywhere; text-align: start; }
+
+/* Settings: link phone */
+.setting-desc { margin-bottom: 12px; font-size: 14px; line-height: 22px; color: var(--text-2); }
+.setting-card .auth-notice { margin-top: 12px; }
+.device-title { margin: 20px 4px 8px; font-size: 14px; line-height: 20px; font-weight: 600; color: var(--text-2); }
+.device-list { list-style: none; margin: 0; padding: 0; }
+.device-row { display: flex; align-items: center; gap: 12px; padding: 8px 4px; }
+.device-row + .device-row { border-top: 1px solid var(--border); }
+.device-remove { width: auto; margin: 0; padding-inline: 12px; height: 40px; font-size: 14px; }
+
 /* Settings: account row */
 .setting-row { display: flex; align-items: center; gap: 12px; }
 .account-row { padding: 4px 4px 8px; }

@@ -3,10 +3,14 @@
 // `demo=1` shows local sample data without signing in (only honoured in dev builds).
 const D = 'today=2026-11-06&demo=1'
 const frames = [
-  { group: 'Sign in', label: 'Sign in · Light', url: `/ar/login?theme=light`, w: 390, h: 800 },
-  { group: 'Sign in', label: 'Sign in · Dark', url: `/ar/login?theme=dark`, w: 390, h: 800 },
-  { group: 'Sign in', label: 'New account · Light', url: `/ar/login?theme=light&mode=signup`, w: 390, h: 800 },
-  { group: 'Sign in', label: 'New account · Dark', url: `/ar/login?theme=dark&mode=signup`, w: 390, h: 800 },
+  // Phone: fingerprint / Face ID only (touch=1 forces the phone layout in a desktop browser)
+  { group: 'Sign in · phone', label: 'Light', url: `/ar/login?theme=light&touch=1`, w: 390, h: 800 },
+  { group: 'Sign in · phone', label: 'Dark', url: `/ar/login?theme=dark&touch=1`, w: 390, h: 800 },
+  // Desktop: email + password
+  { group: 'Sign in · desktop', label: 'Sign in · Light', url: `/ar/login?theme=light`, w: 1280, h: 760 },
+  { group: 'Sign in · desktop', label: 'Sign in · Dark', url: `/ar/login?theme=dark`, w: 1280, h: 760 },
+  { group: 'Sign in · desktop', label: 'New account · Light', url: `/ar/login?theme=light&mode=signup`, w: 1280, h: 760 },
+  { group: 'Sign in · desktop', label: 'New account · Dark', url: `/ar/login?theme=dark&mode=signup`, w: 1280, h: 760 },
   { group: 'Home', label: 'Home · Light', url: `/ar?theme=light&${D}`, w: 390, h: 800 },
   { group: 'Home', label: 'Home · Dark', url: `/ar?theme=dark&${D}`, w: 390, h: 800 },
   { group: 'Home', label: 'Empty · Light', url: `/ar?theme=light&empty=1&${D}`, w: 390, h: 800 },

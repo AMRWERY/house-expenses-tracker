@@ -1,5 +1,5 @@
 /**
- * Supabase database types for this app. Mirrors supabase/migrations/20261106000000_init.sql
+ * Supabase database types for this app. Mirrors supabase/migrations/ (init + email_auth)
  * in the format `supabase gen types typescript` produces.
  *
  * Regenerate after any schema change:  npm run types:db   (needs `npx supabase login` once)
@@ -18,27 +18,6 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      app_users: {
-        Row: {
-          id: string;
-          user_name: string;
-          display_name: string;
-          created_at: string;
-        };
-        Insert: {
-          id?: string;
-          user_name: string;
-          display_name: string;
-          created_at?: string;
-        };
-        Update: {
-          id?: string;
-          user_name?: string;
-          display_name?: string;
-          created_at?: string;
-        };
-        Relationships: [];
-      };
       passkeys: {
         Row: {
           id: string;
@@ -70,15 +49,7 @@ export type Database = {
           aaguid?: string | null;
           created_at?: string;
         };
-        Relationships: [
-          {
-            foreignKeyName: "passkeys_user_id_fkey";
-            columns: ["user_id"];
-            isOneToOne: false;
-            referencedRelation: "app_users";
-            referencedColumns: ["id"];
-          },
-        ];
+        Relationships: []; // user_id -> auth.users(id) (other schema, so not listed here)
       };
       webauthn_challenges: {
         Row: {
@@ -132,15 +103,7 @@ export type Database = {
           note?: string | null;
           created_at?: string;
         };
-        Relationships: [
-          {
-            foreignKeyName: "expenses_user_id_fkey";
-            columns: ["user_id"];
-            isOneToOne: false;
-            referencedRelation: "app_users";
-            referencedColumns: ["id"];
-          },
-        ];
+        Relationships: []; // user_id -> auth.users(id) (other schema, so not listed here)
       };
     };
     Views: {

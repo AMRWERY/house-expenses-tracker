@@ -2,28 +2,14 @@ import type { WebAuthnCredential } from '#auth-utils'
 import type { Tables } from '../../app/types/database.types'
 
 /**
- * Users, passkeys and one-time WebAuthn challenges, stored in Supabase Postgres
- * (tables created by supabase/migrations/20261106000000_init.sql).
+ * Passkeys (fingerprint / Face ID) and one-time WebAuthn challenges, stored in Supabase Postgres.
+ * Accounts themselves live in Supabase Auth (email + password); a passkey row's `user_id` is that
+ * auth user's id, which is what ties a phone's biometrics to the person's email account.
  */
-
-export interface StoredUser {
-  id: string
-  userName: string
-  displayName: string
-}
 
 export interface StoredCredential extends WebAuthnCredential {
   userId: string
 }
-
-/** Names are case-insensitive and unique. */
-export const normalizeUserName = (s: string) => s.trim().toLowerCase()
-
-const toUser = (r: Tables<'app_users'>): StoredUser => ({
-  id: r.id,
-  userName: r.user_name,
-  displayName: r.display_name,
-})
 
 const toCredential = (r: Tables<'passkeys'>): StoredCredential => ({
   id: r.id,
@@ -35,32 +21,13 @@ const toCredential = (r: Tables<'passkeys'>): StoredCredential => ({
   aaguid: r.aaguid ?? undefined,
 })
 
-// ---- Users --------------------------------------------------------------------------------------------------
+// ---- Accounts (Supabase Auth) -------------------------------------------------------------------------------
 
-export async function getUser(userName: string) {
-  const row = must(await useSupabase().from('app_users').select('*').eq('user_name', userName).maybeSingle())
-  return row ? toUser(row) : null
-}
-
-export async function getUserById(id: string) {
-  const row = must(await useSupabase().from('app_users').select('*').eq('id', id).maybeSingle())
-  return row ? toUser(row) : null
-}
-
-/** Throws 409 when the name is taken (enforced by a unique constraint, so races can't create duplicates). */
-export async function createUser(input: { userName: string; displayName: string }) {
-  const row = must(
-    await useSupabase()
-      .from('app_users')
-      .insert({ user_name: input.userName, display_name: input.displayName })
-      .select()
-      .single(),
-  )
-  return toUser(row!)
-}
-
-export async function deleteUser(id: string) {
-  await useSupabase().from('app_users').delete().eq('id', id)
+/** Email of an auth user, or null if the account no longer exists. */
+export async function getAuthUserEmail(userId: string) {
+  const { data, error } = await useSupabase().auth.admin.getUserById(userId)
+  if (error || !data.user?.email) return null
+  return data.user.email
 }
 
 // ---- Passkeys -----------------------------------------------------------------------------------------------
@@ -91,6 +58,23 @@ export async function getUserCredentials(userId: string) {
 
 export async function updateCredentialCounter(id: string, counter: number) {
   must(await useSupabase().from('passkeys').update({ counter }).eq('id', id))
+}
+
+/** For the Settings list of linked devices. */
+export async function listPasskeys(userId: string) {
+  const rows =
+    must(
+      await useSupabase().from('passkeys').select('id, created_at, backed_up').eq('user_id', userId).order('created_at'),
+    ) ?? []
+  return rows.map(r => ({ id: r.id, createdAt: r.created_at, backedUp: r.backed_up }))
+}
+
+/** Returns false when the passkey doesn't exist or belongs to someone else. */
+export async function deletePasskey(userId: string, id: string) {
+  const row = must(
+    await useSupabase().from('passkeys').delete().eq('id', id).eq('user_id', userId).select('id').maybeSingle(),
+  )
+  return !!row
 }
 
 // ---- WebAuthn challenges: single use, expire after 5 minutes ------------------------------------------

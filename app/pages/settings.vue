@@ -23,6 +23,9 @@ async function logout() {
   await navigateTo(localePath('/login'))
 }
 
+const passkeys = usePasskeys()
+const dateLocale = computed(() => (locale.value === 'ar' ? 'ar-EG-u-nu-latn' : 'en-US'))
+
 // "Back" points toward the inline-start edge, which flips with the language.
 const backIcon = computed<IconName>(() => (locale.value === 'ar' ? 'arrowRight' : 'arrowLeft'))
 </script>
@@ -62,11 +65,39 @@ const backIcon = computed<IconName>(() => (locale.value === 'ar' ? 'arrowRight' 
           <div class="setting-row account-row">
             <span class="row-icon" style="--c: #10b981"><AppIcon name="user" /></span>
             <div class="row-text">
-              <div class="row-title">{{ user.displayName }}</div>
-              <div class="row-cat">{{ t('signed_in_with_passkey') }}</div>
+              <div class="row-title row-email" dir="ltr">{{ user.email }}</div>
+              <div class="row-cat">{{ t('signed_in') }}</div>
             </div>
           </div>
           <button class="btn-text danger" type="button" @click="logout">{{ t('logout') }}</button>
+        </div>
+      </section>
+
+      <!-- Desktop only: link this account to a phone's fingerprint / Face ID (QR code). -->
+      <section v-if="user" class="setting rise only-desktop" style="--i: 3">
+        <h2>{{ t('link_phone_title') }}</h2>
+        <div class="setting-card">
+          <p class="setting-desc">{{ t('link_phone_desc') }}</p>
+          <button class="btn btn-block" type="button" :disabled="passkeys.busy.value || !passkeys.isSupported.value" @click="passkeys.link()">
+            <AppIcon name="fingerprint" />{{ t('link_phone_btn') }}
+          </button>
+
+          <p v-if="passkeys.notice.value" class="auth-notice" role="status">{{ passkeys.notice.value }}</p>
+          <p v-if="passkeys.error.value" class="field-error sheet-error" role="alert">{{ passkeys.error.value }}</p>
+
+          <template v-if="passkeys.devices.value.length">
+            <h3 class="device-title">{{ t('linked_devices') }}</h3>
+            <ul class="device-list">
+              <li v-for="d in passkeys.devices.value" :key="d.id" class="device-row">
+                <span class="row-icon" style="--c: #10b981"><AppIcon name="fingerprint" /></span>
+                <div class="row-text">
+                  <div class="row-title">{{ t('linked_phone') }}</div>
+                  <div class="row-cat">{{ new Date(d.createdAt).toLocaleDateString(dateLocale) }}</div>
+                </div>
+                <button class="btn-text danger device-remove" type="button" @click="passkeys.unlink(d.id)">{{ t('unlink') }}</button>
+              </li>
+            </ul>
+          </template>
         </div>
       </section>
     </main>

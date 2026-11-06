@@ -1,58 +1,42 @@
-// Create an account: the person picks a name and registers a passkey (fingerprint / Face ID).
+// Link a phone's fingerprint / Face ID to the account that is signed in RIGHT NOW (from desktop).
+//
+// The passkey is saved against the session's user id, never against anything the client sends, so a
+// passkey can only ever be attached to the account whose owner is signed in. That is what makes the
+// phone's biometrics and the email account the same person.
 export default defineWebAuthnRegisterEventHandler({
   ...challengeStore,
 
-  // Ask for a platform authenticator (the phone's own biometrics) with user verification,
-  // and a discoverable credential so sign-in doesn't need the name typed again.
   getOptions: () => ({
     rpName: 'مصروفات البيت',
+    // Offer "use a phone or tablet" (QR code / Bluetooth) so the PHONE creates the passkey and
+    // protects it with its own fingerprint / Face ID. Discoverable, so sign-in needs no typing.
+    hints: ['hybrid'],
     authenticatorSelection: {
-      authenticatorAttachment: 'platform',
+      authenticatorAttachment: 'cross-platform',
       residentKey: 'required',
       userVerification: 'required',
     },
   }),
 
-  // Runs on both steps. A name that already exists is rejected: otherwise anyone could
-  // attach their own passkey to someone else's account and sign in as them.
-  async validateUser(body) {
-    const userName = normalizeUserName(String(body.userName ?? ''))
-    const displayName = String(body.displayName ?? body.userName ?? '').trim().slice(0, 40)
-    if (userName.length < 2 || userName.length > 40 || !/^[\p{L}\p{N}_. -]+$/u.test(userName)) {
-      throw createError({ statusCode: 400, message: 'invalid_name' })
-    }
-    if (await getUser(userName)) {
-      throw createError({ statusCode: 409, message: 'user_exists' })
-    }
-    return { userName, displayName: displayName || userName }
+  // The signed-in account decides who this passkey is for.
+  async validateUser(_body, event) {
+    const { user } = await requireUserSession(event)
+    return { userName: user.email, displayName: user.email }
   },
 
-  async onSuccess(event, { user, credential, registrationInfo }) {
+  // Don't register the same phone twice.
+  async excludeCredentials(event) {
+    const { user } = await requireUserSession(event)
+    const existing = await getUserCredentials(user.id)
+    return existing.map(c => ({ id: c.id, transports: c.transports }))
+  },
+
+  async onSuccess(event, { credential, registrationInfo }) {
     // The library doesn't enforce this; we do: the biometric / PIN check must have happened.
     if (!registrationInfo.userVerified) {
       throw createError({ statusCode: 400, message: 'verification_required' })
     }
-
-    // The unique constraint on user_name settles any race between two sign-ups with the same name.
-    let created: StoredUser
-    try {
-      created = await createUser({ userName: user.userName, displayName: user.displayName ?? user.userName })
-    } catch (e) {
-      if ((e as { statusCode?: number }).statusCode === 409) {
-        throw createError({ statusCode: 409, message: 'user_exists' })
-      }
-      throw e
-    }
-
-    try {
-      await saveCredential(created.id, credential)
-    } catch (e) {
-      await deleteUser(created.id) // don't leave an account nobody can sign in to
-      throw e
-    }
-
-    await setUserSession(event, {
-      user: { id: created.id, userName: created.userName, displayName: created.displayName },
-    })
+    const { user } = await requireUserSession(event)
+    await saveCredential(user.id, credential)
   },
 })

@@ -7,8 +7,8 @@ import type { Database } from '../../app/types/database.types'
  * It bypasses Row Level Security, so every query must be scoped to the signed-in user.
  * Never import this from app/ code: the secret key must not reach the browser.
  *
- * Env (see .env): SUPABASE_URL, SUPABASE_SECRET_KEY.
- * (SUPABASE_KEY, the publishable key, isn't needed: the browser never talks to Supabase directly.)
+ * Env (see .env): SUPABASE_URL, SUPABASE_SECRET_KEY, and SUPABASE_KEY (publishable) for email/password sign-in.
+ * The browser never talks to Supabase directly; everything goes through our /api routes.
  */
 let client: SupabaseClient<Database> | undefined
 
@@ -21,6 +21,20 @@ export function useSupabase(): SupabaseClient<Database> {
   }
   client = createClient<Database>(url, secret, { auth: { persistSession: false, autoRefreshToken: false } })
   return client
+}
+
+/**
+ * A fresh client for email + password sign-in/sign-up, using the publishable key (the normal key for
+ * auth flows). Create one per request and never share it: after signing in it holds that person's
+ * Supabase session in memory.
+ */
+export function newAuthClient(): SupabaseClient<Database> {
+  const url = process.env.SUPABASE_URL
+  const key = process.env.SUPABASE_KEY
+  if (!url || !key) throw createError({ statusCode: 500, message: 'server_not_configured' })
+  return createClient<Database>(url, key, {
+    auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false },
+  })
 }
 
 /** Unwrap a Supabase result. Details go to the server log, never to the client. */
