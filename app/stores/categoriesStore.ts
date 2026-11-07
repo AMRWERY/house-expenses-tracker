@@ -1,17 +1,30 @@
-import type { Category, CategoryDraft, CustomCategory } from "~/types/stores/categoriesStore";
+import type { Category, CategoryDraft } from "~/types/stores/categoriesStore";
 import { ICONS, type IconName } from "~/utils/icons";
 
-/** What the server sends for a custom category (the icon is a plain string there). */
-type CategoryRecord = Omit<CustomCategory, "icon"> & { icon: string };
+/** What the server sends for a category. */
+interface CategoryRecord {
+  id: string;
+  key: string | null;
+  name: string | null;
+  color: string;
+  icon: string;
+}
 
-const toCustom = (r: CategoryRecord): CustomCategory => ({
-  ...r,
+const toCategory = (r: CategoryRecord): Category => ({
+  key: r.key ?? r.id,
+  id: r.id,
+  ...(r.key ? { defaultKey: r.key } : {}),
+  ...(r.name ? { name: r.name } : {}),
+  color: r.color,
   icon: (r.icon in ICONS ? r.icon : "tag") as IconName,
 });
 
+/** Shown when an expense points at a category that no longer exists. */
+const FALLBACK: Category = { key: "other", id: "other", defaultKey: "other", color: CATEGORY_COLORS.other, icon: "other" };
+
 /**
- * Every category an expense can use: the 7 built-in ones (fixed, named by i18n) plus the custom ones
- * the person adds, edits and deletes. Deleting a custom category moves its expenses to "other".
+ * The person's categories: the 7 defaults (created for every account) plus their own. All of them can
+ * be edited and deleted; deleting one moves its expenses to another category (the server decides which).
  * Names shown on screen come from useCategoryInfo(), which knows the language.
  */
 export const useCategoriesStore = defineStore("categories", () => {
@@ -19,58 +32,68 @@ export const useCategoriesStore = defineStore("categories", () => {
   const demo = isDemo(useRouter().currentRoute.value.query); // preview: local only, nothing is saved
 
   // ---- State
-  const custom = ref<CustomCategory[]>([]);
+  const all = ref<Category[]>(demo ? demoCategories() : []);
   const loaded = ref(false);
 
-  // ---- Getters
-  const all = computed<Category[]>(() => [
-    ...CATEGORY_KEYS.map((key) => ({
+  /** The preview has no server, so it starts with the 7 defaults locally. */
+  function demoCategories(): Category[] {
+    return CATEGORY_KEYS.map((key) => ({
       key,
-      builtin: true,
+      id: key,
+      defaultKey: key,
       color: CATEGORY_COLORS[key],
       icon: key as IconName,
-    })),
-    ...custom.value.map((c) => ({ key: c.id, builtin: false, name: c.name, color: c.color, icon: c.icon })),
-  ]);
+    }));
+  }
 
+  // ---- Getters
   /** A category by the key stored on an expense; unknown (e.g. just deleted) falls back to "other". */
   function byKey(key: string): Category {
-    return all.value.find((c) => c.key === key) ?? all.value.find((c) => c.key === "other")!;
+    return all.value.find((c) => c.key === key) ?? all.value.find((c) => c.key === "other") ?? all.value[0] ?? FALLBACK;
   }
 
   // ---- Actions
-  /** Load the signed-in user's custom categories from the server (once per session). */
+  /** Load the signed-in user's categories from the server (once per session). */
   async function load() {
     if (loaded.value || demo) return;
     const fetcher = useRequestFetch(); // forwards the session cookie during SSR
-    custom.value = (await fetcher<CategoryRecord[]>("/api/categories")).map(toCustom);
+    all.value = (await fetcher<CategoryRecord[]>("/api/categories")).map(toCategory);
     loaded.value = true;
   }
 
   /** Forget the previous user's data (on sign-out). */
   function reset() {
-    custom.value = [];
+    all.value = demo ? demoCategories() : [];
     loaded.value = false;
   }
 
   /** Saved on the server first; the list only changes once the server accepts it (throws otherwise). */
   async function add(draft: CategoryDraft) {
     const record = demo
-      ? { id: `demo-${Date.now()}`, ...draft }
+      ? { id: `demo-${Date.now()}`, key: null, ...draft }
       : await $fetch<CategoryRecord>("/api/categories", { method: "POST", body: draft });
-    custom.value = [...custom.value, toCustom(record)];
+    all.value = [...all.value, toCategory(record)];
   }
 
-  async function update(id: string, draft: CategoryDraft) {
-    const record = demo ? { id, ...draft } : await $fetch<CategoryRecord>(`/api/categories/${id}`, { method: "PUT", body: draft });
-    custom.value = custom.value.map((c) => (c.id === id ? toCustom(record) : c));
+  async function update(category: Category, draft: CategoryDraft) {
+    const record = demo
+      ? { id: category.id, key: category.defaultKey ?? null, ...draft }
+      : await $fetch<CategoryRecord>(`/api/categories/${category.id}`, { method: "PUT", body: draft });
+    all.value = all.value.map((c) => (c.id === category.id ? toCategory(record) : c));
   }
 
-  async function remove(id: string) {
-    if (!demo) await $fetch(`/api/categories/${id}`, { method: "DELETE" });
-    custom.value = custom.value.filter((c) => c.id !== id);
-    expensesStore.reassignCategory(id, "other");
+  /** Delete one; its expenses move to another category, mirrored here from what the server did. */
+  async function remove(category: Category) {
+    let movedTo: string;
+    if (demo) {
+      const rest = all.value.filter((c) => c.id !== category.id);
+      movedTo = (rest.find((c) => c.key === "other") ?? rest[0])?.key ?? "other";
+    } else {
+      movedTo = (await $fetch<{ movedTo: string }>(`/api/categories/${category.id}`, { method: "DELETE" })).movedTo;
+    }
+    all.value = all.value.filter((c) => c.id !== category.id);
+    expensesStore.reassignCategory(category.key, movedTo);
   }
 
-  return { custom, loaded, all, byKey, load, reset, add, update, remove };
+  return { all, loaded, byKey, load, reset, add, update, remove };
 });

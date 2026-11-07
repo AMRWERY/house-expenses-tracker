@@ -30,21 +30,17 @@
             <span class="row-icon" :style="{ '--c': c.color }"><AppIcon :name="c.icon" /></span>
             <div class="row-text">
               <div class="row-title">{{ info(c.key).label }}</div>
-              <div v-if="c.builtin" class="row-cat">{{ t("builtin_category") }}</div>
             </div>
             <button
-              v-if="!c.builtin"
               class="icon-btn"
               type="button"
               :aria-label="`${t('edit_category')}: ${info(c.key).label}`"
-              @click="startEdit(c.key)"
+              @click="sheet.startEdit(c)"
             >
               <AppIcon name="pencil" />
             </button>
           </li>
         </ul>
-
-        <p v-if="!categories.custom.length" class="cat-hint">{{ t("no_custom_categories") }}</p>
 
         <button class="btn btn-block" type="button" @click="sheet.startAdd()">
           <AppIcon name="plus" />{{ t("add_category") }}
@@ -70,11 +66,6 @@ const heading = computed(() =>
 
 // "Back" points toward the inline-start edge, which flips with the language.
 const backIcon = computed<IconName>(() => (locale.value === "ar" ? "arrowRight" : "arrowLeft"));
-
-function startEdit(key: string) {
-  const category = categories.custom.find((c) => c.id === key);
-  if (category) sheet.startEdit(category);
-}
 
 // Esc closes; body doesn't scroll behind the sheet.
 const onKey = (ev: KeyboardEvent) => ev.key === "Escape" && sheet.close();

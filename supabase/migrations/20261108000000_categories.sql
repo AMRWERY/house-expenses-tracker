@@ -16,6 +16,7 @@ create table if not exists public.categories (
 create index if not exists categories_user_idx on public.categories(user_id);
 
 alter table public.expenses drop constraint if exists expenses_cat_check;
+alter table public.expenses drop constraint if exists expenses_cat_length;
 alter table public.expenses add constraint expenses_cat_length check (char_length(cat) between 1 and 40);
 
 alter table public.categories enable row level security;

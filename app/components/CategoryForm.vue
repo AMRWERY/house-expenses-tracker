@@ -63,7 +63,7 @@
 
     <button class="btn btn-block" type="submit" :disabled="busy">{{ t("save") }}</button>
 
-    <template v-if="editing">
+    <template v-if="editing && canDelete">
       <button v-if="!confirming" class="btn-text danger" type="button" :disabled="busy" @click="confirming = true">
         {{ t("delete_category") }}
       </button>
@@ -80,11 +80,14 @@
 const { t } = useI18n();
 
 const sheet = useCategorySheetStore();
-const { editing, error, busy } = storeToRefs(sheet);
+const { editing, error, busy, canDelete } = storeToRefs(sheet);
+const { labelOf } = useCategoryInfo();
 
 // Form state, prefilled when editing. (The sheet re-creates this component per category via :key.)
+// A default that was never renamed starts with its translated name.
 const initial = editing.value;
-const name = ref(initial?.name ?? "");
+const initialLabel = initial ? labelOf(initial) : "";
+const name = ref(initialLabel);
 const color = ref<string>(initial?.color ?? CATEGORY_COLOR_CHOICES[2]);
 const icon = ref<IconName>(initial?.icon ?? "tag");
 const nameError = ref(false);
@@ -97,7 +100,10 @@ function submit() {
     nameEl.value?.focus();
     return;
   }
-  sheet.save({ name: name.value.trim(), color: color.value, icon: icon.value });
+  // An untouched default keeps following the language instead of freezing its current translation.
+  const trimmed = name.value.trim();
+  const keepDefaultName = initial?.defaultKey && !initial.name && trimmed === initialLabel;
+  sheet.save({ name: keepDefaultName ? null : trimmed, color: color.value, icon: icon.value });
 }
 
 onMounted(() => {

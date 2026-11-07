@@ -22,7 +22,8 @@ export type Database = {
         Row: {
           id: string;
           user_id: string;
-          name: string;
+          key: string | null; // a default category's key (groceries, ...); null for custom ones
+          name: string | null; // null = a default using its translated name
           color: string;
           icon: string;
           created_at: string;
@@ -30,7 +31,8 @@ export type Database = {
         Insert: {
           id?: string;
           user_id: string;
-          name: string;
+          key?: string | null;
+          name?: string | null;
           color: string;
           icon: string;
           created_at?: string;
@@ -38,7 +40,8 @@ export type Database = {
         Update: {
           id?: string;
           user_id?: string;
-          name?: string;
+          key?: string | null;
+          name?: string | null;
           color?: string;
           icon?: string;
           created_at?: string;
