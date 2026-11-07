@@ -11,10 +11,11 @@ export default defineNuxtRouteMiddleware(async (to) => {
   const path = to.path.replace(/^\/(ar|en)(?=\/|$)/, '') || '/'
   if (import.meta.dev && path === '/preview') return // dev-only design preview page
 
-  const { loggedIn, clear } = useUserSession()
+  const auth = useAuthStore()
+  const expenses = useExpensesStore()
   const localePath = useLocalePath()
 
-  if (!loggedIn.value) return path === '/login' ? undefined : navigateTo(localePath('/login'))
+  if (!auth.loggedIn) return path === '/login' ? undefined : navigateTo(localePath('/login'))
   if (path === '/login') return navigateTo(localePath('/'))
 
   // Only a 401 means the session is really gone. Anything else (a cold serverless function, a slow
@@ -22,18 +23,17 @@ export default defineNuxtRouteMiddleware(async (to) => {
   // expenses load again on the next navigation. Signing the person out for a hiccup is what made a
   // first sign-in look like it failed.
   const signOut = async () => {
-    await clear()
-    resetExpenses()
+    await auth.clearSession()
     return navigateTo(localePath('/login'))
   }
 
   try {
-    await loadExpenses()
+    await expenses.load()
   } catch (first) {
     if (statusOf(first) === 401) return signOut()
     try {
       await new Promise(resolve => setTimeout(resolve, 800))
-      await loadExpenses()
+      await expenses.load()
     } catch (second) {
       if (statusOf(second) === 401) return signOut()
     }

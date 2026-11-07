@@ -2,7 +2,8 @@ export type ThemeMode = 'light' | 'dark' | 'system'
 
 export interface MonthSummary {
   key: string;
-  label: string;
+  y: number;
+  m: number;
   total: number;
   /** bar width, 0-100 (relative to the biggest month) */
   pct: number;

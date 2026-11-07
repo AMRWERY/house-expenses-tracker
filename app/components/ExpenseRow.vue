@@ -4,8 +4,8 @@
     role="button"
     tabindex="0"
     :style="{ '--c': CATEGORY_COLORS[expense.cat] }"
-    @click="emit('select', expense)"
-    @keydown.enter="emit('select', expense)"
+    @click="sheetStore.openEdit(expense)"
+    @keydown.enter="sheetStore.openEdit(expense)"
   >
     <span class="row-icon"><AppIcon :name="expense.cat" /></span>
     <div class="row-text">
@@ -23,10 +23,9 @@
 
 <script lang="ts" setup>
 const { t } = useI18n();
+const sheetStore = useSheetStore();
 
 const props = defineProps<{ expense: Expense }>();
-
-const emit = defineEmits<{ select: [expense: Expense] }>();
 
 const title = computed(() =>
   props.expense.titleKey

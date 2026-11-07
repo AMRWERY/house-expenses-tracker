@@ -1,6 +1,6 @@
 <template>
   <div class="sheet-root">
-    <div class="backdrop" @click="emit('close')" />
+    <div class="backdrop" @click="sheetStore.close()" />
 
     <div class="sheet" role="dialog" aria-modal="true" :aria-label="title">
       <div class="grab" aria-hidden="true" />
@@ -11,7 +11,7 @@
           class="icon-btn"
           type="button"
           :aria-label="t('close')"
-          @click="emit('close')"
+          @click="sheetStore.close()"
         >
           <AppIcon name="x" />
         </button>
@@ -19,7 +19,7 @@
 
       <form novalidate @submit.prevent="submit">
         <!-- Amount -->
-        <div class="amount" :class="{ 'has-error': error }">
+        <div class="amount" :class="{ 'has-error': amountError }">
           <label class="sr-only" for="amount">{{ t("amount") }}</label>
           <div class="amount-row">
             <input
@@ -31,13 +31,13 @@
               autocomplete="off"
               placeholder="0"
               :style="{ '--len': Math.max(1, amount.length) }"
-              :aria-invalid="error"
-              :aria-describedby="error ? 'amount-err' : undefined"
+              :aria-invalid="amountError"
+              :aria-describedby="amountError ? 'amount-err' : undefined"
               @input="onAmountInput"
             />
             <span class="amount-cur">{{ t("currency") }}</span>
           </div>
-          <p v-if="error" id="amount-err" class="field-error">
+          <p v-if="amountError" id="amount-err" class="field-error">
             {{ t("amount_required") }}
           </p>
         </div>
@@ -87,15 +87,15 @@
           />
         </div>
 
-        <p v-if="error" class="field-error sheet-error" role="alert">
-          {{ error }}
+        <p v-if="saveError" class="field-error sheet-error" role="alert">
+          {{ t(saveError) }}
         </p>
         <button class="btn btn-block" type="submit">{{ t("save") }}</button>
         <button
           v-if="mode === 'edit'"
           class="btn-text danger"
           type="button"
-          @click="emit('delete')"
+          @click="sheetStore.remove()"
         >
           {{ t("delete") }}
         </button>
@@ -107,32 +107,22 @@
 <script lang="ts" setup>
 const { t } = useI18n();
 
-const props = defineProps<{
-  mode: "add" | "edit";
-  expense?: Expense;
-  today: string;
-  dateLocale: string;
-  /** server-side failure message, shown above the save button */
-  error?: string;
-}>();
+const sheetStore = useSheetStore();
+const { saveError } = storeToRefs(sheetStore);
+const { todayISO: today } = useExpensesStore();
+const { dateLocale } = useDateLabels();
 
-const emit = defineEmits<{
-  close: [];
-  save: [draft: ExpenseDraft];
-  delete: [];
-}>();
-
-const title = computed(() =>
-  props.mode === "edit" ? t("edit_expense") : t("add_expense"),
-);
+// What the sheet was opened for, captured once: the store clears it on close, while the leave
+// animation is still playing. (The page re-creates this component per expense via :key.)
+const { mode = "add", expense: e } = sheetStore.sheet ?? {};
+const title = mode === "edit" ? t("edit_expense") : t("add_expense");
 
 // Form state (prefilled when editing; sample rows use their translated title as the note)
-const e = props.expense;
 const amount = ref(e ? String(e.amount) : "");
 const cat = ref<CategoryKey>(e?.cat ?? "groceries");
-const date = ref(e ? toISODate(e.y, e.m, e.day) : props.today);
+const date = ref(e ? toISODate(e.y, e.m, e.day) : today);
 const note = ref(e ? (e.titleKey ? t(e.titleKey) : (e.note ?? "")) : "");
-const error = ref(false);
+const amountError = ref(false);
 const amountEl = ref<HTMLInputElement>();
 
 // Accept Arabic-Indic digits, keep digits and one decimal point.
@@ -143,13 +133,13 @@ function onAmountInput() {
     .replace(/[^0-9.]/g, "");
   const [int = "", ...rest] = latin.split(".");
   amount.value = rest.length ? `${int}.${rest.join("")}` : int;
-  if (error.value && Number(amount.value) > 0) error.value = false;
+  if (amountError.value && Number(amount.value) > 0) amountError.value = false;
 }
 
 const dateLabel = computed(() => {
-  if (date.value === props.today) return t("today");
+  if (date.value === today) return t("today");
   const [y = 0, m = 1, d = 1] = date.value.split("-").map(Number);
-  return new Intl.DateTimeFormat(props.dateLocale, {
+  return new Intl.DateTimeFormat(dateLocale.value, {
     day: "numeric",
     month: "long",
     year: "numeric",
@@ -162,25 +152,25 @@ const openPicker = (ev: Event) =>
 function submit() {
   const value = Number(amount.value);
   if (!(value > 0)) {
-    error.value = true;
+    amountError.value = true;
     amountEl.value?.focus();
     return;
   }
-  emit("save", {
+  sheetStore.save({
     amount: value,
     cat: cat.value,
-    date: date.value || props.today,
+    date: date.value || today,
     note: note.value,
   });
 }
 
 // Esc closes; body doesn't scroll behind the sheet.
-const onKey = (ev: KeyboardEvent) => ev.key === "Escape" && emit("close");
+const onKey = (ev: KeyboardEvent) => ev.key === "Escape" && sheetStore.close();
 
 onMounted(() => {
   window.addEventListener("keydown", onKey);
   document.body.style.overflow = "hidden";
-  if (props.mode === "add") amountEl.value?.focus({ preventScroll: true });
+  if (mode === "add") amountEl.value?.focus({ preventScroll: true });
 });
 
 onBeforeUnmount(() => {

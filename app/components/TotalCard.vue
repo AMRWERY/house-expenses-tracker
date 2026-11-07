@@ -11,10 +11,10 @@
 <script lang="ts" setup>
 const { t } = useI18n();
 
-const props = defineProps<{ total: number }>();
+const { total } = storeToRefs(useExpensesStore());
 
 // Count up 0 -> total in 800ms (ease-out); skipped for reduced motion.
-const shown = ref(props.total);
+const shown = ref(total.value);
 let raf = 0;
 
 function animate(to: number) {
@@ -32,9 +32,9 @@ function animate(to: number) {
   raf = requestAnimationFrame(tick);
 }
 
-onMounted(() => animate(props.total));
+onMounted(() => animate(total.value));
 
-watch(() => props.total, animate);
+watch(total, animate);
 
 onBeforeUnmount(() => cancelAnimationFrame(raf));
 </script>

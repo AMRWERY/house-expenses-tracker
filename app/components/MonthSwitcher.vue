@@ -3,15 +3,15 @@
     <button
       class="icon-btn"
       :aria-label="t('prev_month')"
-      @click="$emit('prev')"
+      @click="expensesStore.prevMonth()"
     >
       <AppIcon :name="prevIcon" />
     </button>
-    <span class="month-label" aria-live="polite">{{ label }}</span>
+    <span class="month-label" aria-live="polite">{{ monthLabel }}</span>
     <button
       class="icon-btn"
       :aria-label="t('next_month')"
-      @click="$emit('next')"
+      @click="expensesStore.nextMonth()"
     >
       <AppIcon :name="nextIcon" />
     </button>
@@ -20,10 +20,8 @@
 
 <script lang="ts" setup>
 const { locale, t } = useI18n();
-
-defineProps<{ label: string }>();
-
-defineEmits<{ prev: []; next: [] }>();
+const expensesStore = useExpensesStore();
+const { monthLabel } = useDateLabels();
 
 // "Previous" sits at the inline-start edge, so the chevron direction flips with the locale.
 const prevIcon = computed<IconName>(() =>

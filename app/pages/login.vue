@@ -3,9 +3,9 @@ definePageMeta({ layout: 'blank' })
 
 const { t, locale } = useI18n()
 const switchLocalePath = useSwitchLocalePath()
-useTheme()
 
-const { busy, error, notice, signInWithPassword, signUpWithPassword } = useAuthFlow()
+const auth = useAuthStore()
+const { busy, error, notice } = storeToRefs(auth)
 
 type Mode = 'signin' | 'signup'
 const mode = ref<Mode>(useRoute().query.mode === 'signup' ? 'signup' : 'signin')
@@ -30,12 +30,12 @@ const otherLocale = computed(() => (locale.value === 'ar' ? 'en' : 'ar'))
 function submit() {
   if (!canSubmit.value) return
   const e = email.value.trim().toLowerCase()
-  if (mode.value === 'signin') signInWithPassword(e, password.value)
-  else signUpWithPassword(e, password.value)
+  if (mode.value === 'signin') auth.signIn(e, password.value)
+  else auth.signUp(e, password.value)
 }
 
 // Changing tabs clears the old message.
-watch(mode, () => { error.value = ''; notice.value = '' })
+watch(mode, auth.clearMessages)
 </script>
 
 <template>
@@ -70,13 +70,9 @@ watch(mode, () => { error.value = ''; notice.value = '' })
           <p v-if="showEmailError" class="field-error field-error-inline">{{ t('invalid_email') }}</p>
 
           <label class="field-label field-label-gap" for="password">{{ t('password_label') }}</label>
-          <input
+          <PasswordInput
             id="password"
             v-model="password"
-            class="field field-input"
-            type="password"
-            dir="ltr"
-            maxlength="72"
             :autocomplete="mode === 'signin' ? 'current-password' : 'new-password'"
             :placeholder="mode === 'signup' ? t('password_hint') : ''"
           />
@@ -85,8 +81,8 @@ watch(mode, () => { error.value = ''; notice.value = '' })
             {{ mode === 'signin' ? t('signin_pw_btn') : t('signup_pw_btn') }}
           </button>
 
-          <p v-if="notice" class="auth-notice" role="status">{{ notice }}</p>
-          <p v-if="error" class="field-error" role="alert">{{ error }}</p>
+          <p v-if="notice" class="auth-notice" role="status">{{ t(notice) }}</p>
+          <p v-if="error" class="field-error" role="alert">{{ t(error) }}</p>
         </form>
       </div>
 

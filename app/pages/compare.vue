@@ -1,8 +1,8 @@
 <script lang="ts" setup>
 const { t, locale } = useI18n()
-useTheme()
 
-const { months, average, highest, lowest } = useMonthlyComparison()
+const { monthName } = useDateLabels()
+const { months, average, highest, lowest } = storeToRefs(useComparisonStore())
 const backIcon = computed<IconName>(() => (locale.value === 'ar' ? 'arrowRight' : 'arrowLeft'))
 
 // Screen-reader text for the change vs the previous month.
@@ -27,10 +27,10 @@ const deltaText = (d: number) =>
             <span>{{ formatNumber(average) }}</span><small>{{ t('currency') }}</small>
           </div>
           <div v-if="highest" class="stat">
-            <span>{{ t('highest') }}</span><b>{{ highest.label }}</b>
+            <span>{{ t('highest') }}</span><b>{{ monthName(highest.y, highest.m) }}</b>
           </div>
           <div v-if="lowest" class="stat">
-            <span>{{ t('lowest') }}</span><b>{{ lowest.label }}</b>
+            <span>{{ t('lowest') }}</span><b>{{ monthName(lowest.y, lowest.m) }}</b>
           </div>
         </section>
       </aside>
@@ -47,7 +47,7 @@ const deltaText = (d: number) =>
             >
               <div class="cmp-top">
                 <h2 class="cmp-month">
-                  {{ m.label }}<span v-if="m.isCurrent" class="cmp-sofar">{{ t('so_far') }}</span>
+                  {{ monthName(m.y, m.m) }}<span v-if="m.isCurrent" class="cmp-sofar">{{ t('so_far') }}</span>
                 </h2>
                 <div class="cmp-amount">{{ formatNumber(m.total) }} {{ t('currency') }}</div>
               </div>

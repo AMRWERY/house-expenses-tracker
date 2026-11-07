@@ -27,3 +27,15 @@ export function parseCredentials(body: unknown, isNew: boolean) {
   }
   return { email, password }
 }
+
+/** Validate a change-password request body: the current password and a new one that follows the sign-up rules. */
+export function parsePasswordChange(body: unknown) {
+  const b = (body ?? {}) as Record<string, unknown>
+  const currentPassword = typeof b.currentPassword === 'string' ? b.currentPassword : ''
+  const newPassword = typeof b.newPassword === 'string' ? b.newPassword : ''
+
+  if (!currentPassword || currentPassword.length > 72) throw bad(400, 'wrong_current_password')
+  if (newPassword.length < 8 || newPassword.length > 72) throw bad(400, 'weak_password')
+  if (newPassword === currentPassword) throw bad(400, 'same_password')
+  return { currentPassword, newPassword }
+}
