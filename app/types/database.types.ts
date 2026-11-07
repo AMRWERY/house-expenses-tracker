@@ -26,6 +26,7 @@ export type Database = {
           name: string | null; // null = a default using its translated name
           color: string;
           icon: string;
+          budget: number | null; // monthly budget; null = none
           created_at: string;
         };
         Insert: {
@@ -35,6 +36,7 @@ export type Database = {
           name?: string | null;
           color: string;
           icon: string;
+          budget?: number | null;
           created_at?: string;
         };
         Update: {
@@ -44,6 +46,7 @@ export type Database = {
           name?: string | null;
           color?: string;
           icon?: string;
+          budget?: number | null;
           created_at?: string;
         };
         Relationships: []; // user_id -> auth.users(id) (other schema, so not listed here)

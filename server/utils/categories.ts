@@ -22,9 +22,11 @@ export interface CategoryRecord {
   name: string | null;
   color: string;
   icon: string;
+  /** monthly budget; null = none */
+  budget: number | null;
 }
 /** `name` null keeps/restores a default's translated name; custom categories must have one. */
-export type CategoryInput = Pick<CategoryRecord, "name" | "color" | "icon">;
+export type CategoryInput = Pick<CategoryRecord, "name" | "color" | "icon" | "budget">;
 
 const bad = (message: string) => createError({ statusCode: 400, message });
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -49,7 +51,13 @@ export function parseCategoryInput(body: unknown): CategoryInput {
   }
   if (typeof b.color !== "string" || !COLOR_RE.test(b.color)) throw bad("invalid_color");
   if (typeof b.icon !== "string" || !ICON_RE.test(b.icon)) throw bad("invalid_icon");
-  return { name, color: b.color.toUpperCase(), icon: b.icon };
+  let budget: number | null = null;
+  if (b.budget !== undefined && b.budget !== null) {
+    if (typeof b.budget !== "number" || !Number.isFinite(b.budget) || b.budget < 0 || b.budget > 1e9)
+      throw bad("invalid_budget");
+    budget = Math.round(b.budget * 100) / 100;
+  }
+  return { name, color: b.color.toUpperCase(), icon: b.icon, budget };
 }
 
 // ---- Supabase access. Every query is scoped by user_id: the secret key bypasses RLS, so this is the guard. ----
@@ -60,6 +68,7 @@ const toRecord = (r: Tables<"categories">): CategoryRecord => ({
   name: r.name,
   color: r.color,
   icon: r.icon,
+  budget: r.budget === null ? null : Number(r.budget), // numeric(12,2): be safe if it arrives as a string
 });
 
 /** A brand-new account has no categories yet: give it the defaults. (Deleting the last one is refused.) */

@@ -420,3 +420,17 @@ a.icon-btn { color: var(--text-2); }
 .cat-confirm { margin-top: 8px; padding: 12px; border-radius: 12px; background: var(--surface-alt); text-align: center; }
 .cat-confirm p { font-size: 14px; line-height: 22px; color: var(--text-2); }
 .btn:disabled, .btn-text:disabled { opacity: .5; cursor: default; }
+
+/* Home: category filter, budget line on the total card, budget field */
+.filter-row { display: flex; gap: 8px; margin-top: 12px; padding: 4px 4px 8px; overflow-x: auto; scrollbar-width: none; }
+.filter-row::-webkit-scrollbar { display: none; }
+.filter-row .chip { flex: none; }
+.filter-empty { margin-top: 32px; text-align: center; color: var(--text-2); }
+.total-budget { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: center; gap: 4px 8px; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border); font-size: 14px; line-height: 20px; color: var(--text-2); }
+.total-budget b { color: var(--primary); font-size: 17px; font-variant-numeric: tabular-nums; direction: ltr; unicode-bidi: isolate; }
+.total-budget.over b { color: var(--expense); }
+.row-cat.is-over { color: var(--expense); }
+.budget-field { gap: 8px; }
+.budget-input { flex: 1; min-width: 0; height: 100%; background: none; border: 0; outline: 0; font: inherit; color: inherit; text-align: start; }
+.budget-cur { color: var(--text-2); font-weight: 600; }
+.cat-note { margin: 6px 4px 0; font-size: 13px; line-height: 20px; color: var(--text-2); }

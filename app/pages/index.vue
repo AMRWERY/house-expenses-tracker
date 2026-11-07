@@ -2,7 +2,7 @@
 const { t } = useI18n()
 const expensesStore = useExpensesStore()
 const sheetStore = useSheetStore()
-const { view, items, groups } = storeToRefs(expensesStore)
+const { view, monthItems, items, groups } = storeToRefs(expensesStore)
 const { dayLabel } = useDateLabels()
 
 // ?sheet=add|edit opens the Add/Edit sheet on load (used by the preview page).
@@ -21,7 +21,7 @@ onBeforeUnmount(() => {
     <AppHeader>
       <template #actions>
         <!-- Hidden on an empty month: the empty state already has its own "Add expense" button. -->
-        <button v-if="items.length" class="btn add-desktop" @click="sheetStore.openAdd()">
+        <button v-if="monthItems.length" class="btn add-desktop" @click="sheetStore.openAdd()">
           <AppIcon name="plus" />{{ t('add_expense') }}
         </button>
       </template>
@@ -31,15 +31,18 @@ onBeforeUnmount(() => {
           <AppIcon name="tag" />{{ t('manage_categories') }}
         </button>
       </div>
+      <CategoryFilter />
     </AppHeader>
 
     <main>
-      <EmptyState v-if="!items.length" :key="`e${view.y}-${view.m}`" />
+      <!-- Empty only when the whole month is empty; a filter with no matches keeps the page and says so. -->
+      <EmptyState v-if="!monthItems.length" :key="`e${view.y}-${view.m}`" />
       <div v-else class="layout">
         <aside class="summary">
           <TotalCard />
         </aside>
         <div class="list">
+          <p v-if="!items.length" class="filter-empty">{{ t('no_filtered') }}</p>
           <ExpenseDayGroup
             v-for="(g, i) in groups"
             :key="`${view.y}-${view.m}-${g.day}`"

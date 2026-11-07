@@ -30,6 +30,10 @@
             <span class="row-icon" :style="{ '--c': c.color }"><AppIcon :name="c.icon" /></span>
             <div class="row-text">
               <div class="row-title">{{ info(c.key).label }}</div>
+              <!-- Budget left this month (or how far over) -->
+              <div v-if="categories.budgets.get(c.key)" class="row-cat" :class="{ 'is-over': categories.budgets.get(c.key)!.left < 0 }">
+                {{ budgetText(categories.budgets.get(c.key)!) }}
+              </div>
             </div>
             <button
               class="icon-btn"
@@ -63,6 +67,12 @@ const { info } = useCategoryInfo();
 const heading = computed(() =>
   view.value === "list" ? t("categories_title") : editing.value ? t("edit_category") : t("add_category"),
 );
+
+// "350 EGP left of 1,000" / "Over by 120 EGP"
+const budgetText = (b: { budget: number; left: number }) =>
+  b.left < 0
+    ? t("budget_over", { amount: `${formatNumber(-b.left)} ${t("currency")}` })
+    : t("budget_left", { amount: `${formatNumber(b.left)} ${t("currency")}`, total: formatNumber(b.budget) });
 
 // "Back" points toward the inline-start edge, which flips with the language.
 const backIcon = computed<IconName>(() => (locale.value === "ar" ? "arrowRight" : "arrowLeft"));

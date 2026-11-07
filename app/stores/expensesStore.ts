@@ -24,9 +24,17 @@ export const useExpensesStore = defineStore("expenses", () => {
     m: query.empty ? current.m + 1 : current.m,
   });
 
+  /** Home-page filter: show only this category (its key), or everything when null. */
+  const filterCat = ref<string | null>(null);
+
   // ---- Getters
-  const items = computed(() =>
+  /** Everything spent in the viewed month (budgets are measured against this, ignoring the filter). */
+  const monthItems = computed(() =>
     expenses.value.filter((e) => e.y === view.value.y && e.m === view.value.m),
+  );
+  /** What the home page lists: the viewed month, narrowed by the category filter. */
+  const items = computed(() =>
+    filterCat.value ? monthItems.value.filter((e) => e.cat === filterCat.value) : monthItems.value,
   );
   const total = computed(() => items.value.reduce((s, e) => s + e.amount, 0));
 
@@ -54,11 +62,15 @@ export const useExpensesStore = defineStore("expenses", () => {
   function reset() {
     expenses.value = [];
     loaded.value = false;
+    filterCat.value = null;
   }
+
+  const setFilter = (key: string | null) => (filterCat.value = key);
 
   /** After a category is deleted the server moves its expenses; mirror that here. */
   function reassignCategory(from: string, to: string) {
     expenses.value = expenses.value.map((e) => (e.cat === from ? { ...e, cat: to } : e));
+    if (filterCat.value === from) filterCat.value = null; // the filtered category is gone
   }
 
   function shiftMonth(delta: number) {
@@ -119,12 +131,15 @@ export const useExpensesStore = defineStore("expenses", () => {
     current,
     today,
     todayISO,
+    filterCat,
+    monthItems,
     items,
     total,
     groups,
     load,
     reset,
     reassignCategory,
+    setFilter,
     prevMonth,
     nextMonth,
     save,

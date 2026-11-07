@@ -59,6 +59,25 @@
       </button>
     </div>
 
+    <!-- Monthly budget (optional): every expense in this category is deducted from it -->
+    <label class="field-label cat-label" for="category-budget">{{ t("category_budget") }}</label>
+    <div class="field budget-field">
+      <input
+        id="category-budget"
+        v-model="budget"
+        class="field-input budget-input"
+        type="text"
+        inputmode="decimal"
+        autocomplete="off"
+        dir="ltr"
+        placeholder="0"
+        :aria-describedby="'category-budget-hint'"
+        @input="onBudgetInput"
+      />
+      <span class="budget-cur">{{ t("currency") }}</span>
+    </div>
+    <p id="category-budget-hint" class="cat-note">{{ t("category_budget_hint") }}</p>
+
     <p v-if="error" class="field-error sheet-error" role="alert">{{ t(error) }}</p>
 
     <button class="btn btn-block" type="submit" :disabled="busy">{{ t("save") }}</button>
@@ -90,8 +109,19 @@ const initialLabel = initial ? labelOf(initial) : "";
 const name = ref(initialLabel);
 const color = ref<string>(initial?.color ?? CATEGORY_COLOR_CHOICES[2]);
 const icon = ref<IconName>(initial?.icon ?? "tag");
+const budget = ref(initial?.budget !== undefined ? String(initial.budget) : "");
 const nameError = ref(false);
 const confirming = ref(false);
+
+// Accept Arabic-Indic digits, keep digits and one decimal point.
+function onBudgetInput() {
+  const latin = budget.value
+    .replace(/[٠-٩]/g, (d) => String("٠١٢٣٤٥٦٧٨٩".indexOf(d)))
+    .replace(/[٫,]/g, ".")
+    .replace(/[^0-9.]/g, "");
+  const [int = "", ...rest] = latin.split(".");
+  budget.value = rest.length ? `${int}.${rest.join("")}` : int;
+}
 const nameEl = ref<HTMLInputElement>();
 
 function submit() {
@@ -103,7 +133,14 @@ function submit() {
   // An untouched default keeps following the language instead of freezing its current translation.
   const trimmed = name.value.trim();
   const keepDefaultName = initial?.defaultKey && !initial.name && trimmed === initialLabel;
-  sheet.save({ name: keepDefaultName ? null : trimmed, color: color.value, icon: icon.value });
+  // Empty budget = none; "0" is a real (spent-out) budget.
+  const budgetValue = budget.value.trim() === "" || Number.isNaN(Number(budget.value)) ? null : Number(budget.value);
+  sheet.save({
+    name: keepDefaultName ? null : trimmed,
+    color: color.value,
+    icon: icon.value,
+    budget: budgetValue,
+  });
 }
 
 onMounted(() => {

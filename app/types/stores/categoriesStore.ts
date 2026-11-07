@@ -15,6 +15,8 @@ export interface Category {
   name?: string;
   color: string;
   icon: IconName;
+  /** monthly budget; absent = none */
+  budget?: number;
 }
 
 /** What the category form hands back. `name` null = keep a default's translated name. */
@@ -22,6 +24,8 @@ export interface CategoryDraft {
   name: string | null;
   color: string;
   icon: IconName;
+  /** monthly budget; null = none */
+  budget: number | null;
 }
 
 /** i18n key of the last category-management failure. */

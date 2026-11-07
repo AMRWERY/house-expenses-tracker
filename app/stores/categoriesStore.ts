@@ -8,6 +8,7 @@ interface CategoryRecord {
   name: string | null;
   color: string;
   icon: string;
+  budget: number | null;
 }
 
 const toCategory = (r: CategoryRecord): Category => ({
@@ -17,6 +18,7 @@ const toCategory = (r: CategoryRecord): Category => ({
   ...(r.name ? { name: r.name } : {}),
   color: r.color,
   icon: (r.icon in ICONS ? r.icon : "tag") as IconName,
+  ...(r.budget !== null ? { budget: r.budget } : {}),
 });
 
 /** Shown when an expense points at a category that no longer exists. */
@@ -51,6 +53,34 @@ export const useCategoriesStore = defineStore("categories", () => {
   function byKey(key: string): Category {
     return all.value.find((c) => c.key === key) ?? all.value.find((c) => c.key === "other") ?? all.value[0] ?? FALLBACK;
   }
+
+  /**
+   * Budget status of every category that has a monthly budget, for the month being viewed:
+   * `left` = budget − what's been spent in that category (negative = over budget).
+   */
+  const budgets = computed(() => {
+    const spent = new Map<string, number>();
+    for (const e of expensesStore.monthItems) spent.set(e.cat, (spent.get(e.cat) ?? 0) + e.amount);
+
+    const status = new Map<string, { budget: number; spent: number; left: number }>();
+    for (const c of all.value) {
+      if (c.budget === undefined) continue;
+      const s = spent.get(c.key) ?? 0;
+      status.set(c.key, { budget: c.budget, spent: s, left: Math.round((c.budget - s) * 100) / 100 });
+    }
+    return status;
+  });
+
+  /** All budgets together: what's left of the money set aside this month. */
+  const budgetSummary = computed(() => {
+    let total = 0;
+    let spent = 0;
+    for (const b of budgets.value.values()) {
+      total += b.budget;
+      spent += b.spent;
+    }
+    return { any: budgets.value.size > 0, total, spent, left: Math.round((total - spent) * 100) / 100 };
+  });
 
   // ---- Actions
   /** Load the signed-in user's categories from the server (once per session). */
@@ -95,5 +125,5 @@ export const useCategoriesStore = defineStore("categories", () => {
     expensesStore.reassignCategory(category.key, movedTo);
   }
 
-  return { all, loaded, byKey, load, reset, add, update, remove };
+  return { all, loaded, budgets, budgetSummary, byKey, load, reset, add, update, remove };
 });
