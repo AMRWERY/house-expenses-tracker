@@ -6,13 +6,10 @@ export default defineNuxtConfig({
   devtools: { enabled: true },
   modules: ["@nuxtjs/i18n", "@pinia/nuxt", "@vueuse/nuxt", "nuxt-auth-utils"],
 
-  // Passkey (fingerprint / Face ID) sign-in. Set NUXT_SESSION_PASSWORD (32+ chars) in production;
-  // in dev the module generates one into .env.
-  auth: { webAuthn: true },
   runtimeConfig: {
     session: { maxAge: 60 * 60 * 24 * 30 }, // stay signed in for 30 days
   },
-  // Users, passkeys and expenses live in Supabase (server/utils/supabase.ts).
+  // Users and expenses live in Supabase (server/utils/supabase.ts).
   // Needs SUPABASE_URL and SUPABASE_SECRET_KEY in the environment; the secret key is server-only.
   css: ["~/assets/css/main.css"],
   vite: {
@@ -27,14 +24,12 @@ export default defineNuxtConfig({
       ],
       script: [
         {
-          // Runs before first paint so a refresh never flashes the wrong theme or the wrong sign-in layout.
+          // Runs before first paint so a refresh never flashes the wrong theme.
           // Theme mirrors useTheme(): ?theme=light|dark wins, then the saved choice, then the OS setting.
-          // data-touch marks phones/tablets (finger as the main pointer): they get fingerprint / Face ID
-          // sign-in; everything else gets email + password. ?touch=1 forces it (design preview).
           tagPosition: "head",
           tagPriority: "critical",
           innerHTML:
-            "(function(){try{var s=new URLSearchParams(location.search);var q=s.get('theme');var m=(q==='light'||q==='dark')?q:(localStorage.getItem('theme')||'system');var d=m==='dark'||(m!=='light'&&matchMedia('(prefers-color-scheme: dark)').matches);var e=document.documentElement;e.dataset.theme=d?'dark':'light';if(s.get('touch')==='1'||matchMedia('(pointer: coarse) and (hover: none)').matches)e.setAttribute('data-touch','')}catch(x){}})()",
+            "(function(){try{var s=new URLSearchParams(location.search);var q=s.get('theme');var m=(q==='light'||q==='dark')?q:(localStorage.getItem('theme')||'system');var d=m==='dark'||(m!=='light'&&matchMedia('(prefers-color-scheme: dark)').matches);var e=document.documentElement;e.dataset.theme=d?'dark':'light'}catch(x){}})()",
         },
       ],
       link: [

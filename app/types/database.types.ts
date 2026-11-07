@@ -1,5 +1,5 @@
 /**
- * Supabase database types for this app. Mirrors supabase/migrations/ (init + email_auth)
+ * Supabase database types for this app. Mirrors supabase/migrations/ (init + email_auth + drop_passkeys)
  * in the format `supabase gen types typescript` produces.
  *
  * Regenerate after any schema change:  npm run types:db   (needs `npx supabase login` once)
@@ -18,57 +18,6 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      passkeys: {
-        Row: {
-          id: string;
-          user_id: string;
-          public_key: string;
-          counter: number;
-          backed_up: boolean;
-          transports: string[] | null;
-          aaguid: string | null;
-          created_at: string;
-        };
-        Insert: {
-          id: string;
-          user_id: string;
-          public_key: string;
-          counter?: number;
-          backed_up?: boolean;
-          transports?: string[] | null;
-          aaguid?: string | null;
-          created_at?: string;
-        };
-        Update: {
-          id?: string;
-          user_id?: string;
-          public_key?: string;
-          counter?: number;
-          backed_up?: boolean;
-          transports?: string[] | null;
-          aaguid?: string | null;
-          created_at?: string;
-        };
-        Relationships: []; // user_id -> auth.users(id) (other schema, so not listed here)
-      };
-      webauthn_challenges: {
-        Row: {
-          attempt_id: string;
-          challenge: string;
-          expires_at: string;
-        };
-        Insert: {
-          attempt_id: string;
-          challenge: string;
-          expires_at: string;
-        };
-        Update: {
-          attempt_id?: string;
-          challenge?: string;
-          expires_at?: string;
-        };
-        Relationships: [];
-      };
       expenses: {
         Row: {
           id: number;

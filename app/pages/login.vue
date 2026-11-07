@@ -5,10 +5,8 @@ const { t, locale } = useI18n()
 const switchLocalePath = useSwitchLocalePath()
 useTheme()
 
-const { isSupported, busy, error, notice, signInWithPassword, signUpWithPassword, signInWithPasskey } = useAuthFlow()
+const { busy, error, notice, signInWithPassword, signUpWithPassword } = useAuthFlow()
 
-// Desktop: email + password. Phone (touch devices): fingerprint / Face ID only.
-// Which one shows is decided by CSS from <html data-touch>, set before first paint.
 type Mode = 'signin' | 'signup'
 const mode = ref<Mode>(useRoute().query.mode === 'signup' ? 'signup' : 'signin')
 const email = ref('')
@@ -47,8 +45,7 @@ watch(mode, () => { error.value = ''; notice.value = '' })
     </nuxt-link>
 
     <div class="lock-card">
-      <!-- ============ Desktop: email + password ============ -->
-      <div class="only-desktop">
+      <div>
         <div class="lock-ico"><AppIcon name="user" /></div>
         <h1>{{ t('app_title') }}</h1>
         <p class="lock-hint">{{ mode === 'signin' ? t('signin_pw_hint') : t('signup_pw_hint') }}</p>
@@ -93,21 +90,6 @@ watch(mode, () => { error.value = ''; notice.value = '' })
         </form>
       </div>
 
-      <!-- ============ Phone: fingerprint / Face ID ============ -->
-      <div class="only-mobile">
-        <div class="lock-ico"><AppIcon name="fingerprint" /></div>
-        <h1>{{ t('app_title') }}</h1>
-        <p class="lock-hint">{{ t('signin_hint') }}</p>
-
-        <button class="btn lock-btn" type="button" :disabled="busy || !isSupported" @click="signInWithPasskey()">
-          <AppIcon name="fingerprint" />{{ t('signin_btn') }}
-        </button>
-
-        <p v-if="!isSupported" class="field-error">{{ t('auth_unsupported') }}</p>
-        <p v-else-if="error" class="field-error" role="alert">{{ error }}</p>
-
-        <p class="auth-help">{{ t('phone_link_help') }}</p>
-      </div>
     </div>
   </div>
 </template>

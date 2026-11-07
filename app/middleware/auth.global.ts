@@ -20,7 +20,7 @@ export default defineNuxtRouteMiddleware(async (to) => {
   // Only a 401 means the session is really gone. Anything else (a cold serverless function, a slow
   // database call) is temporary: retry once, and if it still fails let the page open, since the
   // expenses load again on the next navigation. Signing the person out for a hiccup is what made a
-  // first fingerprint sign-in look like it failed.
+  // first sign-in look like it failed.
   const signOut = async () => {
     await clear()
     resetExpenses()
