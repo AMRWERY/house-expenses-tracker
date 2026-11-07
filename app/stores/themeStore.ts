@@ -18,7 +18,11 @@ export const useThemeStore = defineStore("theme", () => {
     },
   });
   const resolved = computed<"light" | "dark">(() =>
-    mode.value === "system" ? (systemDark.value ? "dark" : "light") : mode.value,
+    mode.value === "system"
+      ? systemDark.value
+        ? "dark"
+        : "light"
+      : mode.value,
   );
 
   function pin(value: unknown) {
@@ -30,7 +34,9 @@ export const useThemeStore = defineStore("theme", () => {
     const mq = window.matchMedia("(prefers-color-scheme: dark)");
     systemDark.value = mq.matches;
     mq.addEventListener("change", (e) => (systemDark.value = e.matches));
-    watch(resolved, (v) => (document.documentElement.dataset.theme = v), { immediate: true });
+    watch(resolved, (v) => (document.documentElement.dataset.theme = v), {
+      immediate: true,
+    });
   }
 
   return { mode, resolved, pin, init };

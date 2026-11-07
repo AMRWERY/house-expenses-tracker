@@ -25,7 +25,8 @@ export const useSheetStore = defineStore("sheet", () => {
   /** ?sheet=add|edit opens the sheet on load (used by the preview page). */
   function openFromQuery(query: Record<string, unknown>) {
     if (query.sheet === "add") openAdd();
-    else if (query.sheet === "edit" && expensesStore.items[0]) openEdit(expensesStore.items[0]);
+    else if (query.sheet === "edit" && expensesStore.items[0])
+      openEdit(expensesStore.items[0]);
   }
 
   /** The server must accept a change before the sheet closes. */
@@ -42,12 +43,22 @@ export const useSheetStore = defineStore("sheet", () => {
   async function remove() {
     saveError.value = "";
     try {
-      if (sheet.value?.expense) await expensesStore.remove(sheet.value.expense.id);
+      if (sheet.value?.expense)
+        await expensesStore.remove(sheet.value.expense.id);
       close();
     } catch {
       saveError.value = "save_failed";
     }
   }
 
-  return { sheet, saveError, openAdd, openEdit, close, openFromQuery, save, remove };
+  return {
+    sheet,
+    saveError,
+    openAdd,
+    openEdit,
+    close,
+    openFromQuery,
+    save,
+    remove,
+  };
 });

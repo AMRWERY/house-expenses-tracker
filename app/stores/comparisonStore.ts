@@ -6,7 +6,15 @@ export const useComparisonStore = defineStore("comparison", () => {
   const expensesStore = useExpensesStore();
 
   const months = computed<MonthSummary[]>(() => {
-    const byMonth = new Map<string, { y: number; m: number; total: number; cats: Partial<Record<CategoryKey, number>> }>();
+    const byMonth = new Map<
+      string,
+      {
+        y: number;
+        m: number;
+        total: number;
+        cats: Partial<Record<CategoryKey, number>>;
+      }
+    >();
     for (const e of expensesStore.expenses) {
       const key = `${e.y}-${e.m}`;
       const row = byMonth.get(key) ?? { y: e.y, m: e.m, total: 0, cats: {} };
@@ -15,14 +23,18 @@ export const useComparisonStore = defineStore("comparison", () => {
       byMonth.set(key, row);
     }
 
-    const sorted = [...byMonth.values()].sort((a, b) => b.y * 12 + b.m - (a.y * 12 + a.m));
+    const sorted = [...byMonth.values()].sort(
+      (a, b) => b.y * 12 + b.m - (a.y * 12 + a.m),
+    );
     const max = Math.max(1, ...sorted.map((r) => r.total));
     const { current } = expensesStore;
 
     return sorted.map((r, i) => {
       const isCurrent = r.y === current.y && r.m === current.m;
       const older = sorted[i + 1];
-      const top = (Object.entries(r.cats) as [CategoryKey, number][]).sort((a, b) => b[1] - a[1])[0];
+      const top = (Object.entries(r.cats) as [CategoryKey, number][]).sort(
+        (a, b) => b[1] - a[1],
+      )[0];
       return {
         key: `${r.y}-${r.m}`,
         y: r.y,
@@ -31,7 +43,10 @@ export const useComparisonStore = defineStore("comparison", () => {
         pct: Math.max(2, Math.round((r.total / max) * 100)),
         topCat: top?.[0] ?? "other",
         isCurrent,
-        delta: !isCurrent && older ? Math.round(((r.total - older.total) / older.total) * 100) : null,
+        delta:
+          !isCurrent && older
+            ? Math.round(((r.total - older.total) / older.total) * 100)
+            : null,
       };
     });
   });
@@ -40,14 +55,23 @@ export const useComparisonStore = defineStore("comparison", () => {
   const completed = computed(() => months.value.filter((m) => !m.isCurrent));
   const average = computed(() =>
     completed.value.length
-      ? Math.round(completed.value.reduce((s, m) => s + m.total, 0) / completed.value.length)
+      ? Math.round(
+          completed.value.reduce((s, m) => s + m.total, 0) /
+            completed.value.length,
+        )
       : 0,
   );
   const highest = computed(() =>
-    completed.value.reduce<MonthSummary | null>((a, m) => (!a || m.total > a.total ? m : a), null),
+    completed.value.reduce<MonthSummary | null>(
+      (a, m) => (!a || m.total > a.total ? m : a),
+      null,
+    ),
   );
   const lowest = computed(() =>
-    completed.value.reduce<MonthSummary | null>((a, m) => (!a || m.total < a.total ? m : a), null),
+    completed.value.reduce<MonthSummary | null>(
+      (a, m) => (!a || m.total < a.total ? m : a),
+      null,
+    ),
   );
 
   return { months, average, highest, lowest };

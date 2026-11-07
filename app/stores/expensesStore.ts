@@ -19,7 +19,10 @@ export const useExpensesStore = defineStore("expenses", () => {
   // ---- State
   const expenses = ref<Expense[]>(demo ? buildDemoExpenses(today) : []);
   const loaded = ref(false);
-  const view = ref({ y: current.y, m: query.empty ? current.m + 1 : current.m });
+  const view = ref({
+    y: current.y,
+    m: query.empty ? current.m + 1 : current.m,
+  });
 
   // ---- Getters
   const items = computed(() =>
@@ -65,18 +68,33 @@ export const useExpensesStore = defineStore("expenses", () => {
    * Saved on the server first; the list only changes once the server accepts it (throws otherwise).
    */
   async function save(draft: ExpenseDraft, id?: number) {
-    const [y = current.y, mo = current.m + 1, d = 1] = draft.date.split("-").map(Number);
-    const data = { cat: draft.cat, amount: draft.amount, y, m: mo - 1, day: d, note: draft.note.trim() || undefined };
+    const [y = current.y, mo = current.m + 1, d = 1] = draft.date
+      .split("-")
+      .map(Number);
+    const data = {
+      cat: draft.cat,
+      amount: draft.amount,
+      y,
+      m: mo - 1,
+      day: d,
+      note: draft.note.trim() || undefined,
+    };
     const editing = id !== undefined;
 
     let record: Expense;
     if (demo) {
-      record = { id: editing ? id : Math.max(0, ...expenses.value.map((e) => e.id)) + 1, ...data };
+      record = {
+        id: editing ? id : Math.max(0, ...expenses.value.map((e) => e.id)) + 1,
+        ...data,
+      };
     } else {
-      record = await $fetch<Expense>(editing ? `/api/expenses/${id}` : "/api/expenses", {
-        method: editing ? "PUT" : "POST",
-        body: data,
-      });
+      record = await $fetch<Expense>(
+        editing ? `/api/expenses/${id}` : "/api/expenses",
+        {
+          method: editing ? "PUT" : "POST",
+          body: data,
+        },
+      );
     }
     expenses.value = editing
       ? expenses.value.map((e) => (e.id === id ? record : e))
@@ -90,8 +108,20 @@ export const useExpensesStore = defineStore("expenses", () => {
   }
 
   return {
-    expenses, loaded, view, current, today, todayISO,
-    items, total, groups,
-    load, reset, prevMonth, nextMonth, save, remove,
+    expenses,
+    loaded,
+    view,
+    current,
+    today,
+    todayISO,
+    items,
+    total,
+    groups,
+    load,
+    reset,
+    prevMonth,
+    nextMonth,
+    save,
+    remove,
   };
 });

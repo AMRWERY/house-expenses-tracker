@@ -23,13 +23,14 @@
 </template>
 
 <script lang="ts" setup>
+const { t } = useI18n();
+
 defineProps<{
   id: string;
   autocomplete: "current-password" | "new-password";
   placeholder?: string;
 }>();
 
-const { t } = useI18n();
 const model = defineModel<string>({ required: true });
 const visible = ref(false);
 </script>

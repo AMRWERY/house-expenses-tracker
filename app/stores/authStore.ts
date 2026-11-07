@@ -1,16 +1,5 @@
 /** i18n keys for everything the sign-in form can tell the person. */
-export type AuthMessageKey =
-  | "invalid_email"
-  | "weak_password"
-  | "email_not_confirmed"
-  | "email_exists"
-  | "rate_limited"
-  | "invalid_credentials"
-  | "auth_failed"
-  | "check_email"
-  | "wrong_current_password"
-  | "same_password"
-  | "password_changed";
+import type { AuthMessageKey } from "~/types/stores/authStore";
 
 /**
  * Sign-in / sign-up / sign-out (email + password, Supabase Auth via /api/auth/*).
@@ -31,13 +20,25 @@ export const useAuthStore = defineStore("auth", () => {
 
   // Turn whatever went wrong into a short message key.
   function describe(e: unknown): AuthMessageKey {
-    const err = e as { statusCode?: number; status?: number; data?: { message?: string } };
+    const err = e as {
+      statusCode?: number;
+      status?: number;
+      data?: { message?: string };
+    };
     const status = err.statusCode ?? err.status;
     const msg = err.data?.message;
-    const passthrough = ["invalid_email", "weak_password", "email_not_confirmed", "email_exists", "wrong_current_password", "same_password"];
+    const passthrough = [
+      "invalid_email",
+      "weak_password",
+      "email_not_confirmed",
+      "email_exists",
+      "wrong_current_password",
+      "same_password",
+    ];
     if (msg && passthrough.includes(msg)) return msg as AuthMessageKey;
     if (status === 429) return "rate_limited";
-    if (status === 401 && msg === "invalid_credentials") return "invalid_credentials";
+    if (status === 401 && msg === "invalid_credentials")
+      return "invalid_credentials";
     return "auth_failed";
   }
 
@@ -65,16 +66,22 @@ export const useAuthStore = defineStore("auth", () => {
 
   const signIn = (email: string, password: string) =>
     run(async () => {
-      await $fetch("/api/auth/login", { method: "POST", body: { email, password } });
+      await $fetch("/api/auth/login", {
+        method: "POST",
+        body: { email, password },
+      });
       return "done";
     });
 
   const signUp = (email: string, password: string) =>
     run(async () => {
-      const res = await $fetch<{ needsConfirmation: boolean }>("/api/auth/register", {
-        method: "POST",
-        body: { email, password },
-      });
+      const res = await $fetch<{ needsConfirmation: boolean }>(
+        "/api/auth/register",
+        {
+          method: "POST",
+          body: { email, password },
+        },
+      );
       if (res.needsConfirmation) {
         notice.value = "check_email"; // confirm the address first, then sign in
         return "notice";
@@ -105,7 +112,10 @@ export const useAuthStore = defineStore("auth", () => {
     passwordBusy.value = true;
     clearPasswordMessages();
     try {
-      await $fetch("/api/auth/password", { method: "POST", body: { currentPassword, newPassword } });
+      await $fetch("/api/auth/password", {
+        method: "POST",
+        body: { currentPassword, newPassword },
+      });
       passwordNotice.value = "password_changed";
       return true;
     } catch (e) {
@@ -122,7 +132,20 @@ export const useAuthStore = defineStore("auth", () => {
   }
 
   return {
-    busy, error, notice, user, loggedIn, clearMessages, signIn, signUp, clearSession, logout,
-    passwordBusy, passwordError, passwordNotice, clearPasswordMessages, changePassword,
+    busy,
+    error,
+    notice,
+    user,
+    loggedIn,
+    clearMessages,
+    signIn,
+    signUp,
+    clearSession,
+    logout,
+    passwordBusy,
+    passwordError,
+    passwordNotice,
+    clearPasswordMessages,
+    changePassword,
   };
 });
