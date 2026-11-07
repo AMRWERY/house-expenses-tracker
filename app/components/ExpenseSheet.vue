@@ -45,16 +45,16 @@
         <!-- Category chips -->
         <div class="chips" role="radiogroup" :aria-label="t('category')">
           <button
-            v-for="c in CATEGORY_KEYS"
-            :key="c"
+            v-for="c in categories.all"
+            :key="c.key"
             type="button"
             role="radio"
             class="chip"
-            :aria-checked="cat === c"
-            @click="cat = c"
+            :aria-checked="cat === c.key"
+            @click="cat = c.key"
           >
-            <AppIcon :name="c" />
-            {{ t(`categories.${c}`) }}
+            <AppIcon :name="c.icon" />
+            {{ info(c.key).label }}
           </button>
         </div>
 
@@ -111,6 +111,8 @@ const sheetStore = useSheetStore();
 const { saveError } = storeToRefs(sheetStore);
 const { todayISO: today } = useExpensesStore();
 const { dateLocale } = useDateLabels();
+const categories = useCategoriesStore();
+const { info } = useCategoryInfo();
 
 // What the sheet was opened for, captured once: the store clears it on close, while the leave
 // animation is still playing. (The page re-creates this component per expense via :key.)
@@ -119,7 +121,7 @@ const title = mode === "edit" ? t("edit_expense") : t("add_expense");
 
 // Form state (prefilled when editing; sample rows use their translated title as the note)
 const amount = ref(e ? String(e.amount) : "");
-const cat = ref<CategoryKey>(e?.cat ?? "groceries");
+const cat = ref<string>(categories.byKey(e?.cat ?? "groceries").key); // an unknown/deleted category shows as "other"
 const date = ref(e ? toISODate(e.y, e.m, e.day) : today);
 const note = ref(e ? (e.titleKey ? t(e.titleKey) : (e.note ?? "")) : "");
 const amountError = ref(false);

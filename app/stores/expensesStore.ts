@@ -56,6 +56,11 @@ export const useExpensesStore = defineStore("expenses", () => {
     loaded.value = false;
   }
 
+  /** After a category is deleted the server moves its expenses; mirror that here. */
+  function reassignCategory(from: string, to: string) {
+    expenses.value = expenses.value.map((e) => (e.cat === from ? { ...e, cat: to } : e));
+  }
+
   function shiftMonth(delta: number) {
     const d = new Date(view.value.y, view.value.m + delta, 1);
     view.value = { y: d.getFullYear(), m: d.getMonth() };
@@ -119,6 +124,7 @@ export const useExpensesStore = defineStore("expenses", () => {
     groups,
     load,
     reset,
+    reassignCategory,
     prevMonth,
     nextMonth,
     save,

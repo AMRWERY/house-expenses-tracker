@@ -18,6 +18,33 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      categories: {
+        Row: {
+          id: string;
+          user_id: string;
+          name: string;
+          color: string;
+          icon: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          name: string;
+          color: string;
+          icon: string;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          name?: string;
+          color?: string;
+          icon?: string;
+          created_at?: string;
+        };
+        Relationships: []; // user_id -> auth.users(id) (other schema, so not listed here)
+      };
       expenses: {
         Row: {
           id: number;

@@ -7,7 +7,7 @@ export interface MonthSummary {
   total: number;
   /** bar width, 0-100 (relative to the biggest month) */
   pct: number;
-  topCat: CategoryKey;
+  topCat: string;
   /** the month in progress (its total is "so far", so it has no comparison) */
   isCurrent: boolean;
   /** % change vs the month before; null when there is nothing to compare */

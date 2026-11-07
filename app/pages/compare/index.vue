@@ -2,6 +2,7 @@
 const { t, locale } = useI18n()
 
 const { monthName } = useDateLabels()
+const { info } = useCategoryInfo()
 const { months, average, highest, lowest } = storeToRefs(useComparisonStore())
 const backIcon = computed<IconName>(() => (locale.value === 'ar' ? 'arrowRight' : 'arrowLeft'))
 
@@ -57,7 +58,7 @@ const deltaText = (d: number) =>
               </div>
 
               <div class="cmp-meta">
-                <span>{{ t('top_category') }}: {{ t(`categories.${m.topCat}`) }}</span>
+                <span>{{ t('top_category') }}: {{ info(m.topCat).label }}</span>
                 <span
                   v-if="m.delta !== null"
                   class="delta"

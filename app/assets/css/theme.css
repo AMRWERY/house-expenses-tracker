@@ -391,3 +391,33 @@ a.icon-btn { color: var(--text-2); }
 .pw-input { padding-inline-end: 52px; }
 .pw-toggle { position: absolute; inset-block-start: 2px; inset-inline-end: 2px; width: 44px; height: 44px; }
 .pw-toggle:focus-visible { outline: 2px solid var(--primary); outline-offset: -2px; }
+
+/* Categories sheet (home page) */
+.sheet-title { display: flex; align-items: center; gap: 4px; min-width: 0; }
+.sheet-title .icon-btn { margin-inline-start: -8px; }
+.cat-entry { display: flex; justify-content: center; margin-top: 12px; }
+.cat-list { list-style: none; margin: 8px 0 0; padding: 0; }
+.cat-item { display: flex; align-items: center; gap: 12px; padding: 8px 4px; }
+.cat-item + .cat-item { border-top: 1px solid var(--border); }
+.cat-hint { margin: 12px 4px 0; font-size: 14px; line-height: 22px; color: var(--text-2); }
+.cat-name { display: flex; align-items: flex-end; gap: 12px; margin-top: 8px; }
+.cat-name .row-icon { margin-bottom: 2px; }
+.cat-name-field { flex: 1; min-width: 0; }
+.cat-label { margin-top: 20px; }
+.swatches, .icon-choices { display: flex; flex-wrap: wrap; gap: 10px; }
+.swatch {
+  width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center;
+  background: var(--c); color: #fff; transition: transform .15s, box-shadow .2s;
+}
+.swatch[aria-checked="true"] { transform: scale(1.08); box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px var(--c); }
+.swatch .ico { width: 20px; height: 20px; stroke-width: 2.5; }
+.icon-choice {
+  width: 44px; height: 44px; border-radius: 12px; display: grid; place-items: center;
+  background: var(--surface-alt); color: var(--text-2); transition: background-color .2s, color .2s, box-shadow .2s;
+}
+.icon-choice:hover { background: var(--border); }
+.icon-choice[aria-checked="true"] { color: var(--c); background: color-mix(in srgb, var(--c) var(--tint), transparent); box-shadow: 0 0 0 2px var(--c); }
+.icon-choice .ico { width: 22px; height: 22px; }
+.cat-confirm { margin-top: 8px; padding: 12px; border-radius: 12px; background: var(--surface-alt); text-align: center; }
+.cat-confirm p { font-size: 14px; line-height: 22px; color: var(--text-2); }
+.btn:disabled, .btn-text:disabled { opacity: .5; cursor: default; }

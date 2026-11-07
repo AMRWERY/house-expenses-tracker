@@ -13,6 +13,7 @@ export default defineNuxtRouteMiddleware(async (to) => {
 
   const auth = useAuthStore()
   const expenses = useExpensesStore()
+  const categories = useCategoriesStore()
   const localePath = useLocalePath()
 
   if (!auth.loggedIn) return path === '/login' ? undefined : navigateTo(localePath('/login'))
@@ -28,12 +29,12 @@ export default defineNuxtRouteMiddleware(async (to) => {
   }
 
   try {
-    await expenses.load()
+    await Promise.all([expenses.load(), categories.load()])
   } catch (first) {
     if (statusOf(first) === 401) return signOut()
     try {
       await new Promise(resolve => setTimeout(resolve, 800))
-      await expenses.load()
+      await Promise.all([expenses.load(), categories.load()])
     } catch (second) {
       if (statusOf(second) === 401) return signOut()
     }

@@ -10,6 +10,7 @@ export const useAuthStore = defineStore("auth", () => {
   const session = useUserSession();
   const expensesStore = useExpensesStore();
   const sheetStore = useSheetStore();
+  const categoriesStore = useCategoriesStore();
 
   const busy = ref(false);
   const error = ref<AuthMessageKey | "">("");
@@ -93,6 +94,7 @@ export const useAuthStore = defineStore("auth", () => {
   async function clearSession() {
     await session.clear();
     expensesStore.reset();
+    categoriesStore.reset();
     sheetStore.close();
   }
 

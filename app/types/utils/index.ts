@@ -4,7 +4,8 @@ export interface Expense {
   titleKey?: string;
   /** user-written note; also used as the row title */
   note?: string;
-  cat: CategoryKey;
+  /** a built-in category key, or the id of one of the person's custom categories */
+  cat: string;
   amount: number;
   y: number;
   m: number;
@@ -14,7 +15,7 @@ export interface Expense {
 /** What the Add/Edit sheet hands back. `date` is YYYY-MM-DD. */
 export interface ExpenseDraft {
   amount: number;
-  cat: CategoryKey;
+  cat: string;
   date: string;
   note: string;
 }

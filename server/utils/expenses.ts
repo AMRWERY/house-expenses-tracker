@@ -1,16 +1,6 @@
 import type { Tables } from "~/types/database.types";
 import type { ExpenseRecord } from "~/types/utils";
 
-const CATEGORIES = [
-  "groceries",
-  "bills",
-  "transport",
-  "health",
-  "education",
-  "fun",
-  "other",
-];
-
 export type ExpenseInput = Omit<ExpenseRecord, "id">;
 
 const bad = (message: string) => createError({ statusCode: 400, message });
@@ -21,7 +11,9 @@ const isInt = (v: unknown, min: number, max: number): v is number =>
 export function parseExpenseInput(body: unknown): ExpenseInput {
   const b = (body ?? {}) as Record<string, unknown>;
 
-  if (typeof b.cat !== "string" || !CATEGORIES.includes(b.cat))
+  // Shape only: whether it is a built-in key or one of THIS user's categories is checked in
+  // assertCategoryAllowed() when the expense is saved.
+  if (typeof b.cat !== "string" || b.cat.length < 1 || b.cat.length > 40)
     throw bad("invalid_category");
   if (
     typeof b.amount !== "number" ||
@@ -85,6 +77,7 @@ export async function listExpenses(userId: string) {
 }
 
 export async function createExpense(userId: string, input: ExpenseInput) {
+  await assertCategoryAllowed(userId, input.cat);
   const row = must(
     await useSupabase()
       .from("expenses")
@@ -101,6 +94,7 @@ export async function updateExpense(
   id: number,
   input: ExpenseInput,
 ) {
+  await assertCategoryAllowed(userId, input.cat);
   const row = must(
     await useSupabase()
       .from("expenses")

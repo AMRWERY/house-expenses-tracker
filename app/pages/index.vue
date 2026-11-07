@@ -6,8 +6,14 @@ const { view, items, groups } = storeToRefs(expensesStore)
 const { dayLabel } = useDateLabels()
 
 // ?sheet=add|edit opens the Add/Edit sheet on load (used by the preview page).
-sheetStore.openFromQuery(useRoute().query)
-onBeforeUnmount(sheetStore.close)
+const route = useRoute()
+const categorySheet = useCategorySheetStore()
+sheetStore.openFromQuery(route.query)
+if (route.query.sheet === 'categories') categorySheet.open()
+onBeforeUnmount(() => {
+  sheetStore.close()
+  categorySheet.close()
+})
 </script>
 
 <template>
@@ -20,6 +26,11 @@ onBeforeUnmount(sheetStore.close)
         </button>
       </template>
       <MonthSwitcher />
+      <div class="cat-entry">
+        <button class="chip" type="button" @click="categorySheet.open()">
+          <AppIcon name="tag" />{{ t('manage_categories') }}
+        </button>
+      </div>
     </AppHeader>
 
     <main>
@@ -44,6 +55,10 @@ onBeforeUnmount(sheetStore.close)
 
     <Transition name="sheet" appear>
       <ExpenseSheet v-if="sheetStore.sheet" :key="sheetStore.sheet.expense?.id ?? 'new'" />
+    </Transition>
+
+    <Transition name="sheet" appear>
+      <CategorySheet v-if="categorySheet.isOpen" />
     </Transition>
   </div>
 </template>
