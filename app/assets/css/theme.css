@@ -434,3 +434,5 @@ a.icon-btn { color: var(--text-2); }
 .budget-input { flex: 1; min-width: 0; height: 100%; background: none; border: 0; outline: 0; font: inherit; color: inherit; text-align: start; }
 .budget-cur { color: var(--text-2); font-weight: 600; }
 .cat-note { margin: 6px 4px 0; font-size: 13px; line-height: 20px; color: var(--text-2); }
+.row-end { flex: none; text-align: end; }
+.row-budget { margin-top: 2px; font-size: 13px; line-height: 18px; color: var(--primary); font-variant-numeric: tabular-nums; white-space: nowrap; }
