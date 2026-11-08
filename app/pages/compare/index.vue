@@ -25,7 +25,7 @@ const deltaText = (d: number) =>
         <section class="total stats rise">
           <div class="total-label" style="text-align: center">{{ t('monthly_average') }}</div>
           <div class="total-amount" style="text-align: center">
-            <span>{{ formatNumber(average) }}</span><small>{{ t('currency') }}</small>
+            <AnimatedNumber :value="average" /><small>{{ t('currency') }}</small>
           </div>
           <div v-if="highest" class="stat">
             <span>{{ t('highest') }}</span><b>{{ monthName(highest.y, highest.m) }}</b>
@@ -50,7 +50,7 @@ const deltaText = (d: number) =>
                 <h2 class="cmp-month">
                   {{ monthName(m.y, m.m) }}<span v-if="m.isCurrent" class="cmp-sofar">{{ t('so_far') }}</span>
                 </h2>
-                <div class="cmp-amount">{{ formatNumber(m.total) }} {{ t('currency') }}</div>
+                <div class="cmp-amount"><AnimatedNumber :value="m.total" /> {{ t('currency') }}</div>
               </div>
 
               <div class="cmp-bar" aria-hidden="true">
@@ -66,7 +66,7 @@ const deltaText = (d: number) =>
                   :aria-label="`${deltaText(m.delta)} ${t('vs_prev')}`"
                 >
                   <AppIcon v-if="m.delta !== 0" :name="m.delta > 0 ? 'arrowUp' : 'arrowDown'" />
-                  {{ Math.abs(m.delta) }}%
+                  <AnimatedNumber :value="Math.abs(m.delta)" />%
                 </span>
               </div>
             </article>

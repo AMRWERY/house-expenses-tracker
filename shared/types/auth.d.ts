@@ -4,6 +4,8 @@ declare module '#auth-utils' {
   interface User {
     id: string
     email: string
+    /** Greeting name: the one given at sign-up (or the email's first part). Missing on sessions started before names existed. */
+    name?: string
   }
 }
 

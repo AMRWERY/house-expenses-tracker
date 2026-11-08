@@ -9,6 +9,7 @@ const { busy, error, notice } = storeToRefs(auth)
 
 type Mode = 'signin' | 'signup'
 const mode = ref<Mode>(useRoute().query.mode === 'signup' ? 'signup' : 'signin')
+const name = ref('')
 const email = ref('')
 const password = ref('')
 const emailTouched = ref(false)
@@ -22,7 +23,11 @@ const emailValid = computed(() => EMAIL_RE.test(email.value.trim()))
 const passwordValid = computed(() =>
   mode.value === 'signup' ? password.value.length >= 8 && password.value.length <= 72 : password.value.length > 0,
 )
-const canSubmit = computed(() => emailValid.value && passwordValid.value && !busy.value)
+// Sign-up also asks for a name (1-40 characters): it is what the greeting calls you.
+const nameValid = computed(() => name.value.trim().length >= 1 && name.value.trim().length <= 40)
+const canSubmit = computed(
+  () => emailValid.value && passwordValid.value && (mode.value === 'signin' || nameValid.value) && !busy.value,
+)
 const showEmailError = computed(() => emailTouched.value && email.value.trim() !== '' && !emailValid.value)
 
 const otherLocale = computed(() => (locale.value === 'ar' ? 'en' : 'ar'))
@@ -31,7 +36,7 @@ function submit() {
   if (!canSubmit.value) return
   const e = email.value.trim().toLowerCase()
   if (mode.value === 'signin') auth.signIn(e, password.value)
-  else auth.signUp(e, password.value)
+  else auth.signUp(e, password.value, name.value)
 }
 
 // Changing tabs clears the old message.
@@ -53,7 +58,20 @@ watch(mode, auth.clearMessages)
         <SegmentedControl v-model="mode" :options="modes" :label="t('app_title')" />
 
         <form class="auth-form" novalidate @submit.prevent="submit">
-          <label class="field-label" for="email">{{ t('email_label') }}</label>
+          <template v-if="mode === 'signup'">
+            <label class="field-label" for="name">{{ t('name_label') }}</label>
+            <input
+              id="name"
+              v-model="name"
+              class="field field-input"
+              type="text"
+              autocomplete="name"
+              maxlength="40"
+              :placeholder="t('name_placeholder')"
+            />
+          </template>
+
+          <label class="field-label" :class="{ 'field-label-gap': mode === 'signup' }" for="email">{{ t('email_label') }}</label>
           <input
             id="email"
             v-model="email"

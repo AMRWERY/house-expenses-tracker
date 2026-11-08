@@ -17,10 +17,10 @@
         class="row-amount"
         :aria-label="t('expense_aria', { amount: formatNumber(expense.amount) })"
       >
-        −{{ formatNumber(expense.amount) }} {{ t("currency") }}
+        −<AnimatedNumber :value="expense.amount" /> {{ t("currency") }}
       </div>
       <!-- The category's main amount (its monthly budget) -->
-      <div v-if="budget" class="row-budget" dir="ltr">{{ formatNumber(budget.budget) }} {{ t("currency") }}</div>
+      <div v-if="budget" class="row-budget" dir="ltr"><AnimatedNumber :value="budget.budget" /> {{ t("currency") }}</div>
     </div>
   </div>
 </template>

@@ -1,9 +1,12 @@
 // Email + password sign-up (desktop). Supabase creates the account and, when the project requires it,
 // sends the confirmation email. Until the address is confirmed there is no session.
 export default defineEventHandler(async (event) => {
-  const { email, password } = parseCredentials(await readBody(event), true)
+  const body = await readBody(event)
+  const { email, password } = parseCredentials(body, true)
+  const name = parseName((body ?? {}).name)
 
-  const { data, error } = await newAuthClient().auth.signUp({ email, password })
+  // The name is kept on the Supabase account (user_metadata), so every sign-in can read it back.
+  const { data, error } = await newAuthClient().auth.signUp({ email, password, options: { data: { name } } })
 
   if (error) {
     if (error.status === 429 || error.code === 'over_request_rate_limit' || error.code === 'over_email_send_rate_limit') {
@@ -17,7 +20,7 @@ export default defineEventHandler(async (event) => {
 
   // Confirmation switched off in the Supabase project: the account is usable straight away.
   if (data.session && data.user) {
-    await setUserSession(event, { user: { id: data.user.id, email: data.user.email ?? email } })
+    await setUserSession(event, { user: { id: data.user.id, email: data.user.email ?? email, name } })
     return { needsConfirmation: false }
   }
 

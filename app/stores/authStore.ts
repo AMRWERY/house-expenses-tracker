@@ -30,6 +30,7 @@ export const useAuthStore = defineStore("auth", () => {
     const msg = err.data?.message;
     const passthrough = [
       "invalid_email",
+      "invalid_name",
       "weak_password",
       "email_not_confirmed",
       "email_exists",
@@ -74,13 +75,13 @@ export const useAuthStore = defineStore("auth", () => {
       return "done";
     });
 
-  const signUp = (email: string, password: string) =>
+  const signUp = (email: string, password: string, name: string) =>
     run(async () => {
       const res = await $fetch<{ needsConfirmation: boolean }>(
         "/api/auth/register",
         {
           method: "POST",
-          body: { email, password },
+          body: { email, password, name },
         },
       );
       if (res.needsConfirmation) {

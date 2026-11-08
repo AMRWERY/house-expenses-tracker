@@ -35,6 +35,7 @@
 /* Tailwind's preflight handles the reset; these styles sit in the components layer so utilities still win. */
 @layer components {
 html { -webkit-text-size-adjust: 100%; }
+
 body {
   font-family: var(--font);
   font-size: 16px;
@@ -43,7 +44,9 @@ body {
   color: var(--text);
   transition: background-color .3s, color .3s;
 }
+
 button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; }
+
 :focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
 
 .app {
@@ -67,16 +70,21 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 /* Header */
 .header-row { display: flex; align-items: center; justify-content: space-between; min-height: 44px; }
 h1 { font-size: 28px; line-height: 38px; font-weight: 700; }
+
 .icon-btn {
   width: 44px; height: 44px; border-radius: 12px;
   display: grid; place-items: center; color: var(--text-2);
   transition: background-color .2s, transform .1s;
 }
+
 .icon-btn:hover { background: var(--surface-alt); }
+
 .icon-btn:active { transform: scale(.97); }
+
 .icon-btn:disabled { opacity: .5; cursor: default; }
 
 .month { display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 8px; }
+
 .month-label { min-width: 140px; text-align: center; font-size: 18px; font-weight: 600; font-variant-numeric: tabular-nums; }
 
 /* Total card */
@@ -86,12 +94,16 @@ h1 { font-size: 28px; line-height: 38px; font-weight: 700; }
   border: 1px solid transparent;
   text-align: center;
 }
+
 :root[data-theme="dark"] .total { border-color: var(--border); }
+
 .total-label { font-size: 14px; line-height: 22px; color: var(--text-2); font-weight: 500; }
+
 .total-amount {
   margin-top: 4px; font-size: 36px; line-height: 48px; font-weight: 700;
   font-variant-numeric: tabular-nums;
 }
+
 .total-amount small { font-size: 20px; font-weight: 600; color: var(--text-2); margin-inline-start: 6px; }
 
 /* List */
@@ -105,6 +117,52 @@ h1 { font-size: 28px; line-height: 38px; font-weight: 700; }
 .day .rows { display: flex; flex-direction: column; gap: 10px; background: none; box-shadow: none; border: 0; overflow: visible; }
 .day .row, :root[data-theme="dark"] .day .row { background: var(--surface); border-radius: 16px; box-shadow: var(--shadow); border: 1px solid transparent; }
 :root[data-theme="dark"] .day .row { border-color: var(--border); }
+/* Greeting banner (every signed-in page): icon | greeting + date | live clock */
+.greet-wrap { --pad: 16px; max-width: 1100px; margin-inline: auto; padding: 16px var(--pad) 0; }
+@media (min-width: 640px) { .greet-wrap { --pad: 24px; padding-top: 24px; } }
+@media (min-width: 1024px) { .greet-wrap { --pad: 32px; padding-top: 40px; } }
+.greet-wrap + .app { padding-top: 16px; } /* the banner already provides the top space */
+.greet {
+  display: flex; align-items: center; flex-wrap: wrap; gap: 12px 14px; min-height: 76px; padding: 14px 16px;
+  background: var(--surface); border: 1px solid transparent; border-radius: 16px; box-shadow: var(--shadow);
+  transition: background-color .3s, border-color .3s;
+}
+:root[data-theme="dark"] .greet { border-color: var(--border); }
+.greet-icon {
+  flex: none; width: 48px; height: 48px; border-radius: 50%; display: grid; place-items: center;
+  color: var(--c); background: color-mix(in srgb, var(--c) var(--tint), transparent);
+}
+.greet-icon .ico { width: 28px; height: 28px; overflow: visible; }
+.greet-text { flex: 1; min-width: 180px; }
+.greet-title { font-size: 18px; line-height: 26px; font-weight: 700; }
+.greet-sub { font-size: 14px; line-height: 20px; color: var(--text-2); }
+.greet-clock {
+  display: inline-flex; margin-inline-start: auto; font-size: 20px; line-height: 28px; font-weight: 700;
+  font-variant-numeric: tabular-nums; direction: ltr; unicode-bidi: isolate;
+}
+.greet-clock span { white-space: pre; }
+.greet-clock .digit { display: inline-block; animation: digit-in .35s ease-out; } /* a changed digit slides in */
+@keyframes digit-in { from { opacity: 0; transform: translateY(-45%); } to { opacity: 1; transform: none; } }
+
+/* Greeting icon motion: sunrise lifts, afternoon sun turns, sunset sinks, the moon sways and the stars twinkle */
+.gi * { transform-box: view-box; transform-origin: 12px 12px; }
+.gi-rise { animation: gi-up 2.6s ease-in-out infinite alternate; }
+.gi-set { animation: gi-down 2.6s ease-in-out infinite alternate; }
+.gi-spin { animation: gi-turn 16s linear infinite; }
+.gi-pulse { animation: gi-pulse 2.4s ease-in-out infinite; }
+.gi-sway { animation: gi-sway 3.2s ease-in-out infinite alternate; }
+.gi-twinkle { animation: gi-twinkle 1.8s ease-in-out infinite; }
+.gi-twinkle-b { animation-delay: .9s; }
+@keyframes gi-up { from { transform: translateY(1.5px); } to { transform: translateY(-1.5px); } }
+@keyframes gi-down { from { transform: translateY(-1.5px); } to { transform: translateY(1.5px); } }
+@keyframes gi-turn { to { transform: rotate(360deg); } }
+@keyframes gi-pulse { 50% { transform: scale(1.12); } }
+@keyframes gi-sway { from { transform: rotate(-8deg); } to { transform: rotate(8deg); } }
+@keyframes gi-twinkle { 50% { opacity: .25; transform: scale(.7); } }
+@media (prefers-reduced-motion: reduce) {
+  .greet-clock .digit, .gi-rise, .gi-set, .gi-spin, .gi-pulse, .gi-sway, .gi-twinkle { animation: none; }
+}
+
 /* Skeleton loaders: a soft block with a light shimmer sweeping across (1.4s loop) */
 .sk { position: relative; display: block; overflow: hidden; background: var(--surface-alt); border-radius: 8px; }
 .sk::after {

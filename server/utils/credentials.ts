@@ -10,6 +10,20 @@ export function parseEmail(value: unknown) {
   return email
 }
 
+/** The name a person types at sign-up: 1-40 characters, extra spaces collapsed. */
+export function parseName(value: unknown) {
+  const name = typeof value === 'string' ? value.replace(/\s+/g, ' ').trim() : ''
+  if (name.length < 1 || name.length > 40) throw bad(400, 'invalid_name')
+  return name
+}
+
+/** The name to greet someone with: their sign-up name (kept in Supabase user_metadata), else the part of the email before "@". */
+export function displayNameOf(user: { email?: string | null; user_metadata?: Record<string, unknown> | null }, fallbackEmail: string) {
+  const raw = user.user_metadata?.name
+  const name = typeof raw === 'string' ? raw.replace(/\s+/g, ' ').trim().slice(0, 40) : ''
+  return name || (user.email ?? fallbackEmail).split('@')[0] || ''
+}
+
 /**
  * Validate an email + password request body.
  * `isNew` enforces the password rules (sign-up); sign-in only needs something to check.

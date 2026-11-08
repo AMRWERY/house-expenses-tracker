@@ -1,5 +1,6 @@
 export type AuthMessageKey =
   | "invalid_email"
+  | "invalid_name"
   | "weak_password"
   | "email_not_confirmed"
   | "email_exists"
