@@ -151,6 +151,8 @@ html[data-vt="locale"]::view-transition-new(root) { animation: vt-in .45s ease .
 @keyframes vt-out { to { opacity: 0; filter: blur(8px); transform: scale(.985); } }
 @keyframes vt-in { from { opacity: 0; filter: blur(8px); transform: scale(1.015); } }
 
+.icon-btn.is-hidden { visibility: hidden; }
+
 /* Confirmation dialog: centered card over a dimmed page (above the bottom sheet) */
 .modal-root { position: fixed; inset: 0; z-index: 60; display: grid; place-items: center; padding: 20px; }
 .modal {

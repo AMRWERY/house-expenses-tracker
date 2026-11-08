@@ -67,6 +67,7 @@
             <input
               v-model="date"
               type="date"
+              :min="firstDayISO"
               class="date-native"
               :aria-label="t('date')"
               @click="openPicker"
@@ -119,7 +120,7 @@ const { t } = useI18n();
 
 const sheetStore = useSheetStore();
 const { saveError, busy } = storeToRefs(sheetStore);
-const { todayISO: today } = useExpensesStore();
+const { todayISO: today, firstDayISO } = useExpensesStore();
 const { dateLocale } = useDateLabels();
 const categories = useCategoriesStore();
 const { info } = useCategoryInfo();

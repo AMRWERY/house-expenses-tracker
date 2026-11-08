@@ -86,9 +86,18 @@ export const useExpensesStore = defineStore("expenses", () => {
     if (filterCat.value === from) filterCat.value = null; // the filtered category is gone
   }
 
+  /** The home page never goes back before this month (November 2026). The dev preview is not limited. */
+  const FIRST_MONTH = { y: 2026, m: 10 };
+  const FIRST_DAY_ISO = toISODate(FIRST_MONTH.y, FIRST_MONTH.m, 1);
+  const canGoPrev = computed(
+    () => demo || view.value.y * 12 + view.value.m > FIRST_MONTH.y * 12 + FIRST_MONTH.m,
+  );
+
   function shiftMonth(delta: number) {
     const d = new Date(view.value.y, view.value.m + delta, 1);
-    view.value = { y: d.getFullYear(), m: d.getMonth() };
+    const target = { y: d.getFullYear(), m: d.getMonth() };
+    if (!demo && target.y * 12 + target.m < FIRST_MONTH.y * 12 + FIRST_MONTH.m) return;
+    view.value = target;
   }
   const prevMonth = () => shiftMonth(-1);
   const nextMonth = () => shiftMonth(1);
@@ -178,6 +187,8 @@ export const useExpensesStore = defineStore("expenses", () => {
     setFilter,
     prevMonth,
     nextMonth,
+    canGoPrev,
+    firstDayISO: FIRST_DAY_ISO,
     save,
     remove,
   };
