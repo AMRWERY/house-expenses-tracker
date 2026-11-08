@@ -13,9 +13,6 @@ export const useCategorySheetStore = defineStore("categorySheet", () => {
   /** The change in flight: the list shows a skeleton for that category (a new one at the end for "add"). */
   const pending = ref<{ kind: "add" | "update" | "delete"; id?: string } | null>(null);
 
-  /** The last remaining category can't be deleted (expenses always need somewhere to live). */
-  const canDelete = computed(() => categoriesStore.all.length > 1);
-
   function open() {
     view.value = "list";
     editing.value = null;
@@ -43,7 +40,8 @@ export const useCategorySheetStore = defineStore("categorySheet", () => {
 
   /**
    * Run a server change. The list shows right away with a skeleton row for the category being added,
-   * updated or deleted (held at least 1 second); a failure brings the form back, with its input, and a message.
+   * updated or deleted (held at least 1 second), then the whole dialog closes. A failure brings the form back,
+   * with its input, and a message.
    */
   async function run(kind: "add" | "update" | "delete", action: () => Promise<void>) {
     if (busy.value) return;
@@ -53,6 +51,7 @@ export const useCategorySheetStore = defineStore("categorySheet", () => {
     view.value = "list";
     try {
       await atLeastSkeletonTime(action());
+      close(); // done: the whole dialog closes, not just the form
     } catch (e) {
       const err = e as { data?: { message?: string } };
       error.value = err.data?.message === "category_limit" ? "category_limit" : "save_failed";
@@ -73,5 +72,5 @@ export const useCategorySheetStore = defineStore("categorySheet", () => {
       if (editing.value) await categoriesStore.remove(editing.value);
     });
 
-  return { isOpen, view, editing, error, busy, pending, canDelete, open, close, startAdd, startEdit, backToList, save, remove };
+  return { isOpen, view, editing, error, busy, pending, open, close, startAdd, startEdit, backToList, save, remove };
 });

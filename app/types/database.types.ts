@@ -51,6 +51,21 @@ export type Database = {
         };
         Relationships: []; // user_id -> auth.users(id) (other schema, so not listed here)
       };
+      category_seed_done: {
+        Row: {
+          user_id: string;
+          created_at: string;
+        };
+        Insert: {
+          user_id: string;
+          created_at?: string;
+        };
+        Update: {
+          user_id?: string;
+          created_at?: string;
+        };
+        Relationships: []; // user_id -> auth.users(id) (other schema, so not listed here)
+      };
       month_amounts: {
         Row: {
           user_id: string;

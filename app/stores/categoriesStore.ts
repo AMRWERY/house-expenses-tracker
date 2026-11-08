@@ -112,17 +112,20 @@ export const useCategoriesStore = defineStore("categories", () => {
     all.value = all.value.map((c) => (c.id === category.id ? toCategory(record) : c));
   }
 
-  /** Delete one; its expenses move to another category, mirrored here from what the server did. */
+  /**
+   * Delete one; its expenses move to another category, mirrored here from what the server did.
+   * Deleting the last category is allowed: there is nowhere to move its expenses (`movedTo` is null), so they stay.
+   */
   async function remove(category: Category) {
-    let movedTo: string;
+    let movedTo: string | null;
     if (demo) {
       const rest = all.value.filter((c) => c.id !== category.id);
-      movedTo = (rest.find((c) => c.key === "other") ?? rest[0])?.key ?? "other";
+      movedTo = (rest.find((c) => c.key === "other") ?? rest[0])?.key ?? null;
     } else {
-      movedTo = (await $fetch<{ movedTo: string }>(`/api/categories/${category.id}`, { method: "DELETE" })).movedTo;
+      movedTo = (await $fetch<{ movedTo: string | null }>(`/api/categories/${category.id}`, { method: "DELETE" })).movedTo;
     }
     all.value = all.value.filter((c) => c.id !== category.id);
-    expensesStore.reassignCategory(category.key, movedTo);
+    if (movedTo !== null) expensesStore.reassignCategory(category.key, movedTo);
   }
 
   return { all, loaded, budgets, budgetSummary, byKey, load, reset, add, update, remove };

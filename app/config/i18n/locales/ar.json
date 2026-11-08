@@ -107,6 +107,8 @@
   "add_category": "إضافة تصنيف",
   "edit_category": "تعديل التصنيف",
   "delete_category": "حذف التصنيف",
+  "delete_last_category_confirm": "هذا آخر تصنيف لديك. ستبقى مصروفاته، لكنك ستحتاج إلى إضافة تصنيف قبل أن تتمكن من إضافة المصروفات أو تعديلها.",
+  "no_categories_hint": "ليس لديك أي تصنيف. أضف تصنيفًا لحفظ المصروفات.",
   "delete_category_confirm": "حذف هذا التصنيف؟ ستبقى مصروفاته وتنتقل إلى تصنيف آخر.",
   "category_name": "الاسم",
   "category_name_placeholder": "مثال: حيوانات أليفة",

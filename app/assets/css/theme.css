@@ -1980,6 +1980,14 @@
   line-height: 20px;
   color: var(--text-2);
 }
+/* Expense sheet with no categories: the hint and an "Add category" button */
+.chips-empty {
+  margin-top: 12px;
+  text-align: center;
+}
+.chips-empty .cat-note {
+  font-size: 14px;
+}
 
 .row-end {
   flex: none;

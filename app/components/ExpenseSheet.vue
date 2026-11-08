@@ -58,6 +58,12 @@
           </button>
         </div>
 
+        <!-- No categories left (the last one was deleted): an expense needs one, so ask for it first -->
+        <div v-if="!categories.all.length" class="chips-empty">
+          <p class="cat-note">{{ t("no_categories_hint") }}</p>
+          <button class="btn-text" type="button" @click="addCategoryFirst">{{ t("add_category") }}</button>
+        </div>
+
         <!-- Date -->
         <div class="field-block">
           <span class="field-label">{{ t("date") }}</span>
@@ -94,7 +100,7 @@
         <button
           class="btn btn-block"
           type="submit"
-          :disabled="!!busy"
+          :disabled="!!busy || !categories.all.length"
           :aria-busy="busy === 'save'"
         >
           <!-- Adding a new expense says "Add"; editing one says "Save" -->
@@ -161,6 +167,14 @@ const dateLabel = computed(() => {
 
 const openPicker = (ev: Event) =>
   (ev.target as HTMLInputElement).showPicker?.();
+
+/** Close this sheet and open the "add category" form instead. */
+function addCategoryFirst() {
+  const categorySheet = useCategorySheetStore();
+  sheetStore.close();
+  categorySheet.open();
+  categorySheet.startAdd();
+}
 
 function submit() {
   const value = Number(amount.value);

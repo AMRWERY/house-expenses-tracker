@@ -107,6 +107,8 @@
   "add_category": "Add category",
   "edit_category": "Edit category",
   "delete_category": "Delete category",
+  "delete_last_category_confirm": "This is your last category. Its expenses are kept, but you will need to add a category before you can add or edit expenses.",
+  "no_categories_hint": "You have no categories. Add one to save expenses.",
   "delete_category_confirm": "Delete this category? Its expenses are kept and moved to another category.",
   "category_name": "Name",
   "category_name_placeholder": "e.g. Pets",

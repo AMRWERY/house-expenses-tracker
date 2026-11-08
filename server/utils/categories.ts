@@ -81,6 +81,10 @@ async function ensureSeeded(userId: string) {
   }
   if ((count ?? 0) > 0) return;
 
+  // No categories because the person deleted them all (see deleteCategory): don't bring the defaults back.
+  const done = must(await db.from("category_seed_done").select("user_id").eq("user_id", userId).maybeSingle());
+  if (done) return;
+
   // Dated far back, one millisecond apart, so the defaults keep their order and sort before custom ones.
   const base = Date.parse("2000-01-01T00:00:00Z");
   must(
@@ -134,7 +138,8 @@ export async function updateCategory(userId: string, id: string, input: Category
 
 /**
  * Delete any category. Its expenses are kept and moved to "other" (or, if that's the one being deleted
- * or is gone, to the first remaining category) first, so nothing is lost. The last category can't be deleted.
+ * or is gone, to the first remaining category) first, so nothing is lost. The last category can be deleted
+ * too: its expenses stay as they are (`movedTo` is null).
  * Returns null when it doesn't exist or belongs to someone else, otherwise what the expenses moved to.
  */
 export async function deleteCategory(userId: string, id: string) {
@@ -146,7 +151,14 @@ export async function deleteCategory(userId: string, id: string) {
 
   const others = rows.filter((r) => r.id !== id);
   const fallback = others.find((r) => r.key === "other") ?? others[0];
-  if (!fallback) throw createError({ statusCode: 409, message: "last_category" });
+
+  // The last category: nothing to move the expenses to. They keep their label, and the person must add a
+  // category before adding or editing expenses. Remember it, so the defaults are not seeded again.
+  if (!fallback) {
+    must(await db.from("category_seed_done").upsert({ user_id: userId }, { onConflict: "user_id" }));
+    must(await db.from("categories").delete().eq("id", id).eq("user_id", userId));
+    return { movedTo: null };
+  }
 
   const movedTo = refOf(fallback);
   must(await db.from("expenses").update({ cat: movedTo }).eq("user_id", userId).eq("cat", refOf(target)));

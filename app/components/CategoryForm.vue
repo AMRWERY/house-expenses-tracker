@@ -86,7 +86,7 @@
 
     <button class="btn btn-block" type="submit" :disabled="busy" :aria-busy="busy">{{ busy ? t("saving") : t("save") }}</button>
 
-    <button v-if="editing && canDelete" class="btn-text danger" type="button" :disabled="busy" @click="confirming = true">
+    <button v-if="editing" class="btn-text danger" type="button" :disabled="busy" @click="confirming = true">
       {{ t("delete_category") }}
     </button>
 
@@ -97,7 +97,7 @@
           <div class="backdrop" @click="confirming = false" />
           <div class="modal" role="alertdialog" aria-modal="true" :aria-label="t('delete_category')">
             <h2>{{ t("delete_category") }}</h2>
-            <p>{{ t("delete_category_confirm") }}</p>
+            <p>{{ t(isLast ? "delete_last_category_confirm" : "delete_category_confirm") }}</p>
             <button class="btn-text danger" type="button" :disabled="busy" @click="confirmDelete">{{ t("delete") }}</button>
             <button class="btn-text" type="button" @click="confirming = false">{{ t("cancel") }}</button>
           </div>
@@ -111,7 +111,9 @@
 const { t } = useI18n();
 
 const sheet = useCategorySheetStore();
-const { editing, error, busy, canDelete } = storeToRefs(sheet);
+const { editing, error, busy } = storeToRefs(sheet);
+// The last category can be deleted too, with a stronger warning (its expenses have nowhere to move to).
+const isLast = computed(() => useCategoriesStore().all.length <= 1);
 const { labelOf } = useCategoryInfo();
 
 // Form state, prefilled when editing. (The sheet re-creates this component per category via :key.)
