@@ -80,7 +80,7 @@
 
     <p v-if="error" class="field-error sheet-error" role="alert">{{ t(error) }}</p>
 
-    <button class="btn btn-block" type="submit" :disabled="busy">{{ t("save") }}</button>
+    <button class="btn btn-block" type="submit" :disabled="busy" :aria-busy="busy">{{ busy && !confirming ? t("saving") : t("save") }}</button>
 
     <template v-if="editing && canDelete">
       <button v-if="!confirming" class="btn-text danger" type="button" :disabled="busy" @click="confirming = true">
@@ -88,7 +88,7 @@
       </button>
       <div v-else class="cat-confirm" role="alertdialog" :aria-label="t('delete_category')">
         <p>{{ t("delete_category_confirm") }}</p>
-        <button class="btn-text danger" type="button" :disabled="busy" @click="sheet.remove()">{{ t("delete") }}</button>
+        <button class="btn-text danger" type="button" :disabled="busy" :aria-busy="busy" @click="sheet.remove()">{{ busy ? t("deleting") : t("delete") }}</button>
         <button class="btn-text" type="button" @click="confirming = false">{{ t("cancel") }}</button>
       </div>
     </template>

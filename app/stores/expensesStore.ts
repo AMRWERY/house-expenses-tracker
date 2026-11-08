@@ -81,7 +81,7 @@ export const useExpensesStore = defineStore("expenses", () => {
   const nextMonth = () => shiftMonth(1);
 
   /**
-   * Add (no id) or update (with id) from a sheet draft, then jump to that month so it's visible.
+   * Add (no id) or update (with id) from a sheet draft, then jump to that month (and drop a non-matching category filter) so it's visible.
    * Saved on the server first; the list only changes once the server accepts it (throws otherwise).
    */
   async function save(draft: ExpenseDraft, id?: number) {
@@ -117,6 +117,8 @@ export const useExpensesStore = defineStore("expenses", () => {
       ? expenses.value.map((e) => (e.id === id ? record : e))
       : [...expenses.value, record];
     view.value = { y, m: mo - 1 };
+    // A category filter would hide an expense saved under a different category until a reload.
+    if (filterCat.value && filterCat.value !== data.cat) filterCat.value = null;
   }
 
   async function remove(id: number) {

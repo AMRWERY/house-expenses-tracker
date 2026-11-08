@@ -10,6 +10,9 @@ export const useSheetStore = defineStore("sheet", () => {
   /** i18n key of the last server failure, shown inside the sheet (it stays open when a save fails) */
   const saveError = ref<"save_failed" | "">("");
 
+  /** which request is in flight ("" = none); the sheet labels its buttons from it */
+  const busy = ref<"save" | "delete" | "">("");
+
   function openAdd() {
     saveError.value = "";
     sheet.value = { mode: "add" };
@@ -31,29 +34,35 @@ export const useSheetStore = defineStore("sheet", () => {
 
   /** The server must accept a change before the sheet closes. */
   async function save(draft: ExpenseDraft) {
-    saveError.value = "";
-    try {
-      await expensesStore.save(draft, sheet.value?.expense?.id);
-      close();
-    } catch {
-      saveError.value = "save_failed";
-    }
+    await run("save", () => expensesStore.save(draft, sheet.value?.expense?.id));
   }
 
   async function remove() {
-    saveError.value = "";
-    try {
+    await run("delete", async () => {
       if (sheet.value?.expense)
         await expensesStore.remove(sheet.value.expense.id);
+    });
+  }
+
+  /** Run a server change with a busy flag (blocks double taps); close on success, show the error otherwise. */
+  async function run(kind: "save" | "delete", action: () => Promise<void>) {
+    if (busy.value) return;
+    busy.value = kind;
+    saveError.value = "";
+    try {
+      await action();
       close();
     } catch {
       saveError.value = "save_failed";
+    } finally {
+      busy.value = "";
     }
   }
 
   return {
     sheet,
     saveError,
+    busy,
     openAdd,
     openEdit,
     close,

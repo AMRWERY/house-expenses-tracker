@@ -101,6 +101,10 @@ h1 { font-size: 28px; line-height: 38px; font-weight: 700; }
 :root[data-theme="dark"] .rows { border-color: var(--border); }
 .row { display: flex; align-items: center; gap: 12px; padding: 14px 16px; min-height: 68px; }
 .row + .row { border-top: 1px solid var(--border); }
+/* Home list: each expense is its own card, with a gap between them (compare page keeps one card) */
+.day .rows { display: flex; flex-direction: column; gap: 10px; background: none; box-shadow: none; border: 0; overflow: visible; }
+.day .row, :root[data-theme="dark"] .day .row { background: var(--surface); border-radius: 16px; box-shadow: var(--shadow); border: 1px solid transparent; }
+:root[data-theme="dark"] .day .row { border-color: var(--border); }
 .row-icon {
   flex: none; width: 44px; height: 44px; border-radius: 50%;
   display: grid; place-items: center; color: var(--c);

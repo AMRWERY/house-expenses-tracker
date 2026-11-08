@@ -77,8 +77,8 @@ watch(mode, auth.clearMessages)
             :placeholder="mode === 'signup' ? t('password_hint') : ''"
           />
 
-          <button class="btn lock-btn" type="submit" :disabled="!canSubmit">
-            {{ mode === 'signin' ? t('signin_pw_btn') : t('signup_pw_btn') }}
+          <button class="btn lock-btn" type="submit" :disabled="!canSubmit" :aria-busy="busy">
+            {{ mode === 'signin' ? (busy ? t('signing_in') : t('signin_pw_btn')) : (busy ? t('creating_account') : t('signup_pw_btn')) }}
           </button>
 
           <p v-if="notice" class="auth-notice" role="status">{{ t(notice) }}</p>

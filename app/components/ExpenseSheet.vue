@@ -90,14 +90,24 @@
         <p v-if="saveError" class="field-error sheet-error" role="alert">
           {{ t(saveError) }}
         </p>
-        <button class="btn btn-block" type="submit">{{ t("save") }}</button>
+        <button
+          class="btn btn-block"
+          type="submit"
+          :disabled="!!busy"
+          :aria-busy="busy === 'save'"
+        >
+          <!-- Adding a new expense says "Add"; editing one says "Save" -->
+          {{ busy === "save" ? t(mode === "edit" ? "saving" : "adding") : t(mode === "edit" ? "save" : "add") }}
+        </button>
         <button
           v-if="mode === 'edit'"
           class="btn-text danger"
           type="button"
+          :disabled="!!busy"
+          :aria-busy="busy === 'delete'"
           @click="sheetStore.remove()"
         >
-          {{ t("delete") }}
+          {{ busy === "delete" ? t("deleting") : t("delete") }}
         </button>
       </form>
     </div>
@@ -108,7 +118,7 @@
 const { t } = useI18n();
 
 const sheetStore = useSheetStore();
-const { saveError } = storeToRefs(sheetStore);
+const { saveError, busy } = storeToRefs(sheetStore);
 const { todayISO: today } = useExpensesStore();
 const { dateLocale } = useDateLabels();
 const categories = useCategoriesStore();

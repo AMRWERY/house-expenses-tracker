@@ -69,8 +69,9 @@
             class="btn btn-block"
             type="submit"
             :disabled="!canChangePassword"
+            :aria-busy="passwordBusy"
           >
-            {{ t("update_password") }}
+            {{ passwordBusy ? t("updating_password") : t("update_password") }}
           </button>
 
           <p v-if="passwordNotice" class="auth-notice" role="status">
@@ -94,8 +95,14 @@
               <div class="row-cat">{{ t("signed_in") }}</div>
             </div>
           </div>
-          <button class="btn-text danger" type="button" @click="auth.logout()">
-            {{ t("logout") }}
+          <button
+            class="btn-text danger"
+            type="button"
+            :disabled="signingOut"
+            :aria-busy="signingOut"
+            @click="signOut"
+          >
+            {{ signingOut ? t("signing_out") : t("logout") }}
           </button>
         </div>
       </section>
@@ -149,6 +156,18 @@ async function changePassword() {
   }
 }
 onBeforeUnmount(auth.clearPasswordMessages);
+
+// Sign out
+const signingOut = ref(false);
+async function signOut() {
+  if (signingOut.value) return;
+  signingOut.value = true;
+  try {
+    await auth.logout();
+  } finally {
+    signingOut.value = false;
+  }
+}
 
 // "Back" points toward the inline-start edge, which flips with the language.
 const backIcon = computed<IconName>(() =>
