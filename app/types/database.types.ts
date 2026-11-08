@@ -51,6 +51,30 @@ export type Database = {
         };
         Relationships: []; // user_id -> auth.users(id) (other schema, so not listed here)
       };
+      month_amounts: {
+        Row: {
+          user_id: string;
+          y: number;
+          m: number; // 0-based month
+          amount: number; // the main amount for that month
+          updated_at: string;
+        };
+        Insert: {
+          user_id: string;
+          y: number;
+          m: number;
+          amount: number;
+          updated_at?: string;
+        };
+        Update: {
+          user_id?: string;
+          y?: number;
+          m?: number;
+          amount?: number;
+          updated_at?: string;
+        };
+        Relationships: []; // user_id -> auth.users(id) (other schema, so not listed here)
+      };
       expenses: {
         Row: {
           id: number;

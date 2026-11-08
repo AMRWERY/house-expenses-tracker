@@ -4,6 +4,7 @@ import type { CategoryKey } from "~/utils/categories";
 /** Totals per month, newest first, each compared with the month before it. */
 export const useComparisonStore = defineStore("comparison", () => {
   const expensesStore = useExpensesStore();
+  const monthAmountStore = useMonthAmountStore();
 
   const months = computed<MonthSummary[]>(() => {
     const byMonth = new Map<
@@ -22,6 +23,11 @@ export const useComparisonStore = defineStore("comparison", () => {
       row.cats[e.cat] = (row.cats[e.cat] ?? 0) + e.amount;
       byMonth.set(key, row);
     }
+    // A month with a main amount is listed even before its first expense.
+    for (const a of monthAmountStore.amounts) {
+      const key = `${a.y}-${a.m}`;
+      if (!byMonth.has(key)) byMonth.set(key, { y: a.y, m: a.m, total: 0, cats: {} });
+    }
 
     const sorted = [...byMonth.values()].sort(
       (a, b) => b.y * 12 + b.m - (a.y * 12 + a.m),
@@ -35,16 +41,23 @@ export const useComparisonStore = defineStore("comparison", () => {
       const top = (Object.entries(r.cats) as [CategoryKey, number][]).sort(
         (a, b) => b[1] - a[1],
       )[0];
+      const amount = monthAmountStore.amountFor(r.y, r.m);
       return {
         key: `${r.y}-${r.m}`,
         y: r.y,
         m: r.m,
         total: r.total,
-        pct: Math.max(2, Math.round((r.total / max) * 100)),
+        // With a main amount the bar shows how much of it was spent; otherwise it is relative to the biggest month.
+        pct: Math.min(
+          100,
+          Math.max(2, Math.round((r.total / (amount ?? max)) * 100)),
+        ),
         topCat: top?.[0] ?? "other",
         isCurrent,
+        amount,
+        left: amount === null ? null : Math.round((amount - r.total) * 100) / 100,
         delta:
-          !isCurrent && older
+          !isCurrent && older && older.total > 0
             ? Math.round(((r.total - older.total) / older.total) * 100)
             : null,
       };

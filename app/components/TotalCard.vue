@@ -5,7 +5,8 @@
       <AnimatedNumber :value="total" :duration="800" /><small>{{ t("currency") }}</small>
     </div>
     <!-- Money set aside in category budgets: what's left after this month's expenses -->
-    <div v-if="budgetSummary.any" class="total-budget" :class="{ over: budgetSummary.left < 0 }">
+    <!-- Once the month has a main amount, the card above it shows the budget lines instead -->
+    <div v-if="budgetSummary.any && amount === null" class="total-budget" :class="{ over: budgetSummary.left < 0 }">
       <span>{{ budgetSummary.left < 0 ? t("budget_over_label") : t("budget_left_label") }}</span>
       <b><AnimatedNumber :value="Math.abs(budgetSummary.left)" /> {{ t("currency") }}</b>
       <small>{{ t("budget_of", { total: formatNumber(budgetSummary.total) }) }}</small>
@@ -18,4 +19,5 @@ const { t } = useI18n();
 
 const { total } = storeToRefs(useExpensesStore());
 const { budgetSummary } = storeToRefs(useCategoriesStore());
+const { amount } = storeToRefs(useMonthAmountStore());
 </script>

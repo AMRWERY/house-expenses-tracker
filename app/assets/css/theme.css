@@ -117,6 +117,59 @@ h1 { font-size: 28px; line-height: 38px; font-weight: 700; }
 .day .rows { display: flex; flex-direction: column; gap: 10px; background: none; box-shadow: none; border: 0; overflow: visible; }
 .day .row, :root[data-theme="dark"] .day .row { background: var(--surface); border-radius: 16px; box-shadow: var(--shadow); border: 1px solid transparent; }
 :root[data-theme="dark"] .day .row { border-color: var(--border); }
+/* Main amount of the month (home page), and its line on the compare page */
+.mamt-wrap { max-width: 720px; margin: 16px auto 0; }
+@media (min-width: 1200px) { .mamt-wrap { max-width: none; } }
+.mamt {
+  padding: 20px; background: var(--surface); border: 1px solid transparent; border-radius: 16px; box-shadow: var(--shadow);
+  transition: background-color .3s, border-color .3s;
+}
+:root[data-theme="dark"] .mamt { border-color: var(--border); }
+.mamt-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.mamt-value { margin-top: 2px; font-size: 32px; line-height: 44px; font-weight: 700; font-variant-numeric: tabular-nums; direction: ltr; unicode-bidi: isolate; }
+.mamt-value small { margin-inline-start: 6px; font-size: 18px; font-weight: 600; color: var(--text-2); }
+.mamt-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border); }
+.mamt-stat span { display: block; font-size: 14px; line-height: 20px; color: var(--text-2); }
+.mamt-stat b { font-size: 18px; font-variant-numeric: tabular-nums; direction: ltr; unicode-bidi: isolate; display: inline-block; }
+.mamt-stat:last-child b { color: var(--primary); }
+.mamt-stat.over:last-child b { color: var(--expense); }
+.mamt-note { margin-top: 12px; font-size: 14px; line-height: 22px; color: var(--text-2); }
+.mamt-warn { margin-top: 6px; }
+.mamt-ask { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px 16px; border: 1px dashed var(--primary); }
+:root[data-theme="dark"] .mamt-ask { border-color: var(--primary); }
+.mamt-ask-text { flex: 1; min-width: 200px; }
+.mamt-ask h2 { font-size: 18px; line-height: 26px; font-weight: 700; }
+.mamt-ask p { margin-top: 2px; font-size: 14px; line-height: 22px; color: var(--text-2); }
+/* Page-wide transitions (theme + language). The browser snapshots the old and new page and animates between them. */
+::view-transition-old(root), ::view-transition-new(root) { animation: none; mix-blend-mode: normal; }
+/* theme: the new look grows out of the click point (the circle is driven from viewTransition.ts) */
+html[data-vt="theme"]::view-transition-old(root) { z-index: 1; }
+html[data-vt="theme"]::view-transition-new(root) { z-index: 2; }
+/* language: the old page fades and blurs away, the new one settles in */
+html[data-vt="locale"]::view-transition-old(root) { animation: vt-out .3s ease both; }
+html[data-vt="locale"]::view-transition-new(root) { animation: vt-in .45s ease .1s both; }
+@keyframes vt-out { to { opacity: 0; filter: blur(8px); transform: scale(.985); } }
+@keyframes vt-in { from { opacity: 0; filter: blur(8px); transform: scale(1.015); } }
+
+/* Confirmation dialog: centered card over a dimmed page (above the bottom sheet) */
+.modal-root { position: fixed; inset: 0; z-index: 60; display: grid; place-items: center; padding: 20px; }
+.modal {
+  position: relative; width: 100%; max-width: 400px; padding: 24px 20px 12px; text-align: center;
+  background: var(--surface); border: 1px solid transparent; border-radius: 20px; box-shadow: 0 24px 64px rgba(0, 0, 0, .35);
+}
+:root[data-theme="dark"] .modal { border-color: var(--border); }
+.modal h2 { font-size: 18px; line-height: 26px; font-weight: 700; }
+.modal p { margin: 8px 0 12px; font-size: 14px; line-height: 22px; color: var(--text-2); }
+.modal-enter-active, .modal-leave-active { transition: opacity .2s ease; }
+.modal-enter-active .modal, .modal-leave-active .modal { transition: transform .2s ease; }
+.modal-enter-from, .modal-leave-to { opacity: 0; }
+.modal-enter-from .modal, .modal-leave-to .modal { transform: scale(.94) translateY(8px); }
+.cat-note.is-over { color: var(--expense); }
+.cmp-main { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 8px; font-size: 14px; line-height: 20px; color: var(--text-2); }
+.cmp-main b { font-weight: 600; color: var(--primary); font-variant-numeric: tabular-nums; }
+.cmp-main.over b { color: var(--expense); }
+.cmp-fill.is-over { background: var(--expense); }
+
 /* Greeting banner (every signed-in page): icon | greeting + date | live clock */
 .greet-wrap { --pad: 16px; max-width: 1100px; margin-inline: auto; padding: 16px var(--pad) 0; }
 @media (min-width: 640px) { .greet-wrap { --pad: 24px; padding-top: 24px; } }

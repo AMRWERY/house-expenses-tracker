@@ -54,11 +54,26 @@ const deltaText = (d: number) =>
               </div>
 
               <div class="cmp-bar" aria-hidden="true">
-                <div class="cmp-fill" :style="{ width: m.pct + '%', '--i': i + 1 }" />
+                <div
+                  class="cmp-fill"
+                  :class="{ 'is-over': m.left !== null && m.left < 0 }"
+                  :style="{ width: m.pct + '%', '--i': i + 1 }"
+                />
+              </div>
+
+              <!-- The month's main amount, and what was left of it (or how far over) -->
+              <div v-if="m.amount !== null && m.left !== null" class="cmp-main" :class="{ over: m.left < 0 }">
+                <span>{{ t('ma_of', { amount: formatNumber(m.amount) }) }}</span>
+                <b>
+                  {{ m.left < 0 ? t('ma_over') : t('ma_left') }}
+                  <AnimatedNumber :value="Math.abs(m.left)" /> {{ t('currency') }}
+                </b>
               </div>
 
               <div class="cmp-meta">
-                <span>{{ t('top_category') }}: {{ info(m.topCat).label }}</span>
+                <span v-if="m.total > 0">{{ t('top_category') }}: {{ info(m.topCat).label }}</span>
+                <span v-else />
+
                 <span
                   v-if="m.delta !== null"
                   class="delta"

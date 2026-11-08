@@ -77,21 +77,33 @@
       <span class="budget-cur">{{ t("currency") }}</span>
     </div>
     <p id="category-budget-hint" class="cat-note">{{ t("category_budget_hint") }}</p>
+    <!-- How much of this month's main amount no category has claimed once this budget is saved -->
+    <p v-if="freeAfter !== null" class="cat-note" :class="{ 'is-over': freeAfter < 0 }" role="status">
+      {{ t(freeAfter < 0 ? "ma_form_exceeds" : "ma_form_free", { amount: formatNumber(Math.abs(freeAfter)), month: monthLabel }) }}
+    </p>
 
     <p v-if="error" class="field-error sheet-error" role="alert">{{ t(error) }}</p>
 
-    <button class="btn btn-block" type="submit" :disabled="busy" :aria-busy="busy">{{ busy && !confirming ? t("saving") : t("save") }}</button>
+    <button class="btn btn-block" type="submit" :disabled="busy" :aria-busy="busy">{{ busy ? t("saving") : t("save") }}</button>
 
-    <template v-if="editing && canDelete">
-      <button v-if="!confirming" class="btn-text danger" type="button" :disabled="busy" @click="confirming = true">
-        {{ t("delete_category") }}
-      </button>
-      <div v-else class="cat-confirm" role="alertdialog" :aria-label="t('delete_category')">
-        <p>{{ t("delete_category_confirm") }}</p>
-        <button class="btn-text danger" type="button" :disabled="busy" :aria-busy="busy" @click="sheet.remove()">{{ busy ? t("deleting") : t("delete") }}</button>
-        <button class="btn-text" type="button" @click="confirming = false">{{ t("cancel") }}</button>
-      </div>
-    </template>
+    <button v-if="editing && canDelete" class="btn-text danger" type="button" :disabled="busy" @click="confirming = true">
+      {{ t("delete_category") }}
+    </button>
+
+    <!-- The delete confirmation is its own dialog, centered over the sheet -->
+    <Teleport to="body">
+      <Transition name="modal">
+        <div v-if="confirming" class="modal-root">
+          <div class="backdrop" @click="confirming = false" />
+          <div class="modal" role="alertdialog" aria-modal="true" :aria-label="t('delete_category')">
+            <h2>{{ t("delete_category") }}</h2>
+            <p>{{ t("delete_category_confirm") }}</p>
+            <button class="btn-text danger" type="button" :disabled="busy" @click="confirmDelete">{{ t("delete") }}</button>
+            <button class="btn-text" type="button" @click="confirming = false">{{ t("cancel") }}</button>
+          </div>
+        </div>
+      </Transition>
+    </Teleport>
   </form>
 </template>
 
@@ -124,6 +136,16 @@ function onBudgetInput() {
 }
 const nameEl = ref<HTMLInputElement>();
 
+// Budgets are set aside out of the viewed month's main amount: show what stays unclaimed after this change.
+const { monthLabel } = useDateLabels();
+const { amount: mainAmount, setAside } = storeToRefs(useMonthAmountStore());
+const freeAfter = computed(() => {
+  if (mainAmount.value === null) return null;
+  const typed = budget.value.trim() === "" ? 0 : Number(budget.value);
+  const newBudget = Number.isNaN(typed) ? 0 : typed;
+  return Math.round((mainAmount.value - (setAside.value - (initial?.budget ?? 0) + newBudget)) * 100) / 100;
+});
+
 function submit() {
   if (!name.value.trim()) {
     nameError.value = true;
@@ -143,7 +165,23 @@ function submit() {
   });
 }
 
+/** Close the dialog first, then delete (the sheet goes back to the list while it runs). */
+function confirmDelete() {
+  confirming.value = false;
+  sheet.remove();
+}
+
+// Esc closes just the dialog, not the sheet behind it.
+const onDialogKey = (ev: KeyboardEvent) => {
+  if (ev.key === "Escape" && confirming.value) {
+    ev.stopImmediatePropagation();
+    confirming.value = false;
+  }
+};
+
 onMounted(() => {
+  window.addEventListener("keydown", onDialogKey, true);
   if (!initial) nameEl.value?.focus({ preventScroll: true });
 });
+onBeforeUnmount(() => window.removeEventListener("keydown", onDialogKey, true));
 </script>

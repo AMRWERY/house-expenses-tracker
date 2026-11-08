@@ -45,7 +45,12 @@ watch(mode, auth.clearMessages)
 
 <template>
   <div class="auth-page">
-    <nuxt-link class="auth-lang" :to="switchLocalePath(otherLocale)" :hreflang="otherLocale">
+    <nuxt-link
+      class="auth-lang"
+      :to="switchLocalePath(otherLocale)"
+      :hreflang="otherLocale"
+      @click.prevent="withViewTransition(() => navigateTo(switchLocalePath(otherLocale)), 'locale')"
+    >
       {{ otherLocale === 'ar' ? 'عربي' : 'English' }}
     </nuxt-link>
 

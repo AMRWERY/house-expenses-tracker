@@ -34,9 +34,17 @@ export const useThemeStore = defineStore("theme", () => {
     const mq = window.matchMedia("(prefers-color-scheme: dark)");
     systemDark.value = mq.matches;
     mq.addEventListener("change", (e) => (systemDark.value = e.matches));
-    watch(resolved, (v) => (document.documentElement.dataset.theme = v), {
-      immediate: true,
-    });
+    trackPointer();
+    // The first value is applied at once; later changes grow out of where the person clicked.
+    watch(
+      resolved,
+      (v, old) => {
+        const apply = () => (document.documentElement.dataset.theme = v);
+        if (old === undefined) apply();
+        else withViewTransition(apply, "theme");
+      },
+      { immediate: true },
+    );
   }
 
   return { mode, resolved, pin, init };

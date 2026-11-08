@@ -11,6 +11,7 @@ export const useAuthStore = defineStore("auth", () => {
   const expensesStore = useExpensesStore();
   const sheetStore = useSheetStore();
   const categoriesStore = useCategoriesStore();
+  const monthAmountStore = useMonthAmountStore();
 
   const busy = ref(false);
   const error = ref<AuthMessageKey | "">("");
@@ -96,6 +97,7 @@ export const useAuthStore = defineStore("auth", () => {
     await session.clear();
     expensesStore.reset();
     categoriesStore.reset();
+    monthAmountStore.reset();
     sheetStore.close();
   }
 

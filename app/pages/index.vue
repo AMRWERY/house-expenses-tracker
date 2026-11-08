@@ -15,11 +15,13 @@ const { dayLabel } = useDateLabels()
 // ?sheet=add|edit opens the Add/Edit sheet on load (used by the preview page).
 const route = useRoute()
 const categorySheet = useCategorySheetStore()
+const monthAmount = useMonthAmountStore()
 sheetStore.openFromQuery(route.query)
 if (route.query.sheet === 'categories') categorySheet.open()
 onBeforeUnmount(() => {
   sheetStore.close()
   categorySheet.close()
+  monthAmount.closeSheet()
 })
 </script>
 
@@ -42,6 +44,9 @@ onBeforeUnmount(() => {
     </AppHeader>
 
     <main>
+      <!-- This month's main amount (or a prompt to set it, e.g. at the start of a new month) -->
+      <MonthAmountCard />
+
       <!-- Empty only when the whole month is empty; a filter with no matches keeps the page and says so. -->
       <!-- First load: skeleton rows in the same layout -->
       <div v-if="loading" class="layout" aria-busy="true">
@@ -79,6 +84,10 @@ onBeforeUnmount(() => {
 
     <Transition name="sheet" appear>
       <CategorySheet v-if="categorySheet.isOpen" />
+    </Transition>
+
+    <Transition name="sheet" appear>
+      <MonthAmountSheet v-if="monthAmount.sheetOpen" />
     </Transition>
   </div>
 </template>

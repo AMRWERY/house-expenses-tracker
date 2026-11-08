@@ -26,7 +26,7 @@
             :model-value="locale"
             :options="[...langOptions]"
             :label="t('language')"
-            @update:model-value="setLocale($event as 'ar' | 'en')"
+            @update:model-value="withViewTransition(() => setLocale($event as 'ar' | 'en'), 'locale')"
           />
         </div>
       </section>
