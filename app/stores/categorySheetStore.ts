@@ -10,6 +10,8 @@ export const useCategorySheetStore = defineStore("categorySheet", () => {
   const editing = ref<Category | null>(null);
   const error = ref<CategoryErrorKey | "">("");
   const busy = ref(false);
+  /** The change in flight: the list shows a skeleton for that category (a new one at the end for "add"). */
+  const pending = ref<{ kind: "add" | "update" | "delete"; id?: string } | null>(null);
 
   /** The last remaining category can't be deleted (expenses always need somewhere to live). */
   const canDelete = computed(() => categoriesStore.all.length > 1);
@@ -39,29 +41,37 @@ export const useCategorySheetStore = defineStore("categorySheet", () => {
     view.value = "list";
   }
 
-  /** Run a server change; on success go back to the list, otherwise stay on the form with a message. */
-  async function run(action: () => Promise<void>) {
+  /**
+   * Run a server change. The list shows right away with a skeleton row for the category being added,
+   * updated or deleted (held at least 1 second); a failure brings the form back, with its input, and a message.
+   */
+  async function run(kind: "add" | "update" | "delete", action: () => Promise<void>) {
     if (busy.value) return;
     busy.value = true;
     error.value = "";
+    pending.value = { kind, id: editing.value?.id };
+    view.value = "list";
     try {
-      await action();
-      backToList();
+      await atLeastSkeletonTime(action());
     } catch (e) {
       const err = e as { data?: { message?: string } };
       error.value = err.data?.message === "category_limit" ? "category_limit" : "save_failed";
+      view.value = "form";
     } finally {
       busy.value = false;
+      pending.value = null;
     }
   }
 
   const save = (draft: CategoryDraft) =>
-    run(() => (editing.value ? categoriesStore.update(editing.value, draft) : categoriesStore.add(draft)));
+    run(editing.value ? "update" : "add", () =>
+      editing.value ? categoriesStore.update(editing.value, draft) : categoriesStore.add(draft),
+    );
 
   const remove = () =>
-    run(async () => {
+    run("delete", async () => {
       if (editing.value) await categoriesStore.remove(editing.value);
     });
 
-  return { isOpen, view, editing, error, busy, canDelete, open, close, startAdd, startEdit, backToList, save, remove };
+  return { isOpen, view, editing, error, busy, pending, canDelete, open, close, startAdd, startEdit, backToList, save, remove };
 });

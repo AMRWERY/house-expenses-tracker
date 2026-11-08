@@ -2,7 +2,14 @@
 const { t } = useI18n()
 const expensesStore = useExpensesStore()
 const sheetStore = useSheetStore()
-const { view, monthItems, items, groups } = storeToRefs(expensesStore)
+const { view, monthItems, items, groups, loading, pending } = storeToRefs(expensesStore)
+
+// If the first load didn't finish before the page opened (slow or failed), try again here:
+// the page shows skeletons meanwhile instead of a wrongly empty month.
+onMounted(() => {
+  if (expensesStore.loading)
+    Promise.all([expensesStore.load(), new Promise((r) => setTimeout(r, 1000))]).catch(() => {})
+})
 const { dayLabel } = useDateLabels()
 
 // ?sheet=add|edit opens the Add/Edit sheet on load (used by the preview page).
@@ -36,7 +43,16 @@ onBeforeUnmount(() => {
 
     <main>
       <!-- Empty only when the whole month is empty; a filter with no matches keeps the page and says so. -->
-      <EmptyState v-if="!monthItems.length" :key="`e${view.y}-${view.m}`" />
+      <!-- First load: skeleton rows in the same layout -->
+      <div v-if="loading" class="layout" aria-busy="true">
+        <aside class="summary"><div class="total sk-total"><span class="sk sk-line" style="width: 40%" /><span class="sk sk-line sk-line-lg" style="width: 60%" /></div></aside>
+        <div class="list">
+          <section class="day">
+            <div class="rows"><ExpenseRowSkeleton v-for="n in 5" :key="n" /></div>
+          </section>
+        </div>
+      </div>
+      <EmptyState v-else-if="!monthItems.length && !pending" :key="`e${view.y}-${view.m}`" />
       <div v-else class="layout">
         <aside class="summary">
           <TotalCard />
@@ -48,6 +64,7 @@ onBeforeUnmount(() => {
             :key="`${view.y}-${view.m}-${g.day}`"
             :label="dayLabel(g.day)"
             :items="g.items"
+            :pending="g.pending"
             :index="i + 1"
           />
         </div>

@@ -25,8 +25,14 @@
 
       <!-- List: built-in categories (fixed) then the person's own (editable) -->
       <template v-if="view === 'list'">
-        <ul class="cat-list">
-          <li v-for="c in categories.all" :key="c.key" class="cat-item">
+        <ul class="cat-list" :aria-busy="!!pending">
+          <template v-for="c in categories.all" :key="c.key">
+          <!-- the category being updated or deleted: only this one is a skeleton -->
+          <li v-if="pending && pending.kind !== 'add' && pending.id === c.id" class="cat-item" aria-hidden="true">
+            <span class="sk sk-icon" />
+            <div class="row-text"><span class="sk sk-line" style="width: 50%" /></div>
+          </li>
+          <li v-else class="cat-item">
             <span class="row-icon" :style="{ '--c': c.color }"><AppIcon :name="c.icon" /></span>
             <div class="row-text">
               <div class="row-title">{{ info(c.key).label }}</div>
@@ -44,14 +50,21 @@
               <AppIcon name="pencil" />
             </button>
           </li>
+          </template>
+          <!-- the category being added -->
+          <li v-if="pending?.kind === 'add'" class="cat-item" aria-hidden="true">
+            <span class="sk sk-icon" />
+            <div class="row-text"><span class="sk sk-line" style="width: 50%" /></div>
+          </li>
         </ul>
 
-        <button class="btn btn-block" type="button" @click="sheet.startAdd()">
+        <button class="btn btn-block" type="button" :disabled="!!pending" @click="sheet.startAdd()">
           <AppIcon name="plus" />{{ t("add_category") }}
         </button>
       </template>
 
-      <CategoryForm v-else :key="editing?.id ?? 'new'" />
+      <!-- Stays mounted (hidden) while saving, so a failed save returns to what was typed -->
+      <CategoryForm v-if="view === 'form' || pending" v-show="view === 'form'" :key="editing?.id ?? 'new'" />
     </div>
   </div>
 </template>
@@ -60,7 +73,7 @@
 const { t, locale } = useI18n();
 
 const sheet = useCategorySheetStore();
-const { view, editing } = storeToRefs(sheet);
+const { view, editing, pending } = storeToRefs(sheet);
 const categories = useCategoriesStore();
 const { info } = useCategoryInfo();
 

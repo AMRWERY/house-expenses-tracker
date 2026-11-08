@@ -27,6 +27,13 @@ export const useExpensesStore = defineStore("expenses", () => {
   /** Home-page filter: show only this category (its key), or everything when null. */
   const filterCat = ref<string | null>(null);
 
+  /** True until the first server load finishes (the home page shows skeleton rows meanwhile). */
+  const loading = computed(() => !loaded.value && !demo);
+  /** The expense being added right now: the list shows one skeleton row for it until the server answers. */
+  const pending = ref<{ y: number; m: number; day: number } | null>(null);
+  /** The expense being updated or deleted right now: its row shows as a skeleton until the server answers. */
+  const busyId = ref<number | null>(null);
+
   // ---- Getters
   /** Everything spent in the viewed month (budgets are measured against this, ignoring the filter). */
   const monthItems = computed(() =>
@@ -44,9 +51,13 @@ export const useExpensesStore = defineStore("expenses", () => {
     items.value.forEach((e) =>
       byDay.set(e.day, [...(byDay.get(e.day) ?? []), e]),
     );
+    // The expense being added gets its day group (and a skeleton row at the end of it) right away.
+    const p = pending.value;
+    const pendingDay = p && p.y === view.value.y && p.m === view.value.m ? p.day : null;
+    if (pendingDay !== null && !byDay.has(pendingDay)) byDay.set(pendingDay, []);
     return [...byDay.entries()]
       .sort((a, b) => b[0] - a[0])
-      .map(([day, list]) => ({ day, items: list }));
+      .map(([day, list]) => ({ day, items: list, pending: day === pendingDay }));
   });
 
   // ---- Actions
@@ -63,6 +74,8 @@ export const useExpensesStore = defineStore("expenses", () => {
     expenses.value = [];
     loaded.value = false;
     filterCat.value = null;
+    pending.value = null;
+    busyId.value = null;
   }
 
   const setFilter = (key: string | null) => (filterCat.value = key);
@@ -98,21 +111,34 @@ export const useExpensesStore = defineStore("expenses", () => {
     };
     const editing = id !== undefined;
 
-    let record: Expense;
-    if (demo) {
-      record = {
-        id: editing ? id : Math.max(0, ...expenses.value.map((e) => e.id)) + 1,
-        ...data,
-      };
-    } else {
-      record = await $fetch<Expense>(
-        editing ? `/api/expenses/${id}` : "/api/expenses",
-        {
-          method: editing ? "PUT" : "POST",
-          body: data,
-        },
-      );
+    // Updating: that row becomes a skeleton while the server works.
+    if (editing) busyId.value = id;
+    // Adding: go to the month it belongs in and show a skeleton row for it while the server works.
+    else {
+      view.value = { y, m: mo - 1 };
+      if (filterCat.value && filterCat.value !== data.cat) filterCat.value = null;
+      pending.value = { y, m: mo - 1, day: d };
     }
+
+    let record: Expense;
+    try {
+      const request: Promise<Expense> = demo
+        ? Promise.resolve({
+            id: editing ? id : Math.max(0, ...expenses.value.map((e) => e.id)) + 1,
+            ...data,
+          })
+        : $fetch<Expense>(editing ? `/api/expenses/${id}` : "/api/expenses", {
+            method: editing ? "PUT" : "POST",
+            body: data,
+          });
+      record = await atLeastSkeletonTime(request);
+    } catch (e) {
+      pending.value = null; // failed: the skeleton goes away and the sheet shows the error
+      busyId.value = null;
+      throw e;
+    }
+    pending.value = null;
+    busyId.value = null;
     expenses.value = editing
       ? expenses.value.map((e) => (e.id === id ? record : e))
       : [...expenses.value, record];
@@ -122,8 +148,13 @@ export const useExpensesStore = defineStore("expenses", () => {
   }
 
   async function remove(id: number) {
-    if (!demo) await $fetch(`/api/expenses/${id}`, { method: "DELETE" });
-    expenses.value = expenses.value.filter((e) => e.id !== id);
+    busyId.value = id; // its row shows as a skeleton until the server answers
+    try {
+      await atLeastSkeletonTime(demo ? Promise.resolve() : $fetch(`/api/expenses/${id}`, { method: "DELETE" }));
+      expenses.value = expenses.value.filter((e) => e.id !== id);
+    } finally {
+      busyId.value = null; // on failure the row comes back and the sheet shows the error
+    }
   }
 
   return {
@@ -134,6 +165,9 @@ export const useExpensesStore = defineStore("expenses", () => {
     today,
     todayISO,
     filterCat,
+    loading,
+    pending,
+    busyId,
     monthItems,
     items,
     total,
