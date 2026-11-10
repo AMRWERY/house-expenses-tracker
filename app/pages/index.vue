@@ -14,6 +14,7 @@
         </VChip>
       </div>
       <category-filter />
+      <date-range-filter />
     </Header>
 
     <main>
@@ -40,7 +41,7 @@
         </div>
       </div>
       <empty-state
-        v-else-if="!monthItems.length && !pending"
+        v-else-if="!monthItems.length && !pending && !range"
         :key="`e${view.y}-${view.m}`"
       />
       <div v-else class="layout">
@@ -49,7 +50,7 @@
         </aside>
         <div class="list">
           <p v-if="!items.length" class="filter-empty">
-            {{ t("no_filtered") }}
+            {{ t(range ? "no_in_range" : "no_filtered") }}
           </p>
           <TransitionGroup name="grp" tag="div">
             <expense-category-group
@@ -90,7 +91,7 @@
 const { t } = useI18n();
 const expensesStore = useExpensesStore();
 const sheetStore = useSheetStore();
-const { view, monthItems, items, categoryGroups, loading, pending } =
+const { view, monthItems, items, categoryGroups, loading, pending, range } =
   storeToRefs(expensesStore);
 
 // If the first load didn't finish before the page opened (slow or failed), try again here:

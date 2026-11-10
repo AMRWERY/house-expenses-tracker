@@ -15,16 +15,26 @@ export function useDateLabels() {
     return monthName(y, m);
   });
 
-  /** "Today", "Yesterday" or "5 November" for a day of the viewed month. */
-  const dayLabel = (d: number) => {
+  /** "Today", "Yesterday" or "5 November" for a day of the viewed month (or of the given year/month, for a date range). */
+  const dayLabel = (d: number, y?: number, m?: number) => {
     const { today, view } = expensesStore;
     const t0 = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-    const date = new Date(view.y, view.m, d);
+    const date = new Date(y ?? view.y, m ?? view.m, d);
     const diff = Math.round((t0.getTime() - date.getTime()) / 864e5);
     if (diff === 0) return t("today");
     if (diff === 1) return t("yesterday");
-    return new Intl.DateTimeFormat(dateLocale.value, { day: "numeric", month: "long" }).format(date);
+    return new Intl.DateTimeFormat(dateLocale.value, {
+      day: "numeric",
+      month: "long",
+      ...(y !== undefined && y !== today.getFullYear() ? { year: "numeric" } : {}),
+    }).format(date);
   };
 
-  return { dateLocale, monthName, monthLabel, dayLabel };
+  /** "5 November" / "5 November 2026" for a YYYY-MM-DD string (no Today/Yesterday). */
+  const isoLabel = (iso: string) => {
+    const [y = 0, m = 1, d = 1] = iso.split("-").map(Number);
+    return new Intl.DateTimeFormat(dateLocale.value, { day: "numeric", month: "short", year: "numeric" }).format(new Date(y, m - 1, d));
+  };
+
+  return { dateLocale, monthName, monthLabel, dayLabel, isoLabel };
 }

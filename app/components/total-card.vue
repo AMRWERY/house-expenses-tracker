@@ -1,5 +1,5 @@
 <template>
-  <VStatCard class="rise" :label="t('total_expenses')" :value="total">
+  <VStatCard class="rise" :label="label" :value="total">
     <!-- Money set aside in category budgets: what's left after this month's expenses -->
     <!-- Once the month has a main amount, the card above it shows the budget lines instead -->
     <div
@@ -24,7 +24,15 @@
 <script lang="ts" setup>
 const { t } = useI18n();
 
-const { total } = storeToRefs(useExpensesStore());
+const { total, range } = storeToRefs(useExpensesStore());
+const { isoLabel } = useDateLabels();
+
+// With a date range picked the card says which dates it adds up
+const label = computed(() =>
+  range.value
+    ? t("range_total", { from: isoLabel(range.value.from), to: isoLabel(range.value.to) })
+    : t("total_expenses"),
+);
 const { budgetSummary } = storeToRefs(useCategoriesStore());
 const { amount } = storeToRefs(useMonthAmountStore());
 </script>

@@ -71,7 +71,7 @@
               v-else
               :key="e.id"
               :expense="e"
-              :subtitle="dayLabel(e.day)"
+              :subtitle="dayLabel(e.day, e.y, e.m)"
               :number="(current - 1) * PAGE_SIZE + i + 1"
             />
           </template>

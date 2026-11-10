@@ -1361,6 +1361,7 @@
     }
     /* the category chips use the whole header width, not one grid column */
     .header .filter-row,
+    .header .range-row,
     .header .cat-entry {
       grid-column: 1 / -1;
     }

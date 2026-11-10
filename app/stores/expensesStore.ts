@@ -27,6 +27,10 @@ export const useExpensesStore = defineStore("expenses", () => {
   /** Home-page filter: show only this category (its key), or everything when null. */
   const filterCat = ref<string | null>(null);
 
+  /** Home-page date range (YYYY-MM-DD, inclusive). It applies once both dates are picked and replaces the month view. */
+  const rangeFrom = ref("");
+  const rangeTo = ref("");
+
   /** True until the first server load finishes (the home page shows skeleton rows meanwhile). */
   const loading = computed(() => !loaded.value && !demo);
   /** The expense being added right now: the list shows one skeleton row for it until the server answers. */
@@ -40,8 +44,25 @@ export const useExpensesStore = defineStore("expenses", () => {
     expenses.value.filter((e) => e.y === view.value.y && e.m === view.value.m),
   );
   /** What the home page lists: the viewed month, narrowed by the category filter. */
+  /** The picked range, earliest date first (the two pickers can be filled in any order); null until both are set. */
+  const range = computed(() => {
+    if (!rangeFrom.value || !rangeTo.value) return null;
+    return rangeFrom.value <= rangeTo.value
+      ? { from: rangeFrom.value, to: rangeTo.value }
+      : { from: rangeTo.value, to: rangeFrom.value };
+  });
+  /** Inside the range, across months; otherwise the viewed month. */
+  const scoped = computed(() => {
+    const r = range.value;
+    if (!r) return monthItems.value;
+    return expenses.value.filter((e) => {
+      const d = toISODate(e.y, e.m, e.day);
+      return d >= r.from && d <= r.to;
+    });
+  });
+  /** What the home page lists: the month (or the range), narrowed by the category filter. */
   const items = computed(() =>
-    filterCat.value ? monthItems.value.filter((e) => e.cat === filterCat.value) : monthItems.value,
+    filterCat.value ? scoped.value.filter((e) => e.cat === filterCat.value) : scoped.value,
   );
   const total = computed(() => items.value.reduce((s, e) => s + e.amount, 0));
 
@@ -79,11 +100,13 @@ export const useExpensesStore = defineStore("expenses", () => {
     expenses.value = [];
     loaded.value = false;
     filterCat.value = null;
+    rangeFrom.value = rangeTo.value = "";
     pending.value = null;
     busyId.value = null;
   }
 
   const setFilter = (key: string | null) => (filterCat.value = key);
+  const clearRange = () => (rangeFrom.value = rangeTo.value = "");
 
   /** After a category is deleted the server moves its expenses; mirror that here. */
   function reassignCategory(from: string, to: string) {
@@ -124,6 +147,10 @@ export const useExpensesStore = defineStore("expenses", () => {
       note: draft.note.trim() || undefined,
     };
     const editing = id !== undefined;
+
+    // A saved expense outside the picked range would be invisible, so the range steps aside.
+    const r = range.value;
+    if (r && (draft.date < r.from || draft.date > r.to)) clearRange();
 
     // Updating: that row becomes a skeleton while the server works.
     if (editing) busyId.value = id;
@@ -187,6 +214,10 @@ export const useExpensesStore = defineStore("expenses", () => {
     today,
     todayISO,
     filterCat,
+    rangeFrom,
+    rangeTo,
+    range,
+    clearRange,
     loading,
     pending,
     busyId,
