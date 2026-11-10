@@ -2,7 +2,7 @@
 const { t } = useI18n()
 const expensesStore = useExpensesStore()
 const sheetStore = useSheetStore()
-const { view, monthItems, items, groups, loading, pending } = storeToRefs(expensesStore)
+const { view, monthItems, items, categoryGroups, loading, pending } = storeToRefs(expensesStore)
 
 // If the first load didn't finish before the page opened (slow or failed), try again here:
 // the page shows skeletons meanwhile instead of a wrongly empty month.
@@ -10,7 +10,6 @@ onMounted(() => {
   if (expensesStore.loading)
     Promise.all([expensesStore.load(), new Promise((r) => setTimeout(r, 1000))]).catch(() => {})
 })
-const { dayLabel } = useDateLabels()
 
 // ?sheet=add|edit opens the Add/Edit sheet on load (used by the preview page).
 const route = useRoute()
@@ -64,10 +63,11 @@ onBeforeUnmount(() => {
         </aside>
         <div class="list">
           <p v-if="!items.length" class="filter-empty">{{ t('no_filtered') }}</p>
-          <ExpenseDayGroup
-            v-for="(g, i) in groups"
-            :key="`${view.y}-${view.m}-${g.day}`"
-            :label="dayLabel(g.day)"
+          <ExpenseCategoryGroup
+            v-for="(g, i) in categoryGroups"
+            :key="`${view.y}-${view.m}-${g.cat}`"
+            :cat="g.cat"
+            :total="g.total"
             :items="g.items"
             :pending="g.pending"
             :index="i + 1"

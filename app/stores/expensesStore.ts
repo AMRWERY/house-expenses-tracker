@@ -30,7 +30,7 @@ export const useExpensesStore = defineStore("expenses", () => {
   /** True until the first server load finishes (the home page shows skeleton rows meanwhile). */
   const loading = computed(() => !loaded.value && !demo);
   /** The expense being added right now: the list shows one skeleton row for it until the server answers. */
-  const pending = ref<{ y: number; m: number; day: number } | null>(null);
+  const pending = ref<{ y: number; m: number; day: number; cat: string } | null>(null);
   /** The expense being updated or deleted right now: its row shows as a skeleton until the server answers. */
   const busyId = ref<number | null>(null);
 
@@ -45,19 +45,22 @@ export const useExpensesStore = defineStore("expenses", () => {
   );
   const total = computed(() => items.value.reduce((s, e) => s + e.amount, 0));
 
-  /** The viewed month's expenses grouped by day, newest day first. */
-  const groups = computed(() => {
-    const byDay = new Map<number, Expense[]>();
-    items.value.forEach((e) =>
-      byDay.set(e.day, [...(byDay.get(e.day) ?? []), e]),
-    );
-    // The expense being added gets its day group (and a skeleton row at the end of it) right away.
+  /** The viewed month's expenses grouped by category (biggest spend first); inside a group, newest day first. */
+  const categoryGroups = computed(() => {
+    const byCat = new Map<string, Expense[]>();
+    items.value.forEach((e) => byCat.set(e.cat, [...(byCat.get(e.cat) ?? []), e]));
+    // The expense being added gets its category group (and a skeleton row) right away.
     const p = pending.value;
-    const pendingDay = p && p.y === view.value.y && p.m === view.value.m ? p.day : null;
-    if (pendingDay !== null && !byDay.has(pendingDay)) byDay.set(pendingDay, []);
-    return [...byDay.entries()]
-      .sort((a, b) => b[0] - a[0])
-      .map(([day, list]) => ({ day, items: list, pending: day === pendingDay }));
+    const pendingCat = p && p.y === view.value.y && p.m === view.value.m ? p.cat : null;
+    if (pendingCat !== null && !byCat.has(pendingCat)) byCat.set(pendingCat, []);
+    return [...byCat.entries()]
+      .map(([cat, list]) => ({
+        cat,
+        items: [...list].sort((a, b) => b.day - a.day || b.id - a.id),
+        total: list.reduce((s, e) => s + e.amount, 0),
+        pending: cat === pendingCat,
+      }))
+      .sort((a, b) => b.total - a.total);
   });
 
   // ---- Actions
@@ -126,7 +129,7 @@ export const useExpensesStore = defineStore("expenses", () => {
     else {
       view.value = { y, m: mo - 1 };
       if (filterCat.value && filterCat.value !== data.cat) filterCat.value = null;
-      pending.value = { y, m: mo - 1, day: d };
+      pending.value = { y, m: mo - 1, day: d, cat: data.cat };
     }
 
     let record: Expense;
@@ -180,7 +183,7 @@ export const useExpensesStore = defineStore("expenses", () => {
     monthItems,
     items,
     total,
-    groups,
+    categoryGroups,
     load,
     reset,
     reassignCategory,

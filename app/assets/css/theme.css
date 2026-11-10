@@ -1360,7 +1360,8 @@
       margin-inline-start: auto;
     }
     /* the category chips use the whole header width, not one grid column */
-    .header .filter-row {
+    .header .filter-row,
+    .header .cat-entry {
       grid-column: 1 / -1;
     }
     .total {
@@ -1777,7 +1778,7 @@
 
 .cat-entry {
   display: flex;
-  justify-content: center;
+  justify-content: flex-start; /* inline-start edge, flips in RTL */
   margin-top: 12px;
 }
 
