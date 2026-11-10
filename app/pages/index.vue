@@ -63,15 +63,17 @@ onBeforeUnmount(() => {
         </aside>
         <div class="list">
           <p v-if="!items.length" class="filter-empty">{{ t('no_filtered') }}</p>
-          <ExpenseCategoryGroup
-            v-for="(g, i) in categoryGroups"
-            :key="`${view.y}-${view.m}-${g.cat}`"
-            :cat="g.cat"
-            :total="g.total"
-            :items="g.items"
-            :pending="g.pending"
-            :index="i + 1"
-          />
+          <TransitionGroup name="grp" tag="div">
+            <ExpenseCategoryGroup
+              v-for="(g, i) in categoryGroups"
+              :key="`${view.y}-${view.m}-${g.cat}`"
+              :cat="g.cat"
+              :total="g.total"
+              :items="g.items"
+              :pending="g.pending"
+              :index="i + 1"
+            />
+          </TransitionGroup>
         </div>
       </div>
     </main>

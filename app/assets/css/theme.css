@@ -2003,3 +2003,198 @@
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
+/* ---- Extra motion: page change, list enter/leave/reorder, press + hover feedback (design.md section 9) ---- */
+
+/* Page transition: fade plus 8px slide, 250ms ease-out */
+.page-enter-active,
+.page-leave-active {
+  transition:
+    opacity 0.25s ease-out,
+    transform 0.25s ease-out;
+}
+.page-enter-from {
+  opacity: 0;
+  transform: translateY(8px);
+}
+.page-leave-to {
+  opacity: 0;
+}
+
+/* Category groups: reorder smoothly when totals change, fade out when emptied */
+.list {
+  position: relative;
+}
+.grp-move {
+  transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.grp-leave-active {
+  position: absolute;
+  inset-inline: 0;
+  transition:
+    opacity 0.3s ease-out,
+    transform 0.3s ease-out;
+}
+.grp-leave-to {
+  opacity: 0;
+  transform: translateY(-8px);
+}
+
+/* Rows: fade in on add / page change, fade out on delete, neighbours slide into place */
+.rows {
+  position: relative;
+}
+.xrow-enter-active {
+  transition:
+    opacity 0.3s ease-out,
+    transform 0.3s ease-out;
+}
+.xrow-enter-from {
+  opacity: 0;
+  transform: translateY(10px);
+}
+.xrow-leave-active {
+  position: absolute;
+  inset-inline: 0;
+  transition:
+    opacity 0.2s ease-out,
+    transform 0.2s ease-out;
+}
+.xrow-leave-to {
+  opacity: 0;
+  transform: scale(0.97);
+}
+.xrow-move {
+  transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+/* Press and hover feedback on the home list */
+.day .row {
+  cursor: pointer;
+  transition:
+    background-color 0.2s,
+    box-shadow 0.2s,
+    transform 0.15s;
+}
+@media (hover: hover) {
+  .day .row:hover {
+    transform: translateY(-1px);
+  }
+}
+.day .row:active {
+  transform: scale(0.98);
+}
+.day .row:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .page-enter-from,
+  .grp-leave-to,
+  .xrow-enter-from,
+  .xrow-leave-to,
+  .day .row:hover,
+  .day .row:active {
+    transform: none;
+  }
+}
+
+/* ---- Site-wide motion: login, compare, settings, shared cards ---- */
+@keyframes pop-in {
+  0% {
+    opacity: 0;
+    transform: scale(0.6);
+  }
+  70% {
+    transform: scale(1.08);
+  }
+  100% {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes fade-down {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes float-soft {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(-6px);
+  }
+}
+
+/* Login card slides up, its icon pops in just after */
+.lock-card {
+  animation: rise 0.45s ease-out both;
+}
+.lock-ico {
+  animation: pop-in 0.5s ease-out 0.15s both;
+}
+
+/* Validation / server messages ease in instead of snapping */
+.field-error,
+.auth-notice,
+.sheet-error {
+  animation: fade-down 0.25s ease-out both;
+}
+
+/* Empty state icon drifts gently */
+.empty-ico {
+  animation: float-soft 2.4s ease-in-out infinite alternate;
+}
+
+/* Cards on compare + settings + main amount: soft lift on hover */
+.setting-card,
+.cmp-row,
+.mamt,
+.summary .total {
+  transition:
+    transform 0.2s ease-out,
+    box-shadow 0.2s ease-out,
+    background-color 0.2s;
+}
+@media (hover: hover) {
+  .setting-card:hover,
+  .cmp-row:hover {
+    transform: translateY(-2px);
+  }
+}
+
+/* Sidebar + header controls: press feedback */
+.nav-link:active,
+.auth-lang:active {
+  transform: scale(0.97);
+}
+.nav-link,
+.auth-lang {
+  transition:
+    background-color 0.2s,
+    color 0.2s,
+    transform 0.1s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lock-card,
+  .lock-ico,
+  .field-error,
+  .auth-notice,
+  .sheet-error,
+  .empty-ico {
+    animation: none;
+  }
+  .setting-card:hover,
+  .cmp-row:hover,
+  .nav-link:active,
+  .auth-lang:active {
+    transform: none;
+  }
+}

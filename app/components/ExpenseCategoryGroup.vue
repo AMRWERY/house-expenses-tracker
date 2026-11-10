@@ -10,15 +10,15 @@
       </div>
     </div>
 
-    <div class="rows">
-      <template v-for="(e, i) in pageItems" :key="e.id">
+    <TransitionGroup name="xrow" tag="div" class="rows">
+      <template v-for="(e, i) in pageItems">
         <!-- the expense being updated or deleted: only this one is a skeleton -->
-        <ExpenseRowSkeleton v-if="e.id === busyId" />
-        <ExpenseRow v-else :expense="e" :subtitle="dayLabel(e.day)" :number="(current - 1) * PAGE_SIZE + i + 1" />
+        <ExpenseRowSkeleton v-if="e.id === busyId" :key="e.id" />
+        <ExpenseRow v-else :key="e.id" :expense="e" :subtitle="dayLabel(e.day)" :number="(current - 1) * PAGE_SIZE + i + 1" />
       </template>
       <!-- the expense being added: only this one is a skeleton -->
-      <ExpenseRowSkeleton v-if="pending" />
-    </div>
+      <ExpenseRowSkeleton v-if="pending" key="pending" />
+    </TransitionGroup>
 
     <!-- Only when the category has more than one page of expenses -->
     <nav v-if="pageCount > 1" class="pager" :aria-label="t('page_of', { page: current, pages: pageCount })">
@@ -101,6 +101,11 @@ const nextIcon = computed(() => (locale.value === "ar" ? "chevronLeft" : "chevro
   background: var(--surface-alt);
   color: var(--text);
   transition: background-color 200ms, transform 100ms;
+}
+@media (hover: hover) {
+  .pager-btn:hover:not(:disabled) {
+    background: var(--border);
+  }
 }
 .pager-btn:active:not(:disabled) {
   transform: scale(0.97);
