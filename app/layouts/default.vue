@@ -6,6 +6,7 @@
       <GreetingBanner />
       <slot />
     </div>
+    <AppToast />
   </div>
 </template>
 

@@ -69,6 +69,7 @@ onBeforeUnmount(() => {
               :key="`${view.y}-${view.m}-${g.cat}`"
               :cat="g.cat"
               :total="g.total"
+              :share="categoryGroups.length > 1 ? g.share : null"
               :items="g.items"
               :pending="g.pending"
               :index="i + 1"

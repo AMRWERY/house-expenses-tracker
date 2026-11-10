@@ -5,6 +5,8 @@ type Sheet = { mode: "add" | "edit"; expense?: Expense } | null;
 /** The Add/Edit expense bottom sheet: whether it is open, what it edits, and the save/delete outcome. */
 export const useSheetStore = defineStore("sheet", () => {
   const expensesStore = useExpensesStore();
+  const toastStore = useToastStore();
+  const nuxtApp = useNuxtApp(); // captured here: composables are not available after an await
 
   const sheet = ref<Sheet>(null);
   /** i18n key of the last server failure, shown inside the sheet (it stays open when a save fails) */
@@ -39,8 +41,16 @@ export const useSheetStore = defineStore("sheet", () => {
 
   async function remove() {
     await run("delete", async () => {
-      if (sheet.value?.expense)
-        await expensesStore.remove(sheet.value.expense.id);
+      if (!sheet.value?.expense) return;
+      const removed = await expensesStore.remove(sheet.value.expense.id);
+      if (!removed) return;
+      // Offer Undo: it adds the expense back
+      const { t } = nuxtApp.$i18n;
+      toastStore.show({
+        text: t("expense_deleted"),
+        actionLabel: t("undo"),
+        onAction: () => expensesStore.restore(removed),
+      });
     });
   }
 

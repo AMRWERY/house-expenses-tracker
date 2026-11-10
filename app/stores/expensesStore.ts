@@ -59,6 +59,8 @@ export const useExpensesStore = defineStore("expenses", () => {
         items: [...list].sort((a, b) => b.day - a.day || b.id - a.id),
         total: list.reduce((s, e) => s + e.amount, 0),
         pending: cat === pendingCat,
+        /** whole percent of everything listed (the month, or the filtered category) */
+        share: total.value > 0 ? Math.round((list.reduce((s, e) => s + e.amount, 0) / total.value) * 100) : 0,
       }))
       .sort((a, b) => b.total - a.total);
   });
@@ -159,7 +161,9 @@ export const useExpensesStore = defineStore("expenses", () => {
     if (filterCat.value && filterCat.value !== data.cat) filterCat.value = null;
   }
 
+  /** Delete an expense; returns what was removed so the caller can offer Undo. */
   async function remove(id: number) {
+    const removed = expenses.value.find((e) => e.id === id);
     busyId.value = id; // its row shows as a skeleton until the server answers
     try {
       await atLeastSkeletonTime(demo ? Promise.resolve() : $fetch(`/api/expenses/${id}`, { method: "DELETE" }));
@@ -167,6 +171,12 @@ export const useExpensesStore = defineStore("expenses", () => {
     } finally {
       busyId.value = null; // on failure the row comes back and the sheet shows the error
     }
+    return removed;
+  }
+
+  /** Undo a delete: add the same expense back (it gets a new id). */
+  async function restore(e: Expense) {
+    await save({ cat: e.cat, amount: e.amount, date: toISODate(e.y, e.m, e.day), note: e.note ?? "" });
   }
 
   return {
@@ -194,5 +204,6 @@ export const useExpensesStore = defineStore("expenses", () => {
     firstDayISO: FIRST_DAY_ISO,
     save,
     remove,
+    restore,
   };
 });
