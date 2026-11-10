@@ -1,11 +1,5 @@
 <template>
-  <section class="total rise" :aria-label="t('total_expenses')">
-    <div class="total-label">{{ t("total_expenses") }}</div>
-    <div class="total-amount">
-      <animated-number :value="total" :duration="800" /><small>{{
-        t("currency")
-      }}</small>
-    </div>
+  <VStatCard class="rise" :label="t('total_expenses')" :value="total">
     <!-- Money set aside in category budgets: what's left after this month's expenses -->
     <!-- Once the month has a main amount, the card above it shows the budget lines instead -->
     <div
@@ -24,7 +18,7 @@
         t("budget_of", { total: formatNumber(budgetSummary.total) })
       }}</small>
     </div>
-  </section>
+  </VStatCard>
 </template>
 
 <script lang="ts" setup>

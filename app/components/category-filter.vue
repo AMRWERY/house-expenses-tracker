@@ -4,27 +4,18 @@
     role="radiogroup"
     :aria-label="t('filter_by_category')"
   >
-    <button
-      type="button"
-      role="radio"
-      class="chip"
-      :aria-checked="filterCat === null"
-      @click="expensesStore.setFilter(null)"
-    >
+    <VChip :selected="filterCat === null" @click="expensesStore.setFilter(null)">
       {{ t("all_categories") }}
-    </button>
-    <button
+    </VChip>
+    <VChip
       v-for="c in categories.all"
       :key="c.key"
-      type="button"
-      role="radio"
-      class="chip"
-      :aria-checked="filterCat === c.key"
+      :icon="c.icon"
+      :selected="filterCat === c.key"
       @click="expensesStore.setFilter(c.key)"
     >
-      <app-icon :name="c.icon" />
       {{ info(c.key).label }}
-    </button>
+    </VChip>
   </div>
 </template>
 

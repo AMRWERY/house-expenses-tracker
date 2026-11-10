@@ -27,13 +27,7 @@
     </h2>
 
     <!-- What's been spent in this category this month -->
-    <div class="total cat-total" :aria-label="t('total_expenses')">
-      <div class="total-label">{{ t("total_expenses") }}</div>
-      <div class="total-amount">
-        <animated-number :value="total" :duration="800" /><small>{{
-          t("currency")
-        }}</small>
-      </div>
+    <VStatCard class="cat-total" :label="t('total_expenses')" :value="total">
 
       <!-- Budget progress: fills from the start, turns amber near the limit and red when over -->
       <div v-if="budget" class="cat-budget" :class="budgetState">
@@ -62,7 +56,7 @@
           }}</small>
         </div>
       </div>
-    </div>
+    </VStatCard>
 
     <!-- grid-rows 0fr -> 1fr lets the height animate without measuring -->
     <div class="cat-body" :class="{ 'is-open': !collapsed }" :inert="collapsed">

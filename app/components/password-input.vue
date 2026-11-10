@@ -1,4 +1,5 @@
 <template>
+  <label v-if="label" class="field-label" :class="{ 'field-label-gap': labelGap }" :for="id">{{ label }}</label>
   <div class="pw">
     <input
       :id="id"
@@ -10,15 +11,13 @@
       :autocomplete="autocomplete"
       :placeholder="placeholder"
     />
-    <button
-      class="icon-btn pw-toggle"
-      type="button"
-      :aria-label="visible ? t('hide_password') : t('show_password')"
+    <VIconButton
+      class="pw-toggle"
+      :icon="visible ? 'eyeOff' : 'eye'"
+      :label="visible ? t('hide_password') : t('show_password')"
       :aria-pressed="visible"
       @click="visible = !visible"
-    >
-      <app-icon :name="visible ? 'eyeOff' : 'eye'" />
-    </button>
+    />
   </div>
 </template>
 
@@ -29,6 +28,9 @@ defineProps<{
   id: string;
   autocomplete: "current-password" | "new-password";
   placeholder?: string;
+  /** optional label rendered above the field */
+  label?: string;
+  labelGap?: boolean;
 }>();
 
 const model = defineModel<string>({ required: true });

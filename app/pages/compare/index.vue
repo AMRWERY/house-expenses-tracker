@@ -1,23 +1,13 @@
 <template>
   <div class="app">
     <header class="page-head">
-      <nuxt-link-locale class="icon-btn" to="/" :aria-label="t('back')">
-        <app-icon :name="backIcon" />
-      </nuxt-link-locale>
+      <VIconButton :icon="backIcon" :label="t('back')" to="/" />
       <h1>{{ t("compare") }}</h1>
     </header>
 
     <main class="layout">
       <aside class="summary">
-        <section class="total stats rise">
-          <div class="total-label" style="text-align: center">
-            {{ t("monthly_average") }}
-          </div>
-          <div class="total-amount" style="text-align: center">
-            <animated-number :value="average" /><small>{{
-              t("currency")
-            }}</small>
-          </div>
+        <VStatCard class="stats rise" :label="t('monthly_average')" :value="average">
           <div v-if="highest" class="stat">
             <span>{{ t("highest") }}</span
             ><b>{{ monthName(highest.y, highest.m) }}</b>
@@ -26,7 +16,7 @@
             <span>{{ t("lowest") }}</span
             ><b>{{ monthName(lowest.y, lowest.m) }}</b>
           </div>
-        </section>
+        </VStatCard>
       </aside>
 
       <section class="list">

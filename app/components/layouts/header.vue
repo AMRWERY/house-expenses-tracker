@@ -4,20 +4,8 @@
       <h1>{{ t("app_title") }}</h1>
       <!-- phones & tablets: icon links; desktop uses the sidebar + the "actions" slot -->
       <div class="header-actions">
-        <nuxt-link-locale
-          class="icon-btn"
-          to="/compare"
-          :aria-label="t('compare')"
-        >
-          <app-icon name="compare" />
-        </nuxt-link-locale>
-        <nuxt-link-locale
-          class="icon-btn"
-          to="/settings"
-          :aria-label="t('settings')"
-        >
-          <app-icon name="settings" />
-        </nuxt-link-locale>
+        <VIconButton icon="compare" :label="t('compare')" to="/compare" />
+        <VIconButton icon="settings" :label="t('settings')" to="/settings" />
       </div>
       <slot name="actions" />
     </div>

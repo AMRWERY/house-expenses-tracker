@@ -1,32 +1,8 @@
 <template>
-  <div class="sheet-root">
-    <div class="backdrop" @click="sheet.close()" />
-
-    <div class="sheet" role="dialog" aria-modal="true" :aria-label="heading">
-      <div class="grab" aria-hidden="true" />
-
-      <div class="sheet-head">
-        <div class="sheet-title">
-          <button
-            v-if="view === 'form'"
-            class="icon-btn"
-            type="button"
-            :aria-label="t('back')"
-            @click="sheet.backToList()"
-          >
-            <app-icon :name="backIcon" />
-          </button>
-          <h2>{{ heading }}</h2>
-        </div>
-        <button
-          class="icon-btn"
-          type="button"
-          :aria-label="t('close')"
-          @click="sheet.close()"
-        >
-          <app-icon name="x" />
-        </button>
-      </div>
+  <VSheet :title="heading" @close="sheet.close()">
+      <template v-if="view === 'form'" #lead>
+        <VIconButton :icon="backIcon" :label="t('back')" @click="sheet.backToList()" />
+      </template>
 
       <!-- List: built-in categories (fixed) then the person's own (editable) -->
       <template v-if="view === 'list'">
@@ -60,14 +36,11 @@
                   {{ budgetText(categories.budgets.get(c.key)!) }}
                 </div>
               </div>
-              <button
-                class="icon-btn"
-                type="button"
-                :aria-label="`${t('edit_category')}: ${info(c.key).label}`"
+              <VIconButton
+                icon="pencil"
+                :label="`${t('edit_category')}: ${info(c.key).label}`"
                 @click="sheet.startEdit(c)"
-              >
-                <app-icon name="pencil" />
-              </button>
+              />
             </li>
           </template>
           <!-- the category being added -->
@@ -83,14 +56,9 @@
           </li>
         </ul>
 
-        <button
-          class="btn btn-block"
-          type="button"
-          :disabled="!!pending"
-          @click="sheet.startAdd()"
-        >
+        <VButton block :disabled="!!pending" @click="sheet.startAdd()">
           <app-icon name="plus" />{{ t("add_category") }}
-        </button>
+        </VButton>
       </template>
 
       <!-- Stays mounted (hidden) while saving, so a failed save returns to what was typed -->
@@ -99,8 +67,7 @@
         v-show="view === 'form'"
         :key="editing?.id ?? 'new'"
       />
-    </div>
-  </div>
+  </VSheet>
 </template>
 
 <script lang="ts" setup>

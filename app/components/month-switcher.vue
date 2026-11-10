@@ -1,24 +1,16 @@
 <template>
   <div class="month">
     <!-- Hidden (but still taking its space, so the label stays centered) at the first month, November 2026 -->
-    <button
-      class="icon-btn"
+    <VIconButton
       :class="{ 'is-hidden': !canGoPrev }"
-      :aria-label="t('prev_month')"
+      :icon="prevIcon"
+      :label="t('prev_month')"
       :disabled="!canGoPrev"
       :tabindex="canGoPrev ? 0 : -1"
       @click="expensesStore.prevMonth()"
-    >
-      <app-icon :name="prevIcon" />
-    </button>
+    />
     <span class="month-label" aria-live="polite">{{ monthLabel }}</span>
-    <button
-      class="icon-btn"
-      :aria-label="t('next_month')"
-      @click="expensesStore.nextMonth()"
-    >
-      <app-icon :name="nextIcon" />
-    </button>
+    <VIconButton :icon="nextIcon" :label="t('next_month')" @click="expensesStore.nextMonth()" />
   </div>
 </template>
 

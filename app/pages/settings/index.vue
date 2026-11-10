@@ -1,9 +1,7 @@
 <template>
   <div class="app narrow">
     <header class="page-head">
-      <nuxt-link-locale class="icon-btn" to="/" :aria-label="t('back')">
-        <app-icon :name="backIcon" />
-      </nuxt-link-locale>
+      <VIconButton :icon="backIcon" :label="t('back')" to="/" />
       <h1>{{ t("settings") }}</h1>
     </header>
 
@@ -34,52 +32,43 @@
       <section v-if="user" class="setting rise" style="--i: 3">
         <h2>{{ t("change_password") }}</h2>
         <form class="setting-card" novalidate @submit.prevent="changePassword">
-          <label class="field-label" for="current-password">{{
-            t("current_password")
-          }}</label>
           <password-input
             id="current-password"
+            :label="t('current_password')"
             v-model="currentPassword"
             autocomplete="current-password"
           />
 
-          <label class="field-label field-label-gap" for="new-password">{{
-            t("new_password")
-          }}</label>
           <password-input
             id="new-password"
+            :label="t('new_password')"
+            label-gap
             v-model="newPassword"
             autocomplete="new-password"
             :placeholder="t('password_hint')"
           />
 
-          <label class="field-label field-label-gap" for="confirm-password">{{
-            t("confirm_password")
-          }}</label>
           <password-input
             id="confirm-password"
+            :label="t('confirm_password')"
+            label-gap
             v-model="confirmPassword"
             autocomplete="new-password"
           />
-          <p v-if="mismatch" class="field-error field-error-inline">
+          <VError v-if="mismatch" inline>
             {{ t("passwords_mismatch") }}
-          </p>
+          </VError>
 
-          <button
-            class="btn btn-block"
-            type="submit"
-            :disabled="!canChangePassword"
-            :aria-busy="passwordBusy"
-          >
+          <VButton block type="submit" :disabled="!canChangePassword" :busy="passwordBusy">
             {{ passwordBusy ? t("updating_password") : t("update_password") }}
-          </button>
+          </VButton>
 
           <p v-if="passwordNotice" class="auth-notice" role="status">
             {{ t(passwordNotice) }}
           </p>
-          <p v-if="passwordError" class="field-error sheet-error" role="alert">
+          <VError v-if="passwordError" sheet role="alert">
             {{ t(passwordError) }}
-          </p>
+          </VError>
         </form>
       </section>
 
@@ -95,15 +84,9 @@
               <div class="row-cat">{{ t("signed_in") }}</div>
             </div>
           </div>
-          <button
-            class="btn-text danger"
-            type="button"
-            :disabled="signingOut"
-            :aria-busy="signingOut"
-            @click="signOut"
-          >
+          <VButton variant="text" danger :disabled="signingOut" :busy="signingOut" @click="signOut">
             {{ signingOut ? t("signing_out") : t("logout") }}
-          </button>
+          </VButton>
         </div>
       </section>
     </main>

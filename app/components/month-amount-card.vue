@@ -17,14 +17,7 @@
             }}</small>
           </div>
         </div>
-        <button
-          class="icon-btn"
-          type="button"
-          :aria-label="t('ma_edit')"
-          @click="store.openSheet()"
-        >
-          <app-icon name="pencil" />
-        </button>
+        <VIconButton icon="pencil" :label="t('ma_edit')" @click="store.openSheet()" />
       </div>
 
       <div class="mamt-stats">
@@ -49,17 +42,13 @@
           })
         }}
       </p>
-      <p
-        v-if="(notSetAside ?? 0) < 0"
-        class="field-error mamt-warn"
-        role="status"
-      >
+      <VError v-if="(notSetAside ?? 0) < 0" class="mamt-warn" role="status">
         {{
           t("ma_budgets_exceed", {
             amount: formatNumber(Math.abs(notSetAside ?? 0)),
           })
         }}
-      </p>
+      </VError>
     </section>
 
     <!-- A month without an amount (a new month): ask for it -->
@@ -72,9 +61,9 @@
         <h2>{{ t("ma_ask_title", { month: monthLabel }) }}</h2>
         <p>{{ t("ma_ask_hint") }}</p>
       </div>
-      <button class="btn" type="button" @click="store.openSheet()">
+      <VButton @click="store.openSheet()">
         {{ t("ma_set") }}
-      </button>
+      </VButton>
     </section>
   </div>
 </template>

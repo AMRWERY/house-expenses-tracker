@@ -1,22 +1,5 @@
 <template>
-  <div class="sheet-root">
-    <div class="backdrop" @click="sheetStore.close()" />
-
-    <div class="sheet" role="dialog" aria-modal="true" :aria-label="title">
-      <div class="grab" aria-hidden="true" />
-
-      <div class="sheet-head">
-        <h2>{{ title }}</h2>
-        <button
-          class="icon-btn"
-          type="button"
-          :aria-label="t('close')"
-          @click="sheetStore.close()"
-        >
-          <app-icon name="x" />
-        </button>
-      </div>
-
+  <VSheet :title="title" @close="sheetStore.close()">
       <form novalidate @submit.prevent="submit">
         <!-- Amount -->
         <div class="amount" :class="{ 'has-error': amountError }">
@@ -37,33 +20,30 @@
             />
             <span class="amount-cur">{{ t("currency") }}</span>
           </div>
-          <p v-if="amountError" id="amount-err" class="field-error">
+          <VError v-if="amountError" id="amount-err">
             {{ t("amount_required") }}
-          </p>
+          </VError>
         </div>
 
         <!-- Category chips -->
         <div class="chips" role="radiogroup" :aria-label="t('category')">
-          <button
+          <VChip
             v-for="c in categories.all"
             :key="c.key"
-            type="button"
-            role="radio"
-            class="chip"
-            :aria-checked="cat === c.key"
+            :icon="c.icon"
+            :selected="cat === c.key"
             @click="cat = c.key"
           >
-            <app-icon :name="c.icon" />
             {{ info(c.key).label }}
-          </button>
+          </VChip>
         </div>
 
         <!-- No categories left (the last one was deleted): an expense needs one, so ask for it first -->
         <div v-if="!categories.all.length" class="chips-empty">
           <p class="cat-note">{{ t("no_categories_hint") }}</p>
-          <button class="btn-text" type="button" @click="addCategoryFirst">
+          <VButton variant="text" @click="addCategoryFirst">
             {{ t("add_category") }}
-          </button>
+          </VButton>
         </div>
 
         <!-- Date -->
@@ -85,25 +65,24 @@
 
         <!-- Note -->
         <div class="field-block">
-          <label class="field-label" for="note">{{ t("note") }}</label>
-          <input
+          <VTextField
             id="note"
             v-model="note"
-            class="field field-input"
+            :label="t('note')"
             type="text"
             maxlength="80"
             :placeholder="t('note_placeholder')"
           />
         </div>
 
-        <p v-if="saveError" class="field-error sheet-error" role="alert">
+        <VError v-if="saveError" sheet role="alert">
           {{ t(saveError) }}
-        </p>
-        <button
-          class="btn btn-block"
+        </VError>
+        <VButton
+          block
           type="submit"
           :disabled="!!busy || !categories.all.length"
-          :aria-busy="busy === 'save'"
+          :busy="busy === 'save'"
         >
           <!-- Adding a new expense says "Add"; editing one says "Save" -->
           {{
@@ -111,20 +90,19 @@
               ? t(mode === "edit" ? "saving" : "adding")
               : t(mode === "edit" ? "save" : "add")
           }}
-        </button>
-        <button
+        </VButton>
+        <VButton
           v-if="mode === 'edit'"
-          class="btn-text danger"
-          type="button"
+          variant="text"
+          danger
           :disabled="!!busy"
-          :aria-busy="busy === 'delete'"
+          :busy="busy === 'delete'"
           @click="sheetStore.remove()"
         >
           {{ busy === "delete" ? t("deleting") : t("delete") }}
-        </button>
+        </VButton>
       </form>
-    </div>
-  </div>
+  </VSheet>
 </template>
 
 <script lang="ts" setup>

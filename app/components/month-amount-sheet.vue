@@ -1,22 +1,5 @@
 <template>
-  <div class="sheet-root">
-    <div class="backdrop" @click="store.closeSheet()" />
-
-    <div class="sheet" role="dialog" aria-modal="true" :aria-label="title">
-      <div class="grab" aria-hidden="true" />
-
-      <div class="sheet-head">
-        <h2>{{ title }}</h2>
-        <button
-          class="icon-btn"
-          type="button"
-          :aria-label="t('close')"
-          @click="store.closeSheet()"
-        >
-          <app-icon name="x" />
-        </button>
-      </div>
-
+  <VSheet :title="title" @close="store.closeSheet()">
       <form novalidate @submit.prevent="submit">
         <div class="amount" :class="{ 'has-error': amountError }">
           <label class="sr-only" for="month-amount">{{ t("amount") }}</label>
@@ -36,26 +19,20 @@
             />
             <span class="amount-cur">{{ t("currency") }}</span>
           </div>
-          <p v-if="amountError" id="month-amount-err" class="field-error">
+          <VError v-if="amountError" id="month-amount-err">
             {{ t("amount_required") }}
-          </p>
+          </VError>
         </div>
         <p class="cat-note">{{ t("ma_sheet_hint", { month: monthLabel }) }}</p>
 
-        <p v-if="saveError" class="field-error sheet-error" role="alert">
+        <VError v-if="saveError" sheet role="alert">
           {{ t(saveError) }}
-        </p>
-        <button
-          class="btn btn-block"
-          type="submit"
-          :disabled="saving"
-          :aria-busy="saving"
-        >
+        </VError>
+        <VButton block type="submit" :disabled="saving" :busy="saving">
           {{ saving ? t("saving") : t("save") }}
-        </button>
+        </VButton>
       </form>
-    </div>
-  </div>
+  </VSheet>
 </template>
 
 <script lang="ts" setup>

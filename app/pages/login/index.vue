@@ -64,11 +64,10 @@ watch(mode, auth.clearMessages)
 
         <form class="auth-form" novalidate @submit.prevent="submit">
           <template v-if="mode === 'signup'">
-            <label class="field-label" for="name">{{ t('name_label') }}</label>
-            <input
+            <VTextField
               id="name"
               v-model="name"
-              class="field field-input"
+              :label="t('name_label')"
               type="text"
               autocomplete="name"
               maxlength="40"
@@ -76,11 +75,11 @@ watch(mode, auth.clearMessages)
             />
           </template>
 
-          <label class="field-label" :class="{ 'field-label-gap': mode === 'signup' }" for="email">{{ t('email_label') }}</label>
-          <input
+          <VTextField
             id="email"
             v-model="email"
-            class="field field-input"
+            :label="t('email_label')"
+            :label-gap="mode === 'signup'"
             type="email"
             inputmode="email"
             dir="ltr"
@@ -90,22 +89,23 @@ watch(mode, auth.clearMessages)
             :aria-invalid="showEmailError"
             @blur="emailTouched = true"
           />
-          <p v-if="showEmailError" class="field-error field-error-inline">{{ t('invalid_email') }}</p>
+          <VError v-if="showEmailError" inline>{{ t('invalid_email') }}</VError>
 
-          <label class="field-label field-label-gap" for="password">{{ t('password_label') }}</label>
           <password-input
             id="password"
+            :label="t('password_label')"
+            label-gap
             v-model="password"
             :autocomplete="mode === 'signin' ? 'current-password' : 'new-password'"
             :placeholder="mode === 'signup' ? t('password_hint') : ''"
           />
 
-          <button class="btn lock-btn" type="submit" :disabled="!canSubmit" :aria-busy="busy">
+          <VButton class="lock-btn" type="submit" :disabled="!canSubmit" :busy="busy">
             {{ mode === 'signin' ? (busy ? t('signing_in') : t('signin_pw_btn')) : (busy ? t('creating_account') : t('signup_pw_btn')) }}
-          </button>
+          </VButton>
 
           <p v-if="notice" class="auth-notice" role="status">{{ t(notice) }}</p>
-          <p v-if="error" class="field-error" role="alert">{{ t(error) }}</p>
+          <VError v-if="error" role="alert">{{ t(error) }}</VError>
         </form>
       </div>
 

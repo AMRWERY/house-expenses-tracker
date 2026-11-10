@@ -3,19 +3,15 @@
     <Header>
       <template #actions>
         <!-- Hidden on an empty month: the empty state already has its own "Add expense" button. -->
-        <button
-          v-if="monthItems.length"
-          class="btn add-desktop"
-          @click="sheetStore.openAdd()"
-        >
+        <VButton v-if="monthItems.length" class="add-desktop" @click="sheetStore.openAdd()">
           <app-icon name="plus" />{{ t("add_expense") }}
-        </button>
+        </VButton>
       </template>
       <month-switcher />
       <div class="cat-entry">
-        <button class="chip" type="button" @click="categorySheet.open()">
-          <app-icon name="tag" />{{ t("manage_categories") }}
-        </button>
+        <VChip icon="tag" @click="categorySheet.open()">
+          {{ t("manage_categories") }}
+        </VChip>
       </div>
       <category-filter />
     </Header>

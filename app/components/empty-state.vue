@@ -2,9 +2,9 @@
   <div class="empty rise">
     <div class="empty-ico"><app-icon name="wallet" /></div>
     <p>{{ t("no_expenses") }}</p>
-    <button class="btn" @click="sheetStore.openAdd()">
+    <VButton @click="sheetStore.openAdd()">
       {{ t("add_expense") }}
-    </button>
+    </VButton>
   </div>
 </template>
 

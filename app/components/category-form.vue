@@ -6,14 +6,11 @@
         ><app-icon :name="icon"
       /></span>
       <div class="cat-name-field">
-        <label class="field-label" for="category-name">{{
-          t("category_name")
-        }}</label>
-        <input
+        <VTextField
           id="category-name"
           ref="nameEl"
           v-model="name"
-          class="field field-input"
+          :label="t('category_name')"
           type="text"
           :maxlength="CATEGORY_NAME_MAX"
           :placeholder="t('category_name_placeholder')"
@@ -23,13 +20,9 @@
         />
       </div>
     </div>
-    <p
-      v-if="nameError"
-      id="category-name-err"
-      class="field-error field-error-inline"
-    >
+    <VError v-if="nameError" id="category-name-err" inline>
       {{ t("category_name_required") }}
-    </p>
+    </VError>
 
     <!-- Color -->
     <span class="field-label cat-label">{{ t("category_color") }}</span>
@@ -108,28 +101,23 @@
       }}
     </p>
 
-    <p v-if="error" class="field-error sheet-error" role="alert">
+    <VError v-if="error" sheet role="alert">
       {{ t(error) }}
-    </p>
+    </VError>
 
-    <button
-      class="btn btn-block"
-      type="submit"
-      :disabled="busy"
-      :aria-busy="busy"
-    >
+    <VButton block type="submit" :disabled="busy" :busy="busy">
       {{ busy ? t("saving") : t("save") }}
-    </button>
+    </VButton>
 
-    <button
+    <VButton
       v-if="editing"
-      class="btn-text danger"
-      type="button"
+      variant="text"
+      danger
       :disabled="busy"
       @click="confirming = true"
     >
       {{ t("delete_category") }}
-    </button>
+    </VButton>
 
     <!-- The delete confirmation is its own dialog, centered over the sheet -->
     <Teleport to="body">
@@ -152,17 +140,12 @@
                 )
               }}
             </p>
-            <button
-              class="btn-text danger"
-              type="button"
-              :disabled="busy"
-              @click="confirmDelete"
-            >
+            <VButton variant="text" danger :disabled="busy" @click="confirmDelete">
               {{ t("delete") }}
-            </button>
-            <button class="btn-text" type="button" @click="confirming = false">
+            </VButton>
+            <VButton variant="text" @click="confirming = false">
               {{ t("cancel") }}
-            </button>
+            </VButton>
           </div>
         </div>
       </Transition>
