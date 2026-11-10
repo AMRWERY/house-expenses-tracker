@@ -4,6 +4,9 @@ export default defineEventHandler(async (event) => {
   const body = await readBody(event)
   const { email, password } = parseCredentials(body, true)
   const name = parseName((body ?? {}).name)
+  // Optional profile picture; checked before the account exists so a bad file doesn't half-create one.
+  const rawAvatar = (body ?? {}).avatar
+  const avatar = rawAvatar ? parseAvatar(rawAvatar) : null
 
   // The name is kept on the Supabase account (user_metadata), so every sign-in can read it back.
   const { data, error } = await newAuthClient().auth.signUp({ email, password, options: { data: { name } } })
@@ -16,6 +19,16 @@ export default defineEventHandler(async (event) => {
     if (error.code === 'weak_password') throw createError({ statusCode: 400, message: 'weak_password' })
     console.error('[auth] signUp failed', error.code, error.message)
     throw createError({ statusCode: 400, message: 'signup_failed' })
+  }
+
+  // The picture is saved under the new account's id, whether or not the email still needs confirming.
+  // A storage hiccup must not undo a sign-up that worked: they can upload again from Settings.
+  if (avatar && data.user) {
+    try {
+      await saveAvatar(data.user.id, avatar)
+    } catch (e) {
+      console.error('[auth] avatar at sign-up failed', e)
+    }
   }
 
   // Confirmation switched off in the Supabase project: the account is usable straight away.

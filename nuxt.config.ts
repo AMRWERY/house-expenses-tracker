@@ -38,7 +38,7 @@ export default defineNuxtConfig({
           tagPosition: "head",
           tagPriority: "critical",
           innerHTML:
-            "(function(){try{var s=new URLSearchParams(location.search);var q=s.get('theme');var m=(q==='light'||q==='dark')?q:(localStorage.getItem('theme')||'system');var d=m==='dark'||(m!=='light'&&matchMedia('(prefers-color-scheme: dark)').matches);var e=document.documentElement;e.dataset.theme=d?'dark':'light'}catch(x){}})()",
+            "(function(){try{var s=new URLSearchParams(location.search);var q=s.get('theme');var m=(q==='light'||q==='dark')?q:((document.cookie.match(/(?:^|; )theme=([^;]*)/)||[])[1]||localStorage.getItem('theme')||'system');var d=m==='dark'||(m!=='light'&&matchMedia('(prefers-color-scheme: dark)').matches);var e=document.documentElement;e.dataset.theme=d?'dark':'light'}catch(x){}})()",
         },
       ],
       link: [

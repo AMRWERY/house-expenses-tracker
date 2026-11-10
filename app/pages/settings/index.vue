@@ -73,6 +73,20 @@
       </section>
 
       <section v-if="user" class="setting rise" style="--i: 2">
+        <h2>{{ t("profile_picture") }}</h2>
+        <div class="setting-card">
+          <avatar-picker
+            :src="avatarUrl"
+            :label="t('change_photo')"
+            :busy="avatarBusy"
+            @pick="changeAvatar"
+            @error="avatarError = $event"
+          />
+          <VError v-if="avatarError" inline role="alert">{{ t(avatarError) }}</VError>
+        </div>
+      </section>
+
+      <section v-if="user" class="setting rise" style="--i: 3">
         <h2>{{ t("account") }}</h2>
         <div class="setting-card">
           <div class="setting-row account-row">
@@ -112,6 +126,12 @@ const langOptions = [
 const auth = useAuthStore();
 const { user } = storeToRefs(auth);
 const { passwordBusy, passwordError, passwordNotice } = storeToRefs(auth);
+const { avatarUrl, avatarBusy, avatarError } = storeToRefs(auth);
+
+// Profile picture
+async function changeAvatar(image: string) {
+  if (await auth.uploadAvatar(image)) useToastStore().show({ text: t("avatar_updated") });
+}
 
 // Change password
 const currentPassword = ref("");

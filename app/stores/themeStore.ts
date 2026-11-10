@@ -6,7 +6,12 @@ import type { ThemeMode } from "~/types/composables";
  * `?theme=light|dark` pins it for previews (`override`) without touching the stored value.
  */
 export const useThemeStore = defineStore("theme", () => {
-  const stored = useLocalStorage<string>("theme", "");
+  // A cookie (not localStorage) so the server knows the saved theme too and renders the right option on first paint.
+  const stored = useCookie<string>("theme", {
+    maxAge: 60 * 60 * 24 * 365,
+    sameSite: "lax",
+    default: () => "",
+  });
   const override = ref<"light" | "dark" | null>(null);
   const systemDark = ref(false);
 
@@ -29,6 +34,11 @@ export const useThemeStore = defineStore("theme", () => {
   /** Client only, once: follow the OS setting and write the resolved theme onto <html>. */
   function init() {
     const mq = window.matchMedia("(prefers-color-scheme: dark)");
+    // Earlier versions kept the choice in localStorage: carry it over once.
+    if (!stored.value) {
+      const old = localStorage.getItem("theme");
+      if (old === "light" || old === "dark") stored.value = old;
+    }
     systemDark.value = mq.matches; // only the starting theme: there is no "follow the OS" choice any more
     trackPointer();
     // The first value is applied at once; later changes grow out of where the person clicked.

@@ -37,6 +37,7 @@ export const useAuthStore = defineStore("auth", () => {
       "email_exists",
       "wrong_current_password",
       "same_password",
+      "invalid_image",
     ];
     if (msg && passthrough.includes(msg)) return msg as AuthMessageKey;
     if (status === 429) return "rate_limited";
@@ -76,13 +77,13 @@ export const useAuthStore = defineStore("auth", () => {
       return "done";
     });
 
-  const signUp = (email: string, password: string, name: string) =>
+  const signUp = (email: string, password: string, name: string, avatar?: string) =>
     run(async () => {
       const res = await $fetch<{ needsConfirmation: boolean }>(
         "/api/auth/register",
         {
           method: "POST",
-          body: { email, password, name },
+          body: { email, password, name, avatar },
         },
       );
       if (res.needsConfirmation) {
@@ -131,6 +132,31 @@ export const useAuthStore = defineStore("auth", () => {
     }
   }
 
+  // Profile picture. The picture itself is served by /api/avatar; the version in the URL makes the browser
+  // fetch it again after an upload (and the server answers with the default picture when there is none).
+  const avatarVersion = ref(0);
+  const avatarUrl = computed(() => `/api/avatar?v=${avatarVersion.value}`);
+  const avatarBusy = ref(false);
+  const avatarError = ref<AuthMessageKey | "">("");
+
+  /** Resolves true when the new picture was saved. */
+  async function uploadAvatar(image: string) {
+    if (avatarBusy.value) return false;
+    avatarBusy.value = true;
+    avatarError.value = "";
+    try {
+      await $fetch("/api/avatar", { method: "POST", body: { image } });
+      avatarVersion.value++;
+      return true;
+    } catch (e) {
+      const msg = (e as { data?: { message?: string } }).data?.message;
+      avatarError.value = msg === "invalid_image" ? "invalid_image" : "avatar_failed";
+      return false;
+    } finally {
+      avatarBusy.value = false;
+    }
+  }
+
   async function logout() {
     await clearSession();
     await navigateTo(useNuxtApp().$localePath("/login"));
@@ -152,5 +178,9 @@ export const useAuthStore = defineStore("auth", () => {
     passwordNotice,
     clearPasswordMessages,
     changePassword,
+    avatarUrl,
+    avatarBusy,
+    avatarError,
+    uploadAvatar,
   };
 });

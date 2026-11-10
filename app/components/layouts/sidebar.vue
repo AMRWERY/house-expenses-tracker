@@ -19,6 +19,10 @@
     </nav>
 
     <nav class="nav nav-bottom">
+      <nuxt-link-locale class="nav-link nav-profile" to="/settings">
+        <user-avatar :size="32" />
+        <span class="nav-profile-name">{{ user?.name || user?.email }}</span>
+      </nuxt-link-locale>
       <nuxt-link-locale
         class="nav-link"
         exact-active-class="active"
@@ -32,4 +36,5 @@
 
 <script lang="ts" setup>
 const { t } = useI18n();
+const { user } = storeToRefs(useAuthStore());
 </script>

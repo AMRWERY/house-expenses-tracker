@@ -13,6 +13,8 @@ const name = ref('')
 const email = ref('')
 const password = ref('')
 const emailTouched = ref(false)
+// Optional profile picture chosen at sign-up (a resized data URL); without one the default picture is used.
+const avatar = ref('')
 
 const modes = computed<{ value: Mode; label: string }[]>(() => [
   { value: 'signin', label: t('signin') },
@@ -36,7 +38,7 @@ function submit() {
   if (!canSubmit.value) return
   const e = email.value.trim().toLowerCase()
   if (mode.value === 'signin') auth.signIn(e, password.value)
-  else auth.signUp(e, password.value, name.value)
+  else auth.signUp(e, password.value, name.value, avatar.value || undefined)
 }
 
 // Changing tabs clears the old message.
@@ -64,6 +66,12 @@ watch(mode, auth.clearMessages)
 
         <form class="auth-form" novalidate @submit.prevent="submit">
           <template v-if="mode === 'signup'">
+            <avatar-picker
+              :src="avatar || DEFAULT_AVATAR"
+              :label="avatar ? t('change_photo') : t('upload_photo')"
+              @pick="avatar = $event; auth.clearMessages()"
+              @error="error = $event"
+            />
             <VTextField
               id="name"
               v-model="name"

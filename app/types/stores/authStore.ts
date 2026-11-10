@@ -10,4 +10,6 @@ export type AuthMessageKey =
   | "check_email"
   | "wrong_current_password"
   | "same_password"
-  | "password_changed";
+  | "password_changed"
+  | "invalid_image"
+  | "avatar_failed";

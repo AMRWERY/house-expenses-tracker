@@ -512,6 +512,15 @@
     height: 28px;
     overflow: visible;
   }
+  .greet-avatar {
+    flex: none;
+    display: grid;
+    border-radius: 50%;
+    transition: transform 0.15s;
+  }
+  .greet-avatar:active {
+    transform: scale(0.95);
+  }
   .greet-text {
     flex: 1;
     min-width: 180px;
@@ -1590,6 +1599,13 @@
       place-items: center;
       background: var(--primary-soft);
       color: var(--primary-hover);
+    }
+
+    .nav-profile-name {
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
 
     :root[data-theme="dark"] .brand-ico {
