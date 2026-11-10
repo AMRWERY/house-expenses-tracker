@@ -34,7 +34,8 @@
         <div
           class="cat-bar"
           role="progressbar"
-          :aria-valuenow="Math.min(budgetPct, 100)"
+          :aria-label="t('budget_progress', { name: category.label })"
+          :aria-valuenow="Math.min(Math.round(budgetPct), 100)"
           aria-valuemin="0"
           aria-valuemax="100"
         >

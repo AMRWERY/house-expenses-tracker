@@ -8,7 +8,13 @@
 </template>
 
 <script lang="ts" setup>
-const { locale } = useI18n();
+const { locale, t } = useI18n();
+
+useSeoMeta({
+  description: () => t("meta_description"),
+  ogTitle: () => t("app_title"),
+  ogDescription: () => t("meta_description"),
+});
 
 useHead({
   htmlAttrs: {

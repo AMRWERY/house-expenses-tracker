@@ -76,8 +76,10 @@
         <h2>{{ t("profile_picture") }}</h2>
         <div class="setting-card">
           <avatar-picker
+            stacked
             :src="avatarUrl"
             :label="t('change_photo')"
+            :hint="t('photo_formats')"
             :busy="avatarBusy"
             @pick="changeAvatar"
             @error="avatarError = $event"

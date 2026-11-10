@@ -19,10 +19,10 @@
     </nav>
 
     <nav class="nav nav-bottom">
-      <nuxt-link-locale class="nav-link nav-profile" to="/settings">
+      <span class="nav-link nav-profile">
         <user-avatar :size="32" />
         <span class="nav-profile-name">{{ user?.name || user?.email }}</span>
-      </nuxt-link-locale>
+      </span>
       <nuxt-link-locale
         class="nav-link"
         exact-active-class="active"

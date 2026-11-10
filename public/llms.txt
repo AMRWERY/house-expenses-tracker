@@ -1,0 +1,10 @@
+# Home Expenses
+
+> A private household expense tracker. People sign in to record spending by category and month, set budgets, and compare months. Interface in Arabic and English.
+
+Everything except the sign-in page requires an account, so there is no public content or API for automated agents to use.
+
+## Pages
+
+- [Sign in or create an account (English)](/en/login): the only public page
+- [Sign in or create an account (Arabic)](/ar/login): the same page in Arabic

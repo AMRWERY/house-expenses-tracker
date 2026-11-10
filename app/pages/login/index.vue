@@ -46,7 +46,7 @@ watch(mode, auth.clearMessages)
 </script>
 
 <template>
-  <div class="auth-page">
+  <main class="auth-page">
     <nuxt-link
       class="auth-lang"
       :to="switchLocalePath(otherLocale)"
@@ -58,7 +58,6 @@ watch(mode, auth.clearMessages)
 
     <div class="lock-card">
       <div>
-        <div class="lock-ico"><app-icon name="user" /></div>
         <h1>{{ t('app_title') }}</h1>
         <p class="lock-hint">{{ mode === 'signin' ? t('signin_pw_hint') : t('signup_pw_hint') }}</p>
 
@@ -67,8 +66,11 @@ watch(mode, auth.clearMessages)
         <form class="auth-form" novalidate @submit.prevent="submit">
           <template v-if="mode === 'signup'">
             <avatar-picker
+              stacked
+              style="margin-bottom: 24px"
               :src="avatar || DEFAULT_AVATAR"
               :label="avatar ? t('change_photo') : t('upload_photo')"
+              :hint="t('photo_optional')"
               @pick="avatar = $event; auth.clearMessages()"
               @error="error = $event"
             />
@@ -118,5 +120,5 @@ watch(mode, auth.clearMessages)
       </div>
 
     </div>
-  </div>
+  </main>
 </template>

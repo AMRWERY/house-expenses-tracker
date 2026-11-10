@@ -1242,24 +1242,7 @@
     max-width: 360px;
     text-align: center;
   }
-  .lock-ico {
-    width: 96px;
-    height: 96px;
-    margin: 0 auto 24px;
-    border-radius: 50%;
-    display: grid;
-    place-items: center;
-    background: var(--primary-soft);
-    color: var(--primary-hover);
-  }
-  :root[data-theme="dark"] .lock-ico {
-    color: var(--primary);
-  }
-  .lock-ico .ico {
-    width: 48px;
-    height: 48px;
-    stroke-width: 1.5;
-  }
+  
   .lock-hint {
     margin: 8px 0 28px;
     color: var(--text-2);
@@ -2153,9 +2136,6 @@
 .lock-card {
   animation: rise 0.45s ease-out both;
 }
-.lock-ico {
-  animation: pop-in 0.5s ease-out 0.15s both;
-}
 
 /* Validation / server messages ease in instead of snapping */
 .field-error,
@@ -2201,7 +2181,6 @@
 
 @media (prefers-reduced-motion: reduce) {
   .lock-card,
-  .lock-ico,
   .field-error,
   .auth-notice,
   .sheet-error,
