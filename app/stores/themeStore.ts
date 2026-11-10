@@ -1,29 +1,26 @@
 import type { ThemeMode } from "~/types/composables";
 
 /**
- * Theme preference. Stored in localStorage; "system" follows the OS.
+ * Theme preference: light or dark. Stored in localStorage; until the person picks one (or when an old
+ * "system" value is stored) the OS setting decides the starting theme.
  * `?theme=light|dark` pins it for previews (`override`) without touching the stored value.
  */
 export const useThemeStore = defineStore("theme", () => {
-  const stored = useLocalStorage<ThemeMode>("theme", "system");
+  const stored = useLocalStorage<string>("theme", "");
   const override = ref<"light" | "dark" | null>(null);
   const systemDark = ref(false);
 
   /** What the person chose (a pinned preview wins). Setting it saves the choice and drops the pin. */
   const mode = computed<ThemeMode>({
-    get: () => override.value ?? stored.value,
+    get: () =>
+      override.value ??
+      (stored.value === "light" || stored.value === "dark" ? stored.value : systemDark.value ? "dark" : "light"),
     set: (v) => {
       override.value = null;
       stored.value = v;
     },
   });
-  const resolved = computed<"light" | "dark">(() =>
-    mode.value === "system"
-      ? systemDark.value
-        ? "dark"
-        : "light"
-      : mode.value,
-  );
+  const resolved = mode;
 
   function pin(value: unknown) {
     override.value = value === "light" || value === "dark" ? value : null;
@@ -32,8 +29,7 @@ export const useThemeStore = defineStore("theme", () => {
   /** Client only, once: follow the OS setting and write the resolved theme onto <html>. */
   function init() {
     const mq = window.matchMedia("(prefers-color-scheme: dark)");
-    systemDark.value = mq.matches;
-    mq.addEventListener("change", (e) => (systemDark.value = e.matches));
+    systemDark.value = mq.matches; // only the starting theme: there is no "follow the OS" choice any more
     trackPointer();
     // The first value is applied at once; later changes grow out of where the person clicked.
     watch(

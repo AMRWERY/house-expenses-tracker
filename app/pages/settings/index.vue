@@ -100,7 +100,6 @@ const { mode: theme } = storeToRefs(useThemeStore());
 const themeOptions = computed<{ value: ThemeMode; label: string }[]>(() => [
   { value: "light", label: t("theme_light") },
   { value: "dark", label: t("theme_dark") },
-  { value: "system", label: t("theme_system") },
 ]);
 
 // Language names are always shown in their own language.

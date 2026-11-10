@@ -36,7 +36,10 @@ export const useSheetStore = defineStore("sheet", () => {
 
   /** The server must accept a change before the sheet closes. */
   async function save(draft: ExpenseDraft) {
+    const editing = sheet.value?.mode === "edit";
     await run("save", () => expensesStore.save(draft, sheet.value?.expense?.id));
+    // run() swallows failures (the sheet stays open with an error), so only a closed sheet means it worked
+    if (!sheet.value) toastStore.show({ text: nuxtApp.$i18n.t(editing ? "expense_updated" : "expense_added") });
   }
 
   async function remove() {

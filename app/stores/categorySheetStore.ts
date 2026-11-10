@@ -3,6 +3,8 @@ import type { Category, CategoryDraft, CategoryErrorKey } from "~/types/stores/c
 /** The "Categories" bottom sheet on the home page: the list, and the add/edit/delete form inside it. */
 export const useCategorySheetStore = defineStore("categorySheet", () => {
   const categoriesStore = useCategoriesStore();
+  const toastStore = useToastStore();
+  const nuxtApp = useNuxtApp(); // captured here: composables are not available after an await
 
   const isOpen = ref(false);
   const view = ref<"list" | "form">("list");
@@ -52,6 +54,7 @@ export const useCategorySheetStore = defineStore("categorySheet", () => {
     try {
       await atLeastSkeletonTime(action());
       close(); // done: the whole dialog closes, not just the form
+      toastStore.show({ text: nuxtApp.$i18n.t(`category_${kind === "add" ? "added" : kind === "update" ? "updated" : "deleted"}`) });
     } catch (e) {
       const err = e as { data?: { message?: string } };
       error.value = err.data?.message === "category_limit" ? "category_limit" : "save_failed";

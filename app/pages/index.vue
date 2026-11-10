@@ -9,7 +9,7 @@
       </template>
       <month-switcher />
       <div class="cat-entry">
-        <VChip icon="tag" @click="categorySheet.open()">
+        <VChip icon="tag" @click="categorySheetStore.open()">
           {{ t("manage_categories") }}
         </VChip>
       </div>
@@ -78,7 +78,7 @@
     </Transition>
 
     <Transition name="sheet" appear>
-      <category-sheet v-if="categorySheet.isOpen" />
+      <category-sheet v-if="categorySheetStore.isOpen" />
     </Transition>
 
     <Transition name="sheet" appear>
@@ -106,13 +106,13 @@ onMounted(() => {
 
 // ?sheet=add|edit opens the Add/Edit sheet on load (used by the preview page).
 const route = useRoute();
-const categorySheet = useCategorySheetStore();
+const categorySheetStore = useCategorySheetStore();
 const monthAmount = useMonthAmountStore();
 sheetStore.openFromQuery(route.query);
-if (route.query.sheet === "categories") categorySheet.open();
+if (route.query.sheet === "categories") categorySheetStore.open();
 onBeforeUnmount(() => {
   sheetStore.close();
-  categorySheet.close();
+  categorySheetStore.close();
   monthAmount.closeSheet();
 });
 </script>
