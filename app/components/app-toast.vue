@@ -1,8 +1,19 @@
 <template>
   <Transition name="toast">
-    <div v-if="toast" :key="toast.id" class="toast" role="status" aria-live="polite">
+    <div
+      v-if="toast"
+      :key="toast.id"
+      class="toast"
+      role="status"
+      aria-live="polite"
+    >
       <span class="toast-text">{{ toast.text }}</span>
-      <button v-if="toast.actionLabel" type="button" class="toast-action" @click="toastStore.runAction()">
+      <button
+        v-if="toast.actionLabel"
+        type="button"
+        class="toast-action"
+        @click="toastStore.runAction()"
+      >
         {{ toast.actionLabel }}
       </button>
     </div>
@@ -11,6 +22,7 @@
 
 <script lang="ts" setup>
 const toastStore = useToastStore();
+
 const { toast } = storeToRefs(toastStore);
 </script>
 
@@ -34,6 +46,7 @@ const { toast } = storeToRefs(toastStore);
   font-size: 15px;
   box-shadow: 0 12px 32px rgba(15, 23, 42, 0.3);
 }
+
 .toast-action {
   height: 36px;
   padding-inline: 14px;
@@ -41,22 +54,28 @@ const { toast } = storeToRefs(toastStore);
   font-weight: 700;
   color: var(--primary);
   background: color-mix(in srgb, var(--bg) 12%, transparent);
-  transition: transform 0.1s, background-color 0.2s;
+  transition:
+    transform 0.1s,
+    background-color 0.2s;
 }
+
 .toast-action:active {
   transform: scale(0.97);
 }
+
 .toast-enter-active,
 .toast-leave-active {
   transition:
     opacity 0.25s ease-out,
     transform 0.25s ease-out;
 }
+
 .toast-enter-from,
 .toast-leave-to {
   opacity: 0;
   transform: translateY(12px);
 }
+
 @media (prefers-reduced-motion: reduce) {
   .toast-enter-from,
   .toast-leave-to {

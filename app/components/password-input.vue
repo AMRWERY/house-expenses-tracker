@@ -17,7 +17,7 @@
       :aria-pressed="visible"
       @click="visible = !visible"
     >
-      <AppIcon :name="visible ? 'eyeOff' : 'eye'" />
+      <app-icon :name="visible ? 'eyeOff' : 'eye'" />
     </button>
   </div>
 </template>

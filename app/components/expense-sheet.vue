@@ -13,7 +13,7 @@
           :aria-label="t('close')"
           @click="sheetStore.close()"
         >
-          <AppIcon name="x" />
+          <app-icon name="x" />
         </button>
       </div>
 
@@ -53,7 +53,7 @@
             :aria-checked="cat === c.key"
             @click="cat = c.key"
           >
-            <AppIcon :name="c.icon" />
+            <app-icon :name="c.icon" />
             {{ info(c.key).label }}
           </button>
         </div>
@@ -61,14 +61,16 @@
         <!-- No categories left (the last one was deleted): an expense needs one, so ask for it first -->
         <div v-if="!categories.all.length" class="chips-empty">
           <p class="cat-note">{{ t("no_categories_hint") }}</p>
-          <button class="btn-text" type="button" @click="addCategoryFirst">{{ t("add_category") }}</button>
+          <button class="btn-text" type="button" @click="addCategoryFirst">
+            {{ t("add_category") }}
+          </button>
         </div>
 
         <!-- Date -->
         <div class="field-block">
           <span class="field-label">{{ t("date") }}</span>
           <label class="field field-date">
-            <AppIcon name="calendar" />
+            <app-icon name="calendar" />
             <span class="field-value">{{ dateLabel }}</span>
             <input
               v-model="date"
@@ -104,7 +106,11 @@
           :aria-busy="busy === 'save'"
         >
           <!-- Adding a new expense says "Add"; editing one says "Save" -->
-          {{ busy === "save" ? t(mode === "edit" ? "saving" : "adding") : t(mode === "edit" ? "save" : "add") }}
+          {{
+            busy === "save"
+              ? t(mode === "edit" ? "saving" : "adding")
+              : t(mode === "edit" ? "save" : "add")
+          }}
         </button>
         <button
           v-if="mode === 'edit'"

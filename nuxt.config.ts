@@ -15,13 +15,21 @@ export default defineNuxtConfig({
   vite: {
     plugins: [tailwindcss()],
   },
-
+  components: [
+    {
+      path: "~/components",
+      pathPrefix: false,
+    },
+  ],
   app: {
     pageTransition: { name: "page", mode: "out-in" },
     head: {
       title: "House Expenses Tracker",
       meta: [
-        { name: "viewport", content: "width=device-width, initial-scale=1, viewport-fit=cover" },
+        {
+          name: "viewport",
+          content: "width=device-width, initial-scale=1, viewport-fit=cover",
+        },
       ],
       script: [
         {
@@ -35,7 +43,11 @@ export default defineNuxtConfig({
       ],
       link: [
         { rel: "preconnect", href: "https://fonts.googleapis.com" },
-        { rel: "preconnect", href: "https://fonts.gstatic.com", crossorigin: "" },
+        {
+          rel: "preconnect",
+          href: "https://fonts.gstatic.com",
+          crossorigin: "",
+        },
         {
           rel: "stylesheet",
           href: "https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700&display=swap",
@@ -53,7 +65,13 @@ export default defineNuxtConfig({
     strategy: "prefix",
     locales: [
       { code: "en", iso: "en-US", name: "English", file: "en.json" },
-      { code: "ar", iso: "ar-EG", name: "العربية", dir: "rtl", file: "ar.json" },
+      {
+        code: "ar",
+        iso: "ar-EG",
+        name: "العربية",
+        dir: "rtl",
+        file: "ar.json",
+      },
     ],
     detectBrowserLanguage: {
       useCookie: true,

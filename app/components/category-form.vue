@@ -2,9 +2,13 @@
   <form novalidate @submit.prevent="submit">
     <!-- Name + live preview -->
     <div class="cat-name">
-      <span class="row-icon" :style="{ '--c': color }"><AppIcon :name="icon" /></span>
+      <span class="row-icon" :style="{ '--c': color }"
+        ><app-icon :name="icon"
+      /></span>
       <div class="cat-name-field">
-        <label class="field-label" for="category-name">{{ t("category_name") }}</label>
+        <label class="field-label" for="category-name">{{
+          t("category_name")
+        }}</label>
         <input
           id="category-name"
           ref="nameEl"
@@ -19,7 +23,11 @@
         />
       </div>
     </div>
-    <p v-if="nameError" id="category-name-err" class="field-error field-error-inline">
+    <p
+      v-if="nameError"
+      id="category-name-err"
+      class="field-error field-error-inline"
+    >
       {{ t("category_name_required") }}
     </p>
 
@@ -37,13 +45,17 @@
         :aria-checked="color === c"
         @click="color = c"
       >
-        <AppIcon v-if="color === c" name="check" />
+        <app-icon v-if="color === c" name="check" />
       </button>
     </div>
 
     <!-- Icon -->
     <span class="field-label cat-label">{{ t("category_icon") }}</span>
-    <div class="icon-choices" role="radiogroup" :aria-label="t('category_icon')">
+    <div
+      class="icon-choices"
+      role="radiogroup"
+      :aria-label="t('category_icon')"
+    >
       <button
         v-for="i in CATEGORY_ICON_CHOICES"
         :key="i"
@@ -55,12 +67,14 @@
         :aria-checked="icon === i"
         @click="icon = i"
       >
-        <AppIcon :name="i" />
+        <app-icon :name="i" />
       </button>
     </div>
 
     <!-- Monthly budget (optional): every expense in this category is deducted from it -->
-    <label class="field-label cat-label" for="category-budget">{{ t("category_budget") }}</label>
+    <label class="field-label cat-label" for="category-budget">{{
+      t("category_budget")
+    }}</label>
     <div class="field budget-field">
       <input
         id="category-budget"
@@ -76,17 +90,44 @@
       />
       <span class="budget-cur">{{ t("currency") }}</span>
     </div>
-    <p id="category-budget-hint" class="cat-note">{{ t("category_budget_hint") }}</p>
+    <p id="category-budget-hint" class="cat-note">
+      {{ t("category_budget_hint") }}
+    </p>
     <!-- How much of this month's main amount no category has claimed once this budget is saved -->
-    <p v-if="freeAfter !== null" class="cat-note" :class="{ 'is-over': freeAfter < 0 }" role="status">
-      {{ t(freeAfter < 0 ? "ma_form_exceeds" : "ma_form_free", { amount: formatNumber(Math.abs(freeAfter)), month: monthLabel }) }}
+    <p
+      v-if="freeAfter !== null"
+      class="cat-note"
+      :class="{ 'is-over': freeAfter < 0 }"
+      role="status"
+    >
+      {{
+        t(freeAfter < 0 ? "ma_form_exceeds" : "ma_form_free", {
+          amount: formatNumber(Math.abs(freeAfter)),
+          month: monthLabel,
+        })
+      }}
     </p>
 
-    <p v-if="error" class="field-error sheet-error" role="alert">{{ t(error) }}</p>
+    <p v-if="error" class="field-error sheet-error" role="alert">
+      {{ t(error) }}
+    </p>
 
-    <button class="btn btn-block" type="submit" :disabled="busy" :aria-busy="busy">{{ busy ? t("saving") : t("save") }}</button>
+    <button
+      class="btn btn-block"
+      type="submit"
+      :disabled="busy"
+      :aria-busy="busy"
+    >
+      {{ busy ? t("saving") : t("save") }}
+    </button>
 
-    <button v-if="editing" class="btn-text danger" type="button" :disabled="busy" @click="confirming = true">
+    <button
+      v-if="editing"
+      class="btn-text danger"
+      type="button"
+      :disabled="busy"
+      @click="confirming = true"
+    >
       {{ t("delete_category") }}
     </button>
 
@@ -95,11 +136,33 @@
       <Transition name="modal">
         <div v-if="confirming" class="modal-root">
           <div class="backdrop" @click="confirming = false" />
-          <div class="modal" role="alertdialog" aria-modal="true" :aria-label="t('delete_category')">
+          <div
+            class="modal"
+            role="alertdialog"
+            aria-modal="true"
+            :aria-label="t('delete_category')"
+          >
             <h2>{{ t("delete_category") }}</h2>
-            <p>{{ t(isLast ? "delete_last_category_confirm" : "delete_category_confirm") }}</p>
-            <button class="btn-text danger" type="button" :disabled="busy" @click="confirmDelete">{{ t("delete") }}</button>
-            <button class="btn-text" type="button" @click="confirming = false">{{ t("cancel") }}</button>
+            <p>
+              {{
+                t(
+                  isLast
+                    ? "delete_last_category_confirm"
+                    : "delete_category_confirm",
+                )
+              }}
+            </p>
+            <button
+              class="btn-text danger"
+              type="button"
+              :disabled="busy"
+              @click="confirmDelete"
+            >
+              {{ t("delete") }}
+            </button>
+            <button class="btn-text" type="button" @click="confirming = false">
+              {{ t("cancel") }}
+            </button>
           </div>
         </div>
       </Transition>
@@ -145,7 +208,13 @@ const freeAfter = computed(() => {
   if (mainAmount.value === null) return null;
   const typed = budget.value.trim() === "" ? 0 : Number(budget.value);
   const newBudget = Number.isNaN(typed) ? 0 : typed;
-  return Math.round((mainAmount.value - (setAside.value - (initial?.budget ?? 0) + newBudget)) * 100) / 100;
+  return (
+    Math.round(
+      (mainAmount.value -
+        (setAside.value - (initial?.budget ?? 0) + newBudget)) *
+        100,
+    ) / 100
+  );
 });
 
 function submit() {
@@ -156,9 +225,13 @@ function submit() {
   }
   // An untouched default keeps following the language instead of freezing its current translation.
   const trimmed = name.value.trim();
-  const keepDefaultName = initial?.defaultKey && !initial.name && trimmed === initialLabel;
+  const keepDefaultName =
+    initial?.defaultKey && !initial.name && trimmed === initialLabel;
   // Empty budget = none; "0" is a real (spent-out) budget.
-  const budgetValue = budget.value.trim() === "" || Number.isNaN(Number(budget.value)) ? null : Number(budget.value);
+  const budgetValue =
+    budget.value.trim() === "" || Number.isNaN(Number(budget.value))
+      ? null
+      : Number(budget.value);
   sheet.save({
     name: keepDefaultName ? null : trimmed,
     color: color.value,
@@ -185,5 +258,6 @@ onMounted(() => {
   window.addEventListener("keydown", onDialogKey, true);
   if (!initial) nameEl.value?.focus({ preventScroll: true });
 });
+
 onBeforeUnmount(() => window.removeEventListener("keydown", onDialogKey, true));
 </script>

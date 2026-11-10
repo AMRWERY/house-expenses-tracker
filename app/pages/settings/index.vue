@@ -2,7 +2,7 @@
   <div class="app narrow">
     <header class="page-head">
       <nuxt-link-locale class="icon-btn" to="/" :aria-label="t('back')">
-        <AppIcon :name="backIcon" />
+        <app-icon :name="backIcon" />
       </nuxt-link-locale>
       <h1>{{ t("settings") }}</h1>
     </header>
@@ -11,7 +11,7 @@
       <section class="setting rise" style="--i: 0">
         <h2>{{ t("appearance") }}</h2>
         <div class="setting-card">
-          <SegmentedControl
+          <segmented-control
             v-model="theme"
             :options="themeOptions"
             :label="t('appearance')"
@@ -22,7 +22,7 @@
       <section class="setting rise" style="--i: 1">
         <h2>{{ t("language") }}</h2>
         <div class="setting-card">
-          <SegmentedControl
+          <segmented-control
             :model-value="locale"
             :options="[...langOptions]"
             :label="t('language')"
@@ -37,7 +37,7 @@
           <label class="field-label" for="current-password">{{
             t("current_password")
           }}</label>
-          <PasswordInput
+          <password-input
             id="current-password"
             v-model="currentPassword"
             autocomplete="current-password"
@@ -46,7 +46,7 @@
           <label class="field-label field-label-gap" for="new-password">{{
             t("new_password")
           }}</label>
-          <PasswordInput
+          <password-input
             id="new-password"
             v-model="newPassword"
             autocomplete="new-password"
@@ -56,7 +56,7 @@
           <label class="field-label field-label-gap" for="confirm-password">{{
             t("confirm_password")
           }}</label>
-          <PasswordInput
+          <password-input
             id="confirm-password"
             v-model="confirmPassword"
             autocomplete="new-password"
@@ -88,7 +88,7 @@
         <div class="setting-card">
           <div class="setting-row account-row">
             <span class="row-icon" style="--c: #10b981"
-              ><AppIcon name="user"
+              ><app-icon name="user"
             /></span>
             <div class="row-text">
               <div class="row-title row-email" dir="ltr">{{ user.email }}</div>

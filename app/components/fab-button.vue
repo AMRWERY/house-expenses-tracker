@@ -4,7 +4,7 @@
     :aria-label="t('add_expense')"
     @click="sheetStore.openAdd()"
   >
-    <AppIcon name="plus" />
+    <app-icon name="plus" />
   </button>
 </template>
 

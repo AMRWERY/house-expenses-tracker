@@ -1,5 +1,10 @@
 <template>
-  <svg class="ico gi" :class="`gi-${period}`" viewBox="0 0 24 24" aria-hidden="true">
+  <svg
+    class="ico gi"
+    :class="`gi-${period}`"
+    viewBox="0 0 24 24"
+    aria-hidden="true"
+  >
     <!-- morning: the sun rises over the horizon -->
     <template v-if="period === 'morning'">
       <path d="M22 22H2" />
@@ -60,5 +65,6 @@
 
 <script lang="ts" setup>
 export type DayPeriod = "morning" | "afternoon" | "evening" | "night";
+
 defineProps<{ period: DayPeriod }>();
 </script>

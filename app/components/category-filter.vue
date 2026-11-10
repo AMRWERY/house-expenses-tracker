@@ -1,6 +1,16 @@
 <template>
-  <div class="filter-row" role="radiogroup" :aria-label="t('filter_by_category')">
-    <button type="button" role="radio" class="chip" :aria-checked="filterCat === null" @click="expensesStore.setFilter(null)">
+  <div
+    class="filter-row"
+    role="radiogroup"
+    :aria-label="t('filter_by_category')"
+  >
+    <button
+      type="button"
+      role="radio"
+      class="chip"
+      :aria-checked="filterCat === null"
+      @click="expensesStore.setFilter(null)"
+    >
       {{ t("all_categories") }}
     </button>
     <button
@@ -12,7 +22,7 @@
       :aria-checked="filterCat === c.key"
       @click="expensesStore.setFilter(c.key)"
     >
-      <AppIcon :name="c.icon" />
+      <app-icon :name="c.icon" />
       {{ info(c.key).label }}
     </button>
   </div>

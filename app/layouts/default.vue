@@ -1,12 +1,12 @@
 <template>
   <div class="shell">
-    <AppSidebar />
+    <sidebar />
     <div class="shell-main">
       <!-- Every page that needs a signed-in user shows the greeting on top -->
-      <GreetingBanner />
+      <greeting-banner />
       <slot />
     </div>
-    <AppToast />
+    <app-toast />
   </div>
 </template>
 

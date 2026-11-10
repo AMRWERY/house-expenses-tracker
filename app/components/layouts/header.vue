@@ -9,14 +9,14 @@
           to="/compare"
           :aria-label="t('compare')"
         >
-          <AppIcon name="compare" />
+          <app-icon name="compare" />
         </nuxt-link-locale>
         <nuxt-link-locale
           class="icon-btn"
           to="/settings"
           :aria-label="t('settings')"
         >
-          <AppIcon name="settings" />
+          <app-icon name="settings" />
         </nuxt-link-locale>
       </div>
       <slot name="actions" />

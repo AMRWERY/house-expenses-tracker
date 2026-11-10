@@ -1,6 +1,6 @@
 <template>
   <div class="empty rise">
-    <div class="empty-ico"><AppIcon name="wallet" /></div>
+    <div class="empty-ico"><app-icon name="wallet" /></div>
     <p>{{ t("no_expenses") }}</p>
     <button class="btn" @click="sheetStore.openAdd()">
       {{ t("add_expense") }}

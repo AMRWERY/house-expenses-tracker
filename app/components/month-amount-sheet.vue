@@ -7,8 +7,13 @@
 
       <div class="sheet-head">
         <h2>{{ title }}</h2>
-        <button class="icon-btn" type="button" :aria-label="t('close')" @click="store.closeSheet()">
-          <AppIcon name="x" />
+        <button
+          class="icon-btn"
+          type="button"
+          :aria-label="t('close')"
+          @click="store.closeSheet()"
+        >
+          <app-icon name="x" />
         </button>
       </div>
 
@@ -31,12 +36,21 @@
             />
             <span class="amount-cur">{{ t("currency") }}</span>
           </div>
-          <p v-if="amountError" id="month-amount-err" class="field-error">{{ t("amount_required") }}</p>
+          <p v-if="amountError" id="month-amount-err" class="field-error">
+            {{ t("amount_required") }}
+          </p>
         </div>
         <p class="cat-note">{{ t("ma_sheet_hint", { month: monthLabel }) }}</p>
 
-        <p v-if="saveError" class="field-error sheet-error" role="alert">{{ t(saveError) }}</p>
-        <button class="btn btn-block" type="submit" :disabled="saving" :aria-busy="saving">
+        <p v-if="saveError" class="field-error sheet-error" role="alert">
+          {{ t(saveError) }}
+        </p>
+        <button
+          class="btn btn-block"
+          type="submit"
+          :disabled="saving"
+          :aria-busy="saving"
+        >
           {{ saving ? t("saving") : t("save") }}
         </button>
       </form>

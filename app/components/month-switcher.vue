@@ -9,7 +9,7 @@
       :tabindex="canGoPrev ? 0 : -1"
       @click="expensesStore.prevMonth()"
     >
-      <AppIcon :name="prevIcon" />
+      <app-icon :name="prevIcon" />
     </button>
     <span class="month-label" aria-live="polite">{{ monthLabel }}</span>
     <button
@@ -17,7 +17,7 @@
       :aria-label="t('next_month')"
       @click="expensesStore.nextMonth()"
     >
-      <AppIcon :name="nextIcon" />
+      <app-icon :name="nextIcon" />
     </button>
   </div>
 </template>

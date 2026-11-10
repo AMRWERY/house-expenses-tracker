@@ -56,11 +56,11 @@ watch(mode, auth.clearMessages)
 
     <div class="lock-card">
       <div>
-        <div class="lock-ico"><AppIcon name="user" /></div>
+        <div class="lock-ico"><app-icon name="user" /></div>
         <h1>{{ t('app_title') }}</h1>
         <p class="lock-hint">{{ mode === 'signin' ? t('signin_pw_hint') : t('signup_pw_hint') }}</p>
 
-        <SegmentedControl v-model="mode" :options="modes" :label="t('app_title')" />
+        <segmented-control v-model="mode" :options="modes" :label="t('app_title')" />
 
         <form class="auth-form" novalidate @submit.prevent="submit">
           <template v-if="mode === 'signup'">
@@ -93,7 +93,7 @@ watch(mode, auth.clearMessages)
           <p v-if="showEmailError" class="field-error field-error-inline">{{ t('invalid_email') }}</p>
 
           <label class="field-label field-label-gap" for="password">{{ t('password_label') }}</label>
-          <PasswordInput
+          <password-input
             id="password"
             v-model="password"
             :autocomplete="mode === 'signin' ? 'current-password' : 'new-password'"

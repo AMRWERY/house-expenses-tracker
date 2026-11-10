@@ -1,18 +1,28 @@
 <template>
-  <section class="day cat-group rise" :class="{ 'is-collapsed': collapsed }" :style="{ '--i': index, '--c': category.color }">
+  <section
+    class="day cat-group rise"
+    :class="{ 'is-collapsed': collapsed }"
+    :style="{ '--i': index, '--c': category.color }"
+  >
     <!-- Sticky header: tap to collapse the category down to its total -->
     <h2 class="day-title cat-title">
       <button
         type="button"
         class="cat-toggle"
         :aria-expanded="!collapsed"
-        :aria-label="t(collapsed ? 'expand_category' : 'collapse_category', { name: category.label })"
+        :aria-label="
+          t(collapsed ? 'expand_category' : 'collapse_category', {
+            name: category.label,
+          })
+        "
         @click="collapsed = !collapsed"
       >
-        <AppIcon :name="category.icon" />
+        <app-icon :name="category.icon" />
         <span class="cat-name">{{ category.label }}</span>
-        <span v-if="share !== null" class="cat-share">{{ t("share_of_total", { p: share }) }}</span>
-        <AppIcon name="chevronDown" class="cat-chevron" />
+        <span v-if="share !== null" class="cat-share">{{
+          t("share_of_total", { p: share })
+        }}</span>
+        <app-icon name="chevronDown" class="cat-chevron" />
       </button>
     </h2>
 
@@ -20,7 +30,9 @@
     <div class="total cat-total" :aria-label="t('total_expenses')">
       <div class="total-label">{{ t("total_expenses") }}</div>
       <div class="total-amount">
-        <AnimatedNumber :value="total" :duration="800" /><small>{{ t("currency") }}</small>
+        <animated-number :value="total" :duration="800" /><small>{{
+          t("currency")
+        }}</small>
       </div>
 
       <!-- Budget progress: fills from the start, turns amber near the limit and red when over -->
@@ -32,12 +44,22 @@
           aria-valuemin="0"
           aria-valuemax="100"
         >
-          <div class="cat-fill" :style="{ width: Math.min(budgetPct, 100) + '%' }" />
+          <div
+            class="cat-fill"
+            :style="{ width: Math.min(budgetPct, 100) + '%' }"
+          />
         </div>
         <div class="cat-budget-text">
-          <span>{{ budget.left < 0 ? t("budget_over_label") : t("budget_left_label") }}</span>
-          <b><AnimatedNumber :value="Math.abs(budget.left)" /> {{ t("currency") }}</b>
-          <small>{{ t("budget_of", { total: formatNumber(budget.budget) }) }}</small>
+          <span>{{
+            budget.left < 0 ? t("budget_over_label") : t("budget_left_label")
+          }}</span>
+          <b
+            ><animated-number :value="Math.abs(budget.left)" />
+            {{ t("currency") }}</b
+          >
+          <small>{{
+            t("budget_of", { total: formatNumber(budget.budget) })
+          }}</small>
         </div>
       </div>
     </div>
@@ -45,24 +67,49 @@
     <!-- grid-rows 0fr -> 1fr lets the height animate without measuring -->
     <div class="cat-body" :class="{ 'is-open': !collapsed }" :inert="collapsed">
       <div class="cat-body-inner">
+        <!-- No comments inside the group: they become nodes that break hydration.
+             The row being updated/deleted, and the one being added, show as skeletons. -->
         <TransitionGroup name="xrow" tag="div" class="rows">
           <template v-for="(e, i) in pageItems">
-            <!-- the expense being updated or deleted: only this one is a skeleton -->
-            <ExpenseRowSkeleton v-if="e.id === busyId" :key="e.id" />
-            <ExpenseRow v-else :key="e.id" :expense="e" :subtitle="dayLabel(e.day)" :number="(current - 1) * PAGE_SIZE + i + 1" />
+            <expense-row-skeleton v-if="e.id === busyId" :key="e.id" />
+
+            <expense-row
+              v-else
+              :key="e.id"
+              :expense="e"
+              :subtitle="dayLabel(e.day)"
+              :number="(current - 1) * PAGE_SIZE + i + 1"
+            />
           </template>
-          <!-- the expense being added: only this one is a skeleton -->
-          <ExpenseRowSkeleton v-if="pending" key="pending" />
+          <expense-row-skeleton v-if="pending" key="pending" />
         </TransitionGroup>
 
         <!-- Only when the category has more than one page of expenses -->
-        <nav v-if="pageCount > 1" class="pager" :aria-label="t('page_of', { page: current, pages: pageCount })">
-          <button type="button" class="pager-btn" :disabled="current === 1" :aria-label="t('prev_page')" @click="page = current - 1">
-            <AppIcon :name="prevIcon" />
+        <nav
+          v-if="pageCount > 1"
+          class="pager"
+          :aria-label="t('page_of', { page: current, pages: pageCount })"
+        >
+          <button
+            type="button"
+            class="pager-btn"
+            :disabled="current === 1"
+            :aria-label="t('prev_page')"
+            @click="page = current - 1"
+          >
+            <app-icon :name="prevIcon" />
           </button>
-          <span class="pager-info" aria-live="polite">{{ t("page_of", { page: current, pages: pageCount }) }}</span>
-          <button type="button" class="pager-btn" :disabled="current === pageCount" :aria-label="t('next_page')" @click="page = current + 1">
-            <AppIcon :name="nextIcon" />
+          <span class="pager-info" aria-live="polite">{{
+            t("page_of", { page: current, pages: pageCount })
+          }}</span>
+          <button
+            type="button"
+            class="pager-btn"
+            :disabled="current === pageCount"
+            :aria-label="t('next_page')"
+            @click="page = current + 1"
+          >
+            <app-icon :name="nextIcon" />
           </button>
         </nav>
       </div>
@@ -99,18 +146,36 @@ const collapsed = ref(false);
 
 // The category's monthly budget status (absent when it has no budget).
 const budget = computed(() => budgets.value.get(props.cat));
-const budgetPct = computed(() => (budget.value && budget.value.budget > 0 ? (budget.value.spent / budget.value.budget) * 100 : 0));
-const budgetState = computed(() => (budgetPct.value > 100 ? "is-over" : budgetPct.value >= WARN_AT ? "is-warn" : ""));
+const budgetPct = computed(() =>
+  budget.value && budget.value.budget > 0
+    ? (budget.value.spent / budget.value.budget) * 100
+    : 0,
+);
+const budgetState = computed(() =>
+  budgetPct.value > 100
+    ? "is-over"
+    : budgetPct.value >= WARN_AT
+      ? "is-warn"
+      : "",
+);
 
 // Each category pages on its own; deleting rows can leave the page past the end, so it is clamped.
 const page = ref(1);
-const pageCount = computed(() => Math.max(1, Math.ceil(props.items.length / PAGE_SIZE)));
+const pageCount = computed(() =>
+  Math.max(1, Math.ceil(props.items.length / PAGE_SIZE)),
+);
 const current = computed(() => Math.min(page.value, pageCount.value));
-const pageItems = computed(() => props.items.slice((current.value - 1) * PAGE_SIZE, current.value * PAGE_SIZE));
+const pageItems = computed(() =>
+  props.items.slice((current.value - 1) * PAGE_SIZE, current.value * PAGE_SIZE),
+);
 
 // "Previous" sits at the inline-start edge, so the chevron direction flips with the locale.
-const prevIcon = computed(() => (locale.value === "ar" ? "chevronRight" : "chevronLeft"));
-const nextIcon = computed(() => (locale.value === "ar" ? "chevronLeft" : "chevronRight"));
+const prevIcon = computed(() =>
+  locale.value === "ar" ? "chevronRight" : "chevronLeft",
+);
+const nextIcon = computed(() =>
+  locale.value === "ar" ? "chevronLeft" : "chevronRight",
+);
 </script>
 
 <style scoped>
@@ -124,6 +189,7 @@ const nextIcon = computed(() => (locale.value === "ar" ? "chevronLeft" : "chevro
   background: var(--bg);
   transition: background-color 0.3s;
 }
+
 .cat-toggle {
   display: flex;
   align-items: center;
@@ -136,17 +202,21 @@ const nextIcon = computed(() => (locale.value === "ar" ? "chevronLeft" : "chevro
   border-radius: 12px;
   transition: transform 0.1s;
 }
+
 .cat-toggle:active {
   transform: scale(0.99);
 }
+
 .cat-toggle:focus-visible {
   outline: 2px solid var(--primary);
   outline-offset: 2px;
 }
+
 .cat-toggle :deep(.ico) {
   flex: none;
   color: var(--c);
 }
+
 .cat-name {
   flex: 1;
   min-width: 0;
@@ -154,6 +224,7 @@ const nextIcon = computed(() => (locale.value === "ar" ? "chevronLeft" : "chevro
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
 .cat-share {
   flex: none;
   padding: 2px 10px;
@@ -163,13 +234,16 @@ const nextIcon = computed(() => (locale.value === "ar" ? "chevronLeft" : "chevro
   font-size: 12px;
   font-variant-numeric: tabular-nums;
 }
+
 .cat-toggle .cat-chevron {
   color: var(--text-2);
   transition: transform 0.25s ease-out;
 }
+
 .is-collapsed .cat-chevron {
   transform: rotate(-90deg);
 }
+
 :root[dir="rtl"] .is-collapsed .cat-chevron {
   transform: rotate(90deg);
 }
@@ -179,10 +253,12 @@ const nextIcon = computed(() => (locale.value === "ar" ? "chevronLeft" : "chevro
   margin-bottom: 10px;
   padding: 16px 20px;
 }
+
 .cat-total .total-amount {
   font-size: 28px;
   line-height: 38px;
 }
+
 .cat-total .total-amount small {
   font-size: 16px;
 }
@@ -192,18 +268,22 @@ const nextIcon = computed(() => (locale.value === "ar" ? "chevronLeft" : "chevro
   margin-top: 12px;
   --state: var(--primary);
 }
+
 .cat-budget.is-warn {
   --state: #f59e0b;
 }
+
 .cat-budget.is-over {
   --state: var(--expense);
 }
+
 .cat-bar {
   height: 8px;
   border-radius: 999px;
   background: var(--surface-alt);
   overflow: hidden;
 }
+
 .cat-fill {
   height: 100%;
   border-radius: inherit;
@@ -213,11 +293,13 @@ const nextIcon = computed(() => (locale.value === "ar" ? "chevronLeft" : "chevro
     background-color 0.3s;
   animation: cat-grow 0.7s ease-out both;
 }
+
 @keyframes cat-grow {
   from {
     width: 0;
   }
 }
+
 .cat-budget-text {
   display: flex;
   flex-wrap: wrap;
@@ -228,6 +310,7 @@ const nextIcon = computed(() => (locale.value === "ar" ? "chevronLeft" : "chevro
   font-size: 13px;
   color: var(--text-2);
 }
+
 .cat-budget-text b {
   color: var(--state);
   font-variant-numeric: tabular-nums;
@@ -242,10 +325,12 @@ const nextIcon = computed(() => (locale.value === "ar" ? "chevronLeft" : "chevro
     grid-template-rows 0.3s ease-out,
     opacity 0.25s ease-out;
 }
+
 .cat-body.is-open {
   grid-template-rows: 1fr;
   opacity: 1;
 }
+
 .cat-body-inner {
   min-height: 0;
   overflow: hidden;
@@ -261,11 +346,13 @@ const nextIcon = computed(() => (locale.value === "ar" ? "chevronLeft" : "chevro
   gap: 16px;
   margin-top: 12px;
 }
+
 .pager-info {
   font-size: 13px;
   color: var(--text-2);
   font-variant-numeric: tabular-nums;
 }
+
 .pager-btn {
   display: grid;
   place-items: center;
@@ -274,16 +361,21 @@ const nextIcon = computed(() => (locale.value === "ar" ? "chevronLeft" : "chevro
   border-radius: 12px;
   background: var(--surface-alt);
   color: var(--text);
-  transition: background-color 200ms, transform 100ms;
+  transition:
+    background-color 200ms,
+    transform 100ms;
 }
+
 @media (hover: hover) {
   .pager-btn:hover:not(:disabled) {
     background: var(--border);
   }
 }
+
 .pager-btn:active:not(:disabled) {
   transform: scale(0.97);
 }
+
 .pager-btn:disabled {
   opacity: 0.4;
   cursor: not-allowed;
