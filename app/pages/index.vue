@@ -108,8 +108,11 @@ onMounted(() => {
 const route = useRoute();
 const categorySheetStore = useCategorySheetStore();
 const monthAmount = useMonthAmountStore();
+
 sheetStore.openFromQuery(route.query);
+
 if (route.query.sheet === "categories") categorySheetStore.open();
+
 onBeforeUnmount(() => {
   sheetStore.close();
   categorySheetStore.close();

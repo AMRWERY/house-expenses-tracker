@@ -52,6 +52,8 @@
   "language": "Language",
   "signin": "Sign in",
   "signup": "New account",
+  "no_account": "Don't have an account?",
+  "have_account": "Already have an account?",
   "signin_pw_hint": "Sign in with your email and password",
   "signup_pw_hint": "Create an account with your email",
   "ma_title": "{month} main amount",

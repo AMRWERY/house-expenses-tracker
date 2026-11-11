@@ -6,5 +6,5 @@ Everything except the sign-in page requires an account, so there is no public co
 
 ## Pages
 
-- [Sign in or create an account (English)](/en/login): the only public page
-- [Sign in or create an account (Arabic)](/ar/login): the same page in Arabic
+- [Sign in (English)](/en/auth) and [create an account](/en/auth/sign-up): the only public pages
+- [Sign in (Arabic)](/ar/auth) and [create an account](/ar/auth/sign-up): the same pages in Arabic

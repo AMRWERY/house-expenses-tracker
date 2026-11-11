@@ -192,7 +192,7 @@ export const useAuthStore = defineStore("auth", () => {
 
   async function logout() {
     await clearSession();
-    await navigateTo(useNuxtApp().$localePath("/login"));
+    await navigateTo(useNuxtApp().$localePath("/auth"));
   }
 
   return {

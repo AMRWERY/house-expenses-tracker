@@ -24,7 +24,12 @@
             :model-value="locale"
             :options="[...langOptions]"
             :label="t('language')"
-            @update:model-value="withViewTransition(() => setLocale($event as 'ar' | 'en'), 'locale')"
+            @update:model-value="
+              withViewTransition(
+                () => setLocale($event as 'ar' | 'en'),
+                'locale',
+              )
+            "
           />
         </div>
       </section>
@@ -60,7 +65,12 @@
             {{ t("passwords_mismatch") }}
           </VError>
 
-          <VButton block type="submit" :disabled="!canChangePassword" :busy="passwordBusy">
+          <VButton
+            block
+            type="submit"
+            :disabled="!canChangePassword"
+            :busy="passwordBusy"
+          >
             {{ passwordBusy ? t("updating_password") : t("update_password") }}
           </VButton>
 
@@ -85,7 +95,9 @@
             @pick="changeAvatar"
             @error="avatarError = $event"
           />
-          <VError v-if="avatarError" inline role="alert">{{ t(avatarError) }}</VError>
+          <VError v-if="avatarError" inline role="alert">{{
+            t(avatarError)
+          }}</VError>
         </div>
       </section>
 
@@ -101,7 +113,13 @@
               <div class="row-cat">{{ t("signed_in") }}</div>
             </div>
           </div>
-          <VButton variant="text" danger :disabled="signingOut" :busy="signingOut" @click="signOut">
+          <VButton
+            variant="text"
+            danger
+            :disabled="signingOut"
+            :busy="signingOut"
+            @click="signOut"
+          >
             {{ signingOut ? t("signing_out") : t("logout") }}
           </VButton>
         </div>
@@ -133,7 +151,8 @@ const { avatarUrl, avatarBusy, avatarError } = storeToRefs(auth);
 
 // Profile picture
 async function changeAvatar(image: string) {
-  if (await auth.uploadAvatar(image)) useToastStore().show({ text: t("avatar_updated") });
+  if (await auth.uploadAvatar(image))
+    useToastStore().show({ text: t("avatar_updated") });
 }
 
 // Change password
@@ -160,6 +179,7 @@ async function changePassword() {
     currentPassword.value = newPassword.value = confirmPassword.value = "";
   }
 }
+
 onBeforeUnmount(auth.clearPasswordMessages);
 
 // Sign out

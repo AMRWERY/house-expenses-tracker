@@ -1,4 +1,4 @@
-// Everything except /login requires a signed-in session. The session cookie is verified on the server;
+// Everything except the /auth pages (sign in, /auth/sign-up) requires a signed-in session. The session cookie is verified on the server;
 // this only decides where to send the person. The /api/expenses routes enforce it again.
 const statusOf = (e: unknown) => {
   const err = e as { statusCode?: number; status?: number; response?: { status?: number } }
@@ -17,8 +17,9 @@ export default defineNuxtRouteMiddleware(async (to) => {
   const monthAmounts = useMonthAmountStore()
   const localePath = useLocalePath()
 
-  if (!auth.loggedIn) return path === '/login' ? undefined : navigateTo(localePath('/login'))
-  if (path === '/login') return navigateTo(localePath('/'))
+  const isAuthPage = path === '/auth' || path === '/auth/sign-up'
+  if (!auth.loggedIn) return isAuthPage ? undefined : navigateTo(localePath('/auth'))
+  if (isAuthPage) return navigateTo(localePath('/'))
 
   // Only a 401 means the session is really gone. Anything else (a cold serverless function, a slow
   // database call) is temporary: retry once, and if it still fails let the page open, since the
@@ -26,7 +27,7 @@ export default defineNuxtRouteMiddleware(async (to) => {
   // first sign-in look like it failed.
   const signOut = async () => {
     await auth.clearSession()
-    return navigateTo(localePath('/login'))
+    return navigateTo(localePath('/auth'))
   }
 
   try {

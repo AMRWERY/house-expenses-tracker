@@ -1233,7 +1233,7 @@
     background: var(--surface-alt);
   }
   .auth-form {
-    margin-top: 20px;
+    margin-top: 0;
     text-align: start;
   }
   .auth-form .btn {
@@ -1252,6 +1252,16 @@
   .lock-hint {
     margin: 8px 0 28px;
     color: var(--text-2);
+  }
+  .auth-switch {
+    margin-top: 20px;
+    text-align: center;
+    color: var(--text-2);
+  }
+  .auth-switch a {
+    color: var(--primary);
+    font-weight: 600;
+    margin-inline-start: 4px;
   }
   .lock-btn {
     display: inline-flex;
