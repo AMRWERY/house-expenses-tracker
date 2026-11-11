@@ -4,7 +4,7 @@
       v-if="toast"
       :key="toast.id"
       class="toast"
-      :class="{ 'toast-error': toast.kind === 'error' }"
+      :class="{ 'toast-error': toast.kind === 'error', 'toast-center': toast.position === 'center' }"
       :role="toast.kind === 'error' ? 'alert' : 'status'"
       :aria-live="toast.kind === 'error' ? 'assertive' : 'polite'"
     >
@@ -46,6 +46,12 @@ const { toast } = storeToRefs(toastStore);
   color: var(--bg);
   font-size: 15px;
   box-shadow: 0 12px 32px rgba(15, 23, 42, 0.3);
+}
+
+.toast-center {
+  inset-block-end: auto;
+  inset-block-start: 50%;
+  translate: 0 -50%;
 }
 
 .toast-error {

@@ -48,7 +48,7 @@ export const useAuthStore = defineStore("auth", () => {
 
   // Sign-up results are shown as a toast (the message key is translated here, like the other stores do).
   function showToast(key: AuthMessageKey, kind: "success" | "error") {
-    useToastStore().show({ text: useNuxtApp().$i18n.t(key), kind });
+    useToastStore().show({ text: useNuxtApp().$i18n.t(key), kind, position: "center" });
   }
 
   function clearMessages() {
@@ -84,8 +84,28 @@ export const useAuthStore = defineStore("auth", () => {
       return "done";
     });
 
-  const signUp = (email: string, password: string, name: string, avatar?: string) =>
+  // After a sign-up attempt the button stays disabled for a few seconds, so it can't be spammed
+  // (each success sends a confirmation email, and email sending is what Supabase limits hardest).
+  const SIGNUP_COOLDOWN_S = 30;
+  const signUpCooldown = ref(0);
+  let cooldownTimer: ReturnType<typeof setInterval> | undefined;
+
+  function startSignUpCooldown() {
+    clearInterval(cooldownTimer);
+    signUpCooldown.value = SIGNUP_COOLDOWN_S;
+    cooldownTimer = setInterval(() => {
+      if (--signUpCooldown.value <= 0) clearInterval(cooldownTimer);
+    }, 1000);
+  }
+
+  const signUp = async (email: string, password: string, name: string, avatar?: string) => {
+    if (signUpCooldown.value > 0) return;
+    await signUpRequest(email, password, name, avatar);
+  };
+
+  const signUpRequest = (email: string, password: string, name: string, avatar?: string) =>
     run(async () => {
+      startSignUpCooldown();
       const res = await $fetch<{ needsConfirmation: boolean }>(
         "/api/auth/register",
         {
@@ -178,6 +198,7 @@ export const useAuthStore = defineStore("auth", () => {
     clearMessages,
     signIn,
     signUp,
+    signUpCooldown,
     clearSession,
     logout,
     passwordBusy,

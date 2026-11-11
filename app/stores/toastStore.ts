@@ -3,6 +3,8 @@ interface Toast {
   text: string;
   /** 'error' gets a red accent and is announced assertively; default is a plain confirmation */
   kind?: "success" | "error";
+  /** 'center' puts it in the middle of the screen (sign-up); default is the bottom */
+  position?: "bottom" | "center";
   /** optional button on the toast (e.g. "Undo") and what it does */
   actionLabel?: string;
   onAction?: () => void | Promise<void>;

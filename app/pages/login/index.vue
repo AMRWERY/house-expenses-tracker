@@ -5,7 +5,7 @@ const { t, locale } = useI18n()
 const switchLocalePath = useSwitchLocalePath()
 
 const auth = useAuthStore()
-const { busy, error, notice } = storeToRefs(auth)
+const { busy, error, notice, signUpCooldown } = storeToRefs(auth)
 
 type Mode = 'signin' | 'signup'
 const mode = ref<Mode>(useRoute().query.mode === 'signup' ? 'signup' : 'signin')
@@ -28,7 +28,11 @@ const passwordValid = computed(() =>
 // Sign-up also asks for a name (1-40 characters): it is what the greeting calls you.
 const nameValid = computed(() => name.value.trim().length >= 1 && name.value.trim().length <= 40)
 const canSubmit = computed(
-  () => emailValid.value && passwordValid.value && (mode.value === 'signin' || nameValid.value) && !busy.value,
+  () =>
+    emailValid.value &&
+    passwordValid.value &&
+    (mode.value === 'signin' || (nameValid.value && signUpCooldown.value === 0)) &&
+    !busy.value,
 )
 const showEmailError = computed(() => emailTouched.value && email.value.trim() !== '' && !emailValid.value)
 
@@ -112,7 +116,7 @@ watch(mode, auth.clearMessages)
           />
 
           <VButton class="lock-btn" type="submit" :disabled="!canSubmit" :busy="busy">
-            {{ mode === 'signin' ? (busy ? t('signing_in') : t('signin_pw_btn')) : (busy ? t('creating_account') : t('signup_pw_btn')) }}
+            {{ mode === 'signin' ? (busy ? t('signing_in') : t('signin_pw_btn')) : (busy ? t('creating_account') : signUpCooldown > 0 ? `${t('signup_pw_btn')} (${signUpCooldown})` : t('signup_pw_btn')) }}
           </VButton>
 
           <p v-if="notice" class="auth-notice" role="status">{{ t(notice) }}</p>

@@ -23,6 +23,8 @@ export default defineEventHandler(async (event) => {
 
   if (error) {
     if (error.status === 429 || error.code === 'over_request_rate_limit' || error.code === 'over_email_send_rate_limit') {
+      // Supabase's own limit (the built-in email sender allows only a few emails per hour).
+      console.error('[auth] signUp rate limited by Supabase', error.code, error.message)
       throw createError({ statusCode: 429, message: 'rate_limited' })
     }
     if (error.code === 'user_already_exists') throw createError({ statusCode: 409, message: 'email_exists' })
