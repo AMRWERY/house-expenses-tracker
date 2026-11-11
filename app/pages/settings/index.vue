@@ -77,6 +77,21 @@
           <p v-if="passwordNotice" class="auth-notice" role="status">
             {{ t(passwordNotice) }}
           </p>
+          <div
+            v-if="logoutIn > 0"
+            class="logout-timer"
+            role="status"
+            :style="{ '--dur': LOGOUT_DELAY + 's' }"
+          >
+            <span class="logout-ring" aria-hidden="true">
+              <svg viewBox="0 0 40 40">
+                <circle class="logout-ring-track" cx="20" cy="20" r="17" />
+                <circle class="logout-ring-bar" cx="20" cy="20" r="17" />
+              </svg>
+              <span :key="logoutIn" class="logout-num">{{ logoutIn }}</span>
+            </span>
+            <span>{{ t("password_logout_in", { s: logoutIn }) }}</span>
+          </div>
           <VError v-if="passwordError" sheet role="alert">
             {{ t(passwordError, { time: auth.waitText }) }}
           </VError>
@@ -171,16 +186,35 @@ const canChangePassword = computed(
     currentPassword.value !== "" &&
     newPasswordValid.value &&
     confirmPassword.value === newPassword.value &&
-    !passwordBusy.value,
+    !passwordBusy.value &&
+    logoutIn.value === 0,
 );
+
+// After a password change the person is signed out automatically, with a short visible countdown.
+const LOGOUT_DELAY = 3;
+const logoutIn = ref(0);
+let logoutTimer: ReturnType<typeof setInterval> | undefined;
+function startLogoutCountdown() {
+  clearInterval(logoutTimer);
+  logoutIn.value = LOGOUT_DELAY;
+  logoutTimer = setInterval(() => {
+    if (--logoutIn.value > 0) return;
+    clearInterval(logoutTimer);
+    signOut();
+  }, 1000);
+}
 async function changePassword() {
   if (!canChangePassword.value) return;
   if (await auth.changePassword(currentPassword.value, newPassword.value)) {
     currentPassword.value = newPassword.value = confirmPassword.value = "";
+    startLogoutCountdown();
   }
 }
 
-onBeforeUnmount(auth.clearPasswordMessages);
+onBeforeUnmount(() => {
+  clearInterval(logoutTimer);
+  auth.clearPasswordMessages();
+});
 
 // Sign out
 const signingOut = ref(false);

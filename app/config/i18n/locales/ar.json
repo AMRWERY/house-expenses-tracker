@@ -169,6 +169,7 @@
   "wrong_current_password": "كلمة المرور الحالية غير صحيحة",
   "same_password": "يجب أن تختلف كلمة المرور الجديدة عن الحالية",
   "password_changed": "تم تحديث كلمة المرور",
+  "password_logout_in": "سيتم تسجيل خروجك بعد {s} ثوانٍ…",
   "save_failed": "تعذر الحفظ. حاول مرة أخرى",
   "categories": {
     "groceries": "بقالة",

@@ -169,6 +169,7 @@
   "wrong_current_password": "Your current password is wrong",
   "same_password": "The new password must be different from the current one",
   "password_changed": "Password updated",
+  "password_logout_in": "You will be signed out in {s} seconds…",
   "save_failed": "Couldn't save. Please try again",
   "categories": {
     "groceries": "Groceries",

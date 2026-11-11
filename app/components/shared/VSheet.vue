@@ -25,5 +25,6 @@ const { t } = useI18n();
 
 /** Bottom sheet shell: backdrop, grab handle, title row with a close button, then the content. */
 defineProps<{ title: string }>();
+
 const emit = defineEmits<{ close: [] }>();
 </script>
