@@ -19,7 +19,19 @@ export function rateLimit(event: Parameters<typeof setResponseHeader>[0], key: s
     return
   }
   if (++entry.count > limit) {
-    setResponseHeader(event, 'Retry-After', Math.ceil((entry.resetAt - now) / 1000))
-    throw createError({ statusCode: 429, message: 'rate_limited' })
+    const retryAfter = Math.ceil((entry.resetAt - now) / 1000)
+    setResponseHeader(event, 'Retry-After', retryAfter)
+    throw createError({ statusCode: 429, message: 'rate_limited', data: { retryAfter } })
   }
+}
+
+/**
+ * The 429 for a rate limit reported by Supabase, carrying how long to wait (seconds).
+ * Supabase says "...you can only request this after 49 seconds" for per-user limits; its email-sending
+ * limit (built-in sender, a few per hour) has no number, so we assume an hour.
+ */
+export function supabaseRateLimitError(error: { code?: string; message?: string }) {
+  const seconds = Number(/(\d+)\s*seconds?/i.exec(error.message ?? '')?.[1])
+  const retryAfter = seconds > 0 ? seconds : error.code === 'over_email_send_rate_limit' ? 3600 : 60
+  return createError({ statusCode: 429, message: 'rate_limited', data: { retryAfter } })
 }

@@ -10,7 +10,7 @@ export default defineEventHandler(async (event) => {
   })
   if (checkError) {
     if (checkError.status === 429 || checkError.code === 'over_request_rate_limit') {
-      throw createError({ statusCode: 429, message: 'rate_limited' })
+      throw supabaseRateLimitError(checkError)
     }
     throw createError({ statusCode: 400, message: 'wrong_current_password' })
   }

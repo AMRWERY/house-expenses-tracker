@@ -21,14 +21,25 @@ export const useAuthStore = defineStore("auth", () => {
   const loggedIn = computed(() => session.loggedIn.value);
 
   // Turn whatever went wrong into a short message key.
+  // Seconds the server says to wait after a rate limit (Supabase's, or ours); shown as "{time}" in the message.
+  const retryAfter = ref(60);
+  const waitText = computed(() => {
+    const { t } = useNuxtApp().$i18n;
+    const s = retryAfter.value;
+    if (s >= 3600) return t("wait_hours", Math.ceil(s / 3600));
+    if (s >= 60) return t("wait_minutes", Math.ceil(s / 60));
+    return t("wait_seconds", Math.max(1, s));
+  });
+
   function describe(e: unknown): AuthMessageKey {
     const err = e as {
       statusCode?: number;
       status?: number;
-      data?: { message?: string };
+      data?: { message?: string; data?: { retryAfter?: number } };
     };
     const status = err.statusCode ?? err.status;
     const msg = err.data?.message;
+    if (status === 429) retryAfter.value = err.data?.data?.retryAfter || 60;
     const passthrough = [
       "invalid_email",
       "invalid_name",
@@ -48,7 +59,7 @@ export const useAuthStore = defineStore("auth", () => {
 
   // Sign-up results are shown as a toast (the message key is translated here, like the other stores do).
   function showToast(key: AuthMessageKey, kind: "success" | "error") {
-    useToastStore().show({ text: useNuxtApp().$i18n.t(key), kind, position: "center" });
+    useToastStore().show({ text: useNuxtApp().$i18n.t(key, { time: waitText.value }), kind, position: "center" });
   }
 
   function clearMessages() {
@@ -199,6 +210,7 @@ export const useAuthStore = defineStore("auth", () => {
     signIn,
     signUp,
     signUpCooldown,
+    waitText,
     clearSession,
     logout,
     passwordBusy,

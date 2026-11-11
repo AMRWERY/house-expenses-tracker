@@ -67,7 +67,7 @@
             {{ t(passwordNotice) }}
           </p>
           <VError v-if="passwordError" sheet role="alert">
-            {{ t(passwordError) }}
+            {{ t(passwordError, { time: auth.waitText }) }}
           </VError>
         </form>
       </section>

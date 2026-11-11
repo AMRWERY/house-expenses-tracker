@@ -5,7 +5,7 @@ const { t, locale } = useI18n()
 const switchLocalePath = useSwitchLocalePath()
 
 const auth = useAuthStore()
-const { busy, error, notice, signUpCooldown } = storeToRefs(auth)
+const { busy, error, notice, signUpCooldown, waitText } = storeToRefs(auth)
 
 type Mode = 'signin' | 'signup'
 const mode = ref<Mode>(useRoute().query.mode === 'signup' ? 'signup' : 'signin')
@@ -124,7 +124,7 @@ watch(mode, auth.clearMessages)
           </VButton>
 
           <p v-if="notice" class="auth-notice" role="status">{{ t(notice) }}</p>
-          <VError v-if="error" role="alert">{{ t(error) }}</VError>
+          <VError v-if="error" role="alert">{{ t(error, { time: waitText }) }}</VError>
         </form>
       </div>
 
