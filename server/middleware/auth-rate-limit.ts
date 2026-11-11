@@ -4,6 +4,7 @@ const LIMITS: Record<string, { limit: number; windowMs: number }> = {
   '/api/auth/login': { limit: 10, windowMs: 60_000 },
   '/api/auth/confirm': { limit: 10, windowMs: 60_000 },
   '/api/auth/password': { limit: 10, windowMs: 60_000 },
+  '/api/auth/name': { limit: 10, windowMs: 60_000 },
 }
 
 export default defineEventHandler((event) => {

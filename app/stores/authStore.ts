@@ -165,6 +165,26 @@ export const useAuthStore = defineStore("auth", () => {
     }
   }
 
+  // Display name (Settings). Resolves true when the new name was saved.
+  const nameBusy = ref(false);
+  const nameError = ref<AuthMessageKey | "">("");
+
+  async function updateName(name: string) {
+    if (nameBusy.value) return false;
+    nameBusy.value = true;
+    nameError.value = "";
+    try {
+      await $fetch("/api/auth/name", { method: "POST", body: { name } });
+      await session.fetch(); // the session cookie now carries the new name
+      return true;
+    } catch (e) {
+      nameError.value = describe(e);
+      return false;
+    } finally {
+      nameBusy.value = false;
+    }
+  }
+
   // Profile picture. The picture itself is served by /api/avatar; the version in the URL makes the browser
   // fetch it again after an upload (and the server answers with the default picture when there is none).
   const avatarVersion = ref(0);
@@ -213,6 +233,9 @@ export const useAuthStore = defineStore("auth", () => {
     passwordNotice,
     clearPasswordMessages,
     changePassword,
+    nameBusy,
+    nameError,
+    updateName,
     avatarUrl,
     avatarBusy,
     avatarError,

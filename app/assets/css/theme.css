@@ -1152,6 +1152,22 @@
   .setting {
     margin-top: 32px;
   }
+  .settings-tabs {
+    margin-top: 24px;
+  }
+  .settings-tabs + .setting,
+  .settings-tabs + .rise {
+    margin-top: 24px;
+  }
+  .field-hint {
+    margin: 8px 4px 0;
+    font-size: 13px;
+    line-height: 18px;
+    color: var(--text-2);
+  }
+  .setting-card .field-hint + .btn {
+    margin-top: 16px;
+  }
   .setting h2 {
     font-size: 18px;
     line-height: 28px;
@@ -1420,9 +1436,14 @@
       animation: none;
     }
   }
+  /* The email is dir="ltr" so it reads correctly, which would pin it to the left even in Arabic.
+     Align it by the page direction instead: right in Arabic, left in English. */
   .row-email {
     overflow-wrap: anywhere;
-    text-align: start;
+    text-align: left;
+  }
+  :root[dir="rtl"] .row-email {
+    text-align: right;
   }
 
   .btn .ico {
