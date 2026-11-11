@@ -4,8 +4,9 @@
       v-if="toast"
       :key="toast.id"
       class="toast"
-      role="status"
-      aria-live="polite"
+      :class="{ 'toast-error': toast.kind === 'error' }"
+      :role="toast.kind === 'error' ? 'alert' : 'status'"
+      :aria-live="toast.kind === 'error' ? 'assertive' : 'polite'"
     >
       <span class="toast-text">{{ toast.text }}</span>
       <button
@@ -45,6 +46,10 @@ const { toast } = storeToRefs(toastStore);
   color: var(--bg);
   font-size: 15px;
   box-shadow: 0 12px 32px rgba(15, 23, 42, 0.3);
+}
+
+.toast-error {
+  border-inline-start: 4px solid var(--expense);
 }
 
 .toast-action {

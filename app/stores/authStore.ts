@@ -46,13 +46,18 @@ export const useAuthStore = defineStore("auth", () => {
     return "auth_failed";
   }
 
+  // Sign-up results are shown as a toast (the message key is translated here, like the other stores do).
+  function showToast(key: AuthMessageKey, kind: "success" | "error") {
+    useToastStore().show({ text: useNuxtApp().$i18n.t(key), kind });
+  }
+
   function clearMessages() {
     error.value = "";
     notice.value = "";
   }
 
   /** `action` resolves 'done' (signed in), 'notice' (show the message, stay here) or false (failed). */
-  async function run(action: () => Promise<"done" | "notice">) {
+  async function run(action: () => Promise<"done" | "notice">, asToast = false) {
     if (busy.value) return;
     busy.value = true;
     clearMessages();
@@ -62,7 +67,9 @@ export const useAuthStore = defineStore("auth", () => {
       // The middleware loads this user's expenses on arrival.
       await navigateTo(useNuxtApp().$localePath("/"));
     } catch (e) {
-      error.value = describe(e);
+      const key = describe(e);
+      if (asToast) showToast(key, "error");
+      else error.value = key;
     } finally {
       busy.value = false;
     }
@@ -87,11 +94,11 @@ export const useAuthStore = defineStore("auth", () => {
         },
       );
       if (res.needsConfirmation) {
-        notice.value = "check_email"; // confirm the address first, then sign in
+        showToast("check_email", "success"); // confirm the address first, then sign in
         return "notice";
       }
       return "done";
-    });
+    }, true);
 
   /** End the session and never leave one person's data in memory for the next. */
   async function clearSession() {

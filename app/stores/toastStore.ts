@@ -1,6 +1,8 @@
 interface Toast {
   id: number;
   text: string;
+  /** 'error' gets a red accent and is announced assertively; default is a plain confirmation */
+  kind?: "success" | "error";
   /** optional button on the toast (e.g. "Undo") and what it does */
   actionLabel?: string;
   onAction?: () => void | Promise<void>;
@@ -17,7 +19,7 @@ export const useToastStore = defineStore("toast", () => {
     toast.value = null;
   }
 
-  function show(next: Omit<Toast, "id">, duration = 6000) {
+  function show(next: Omit<Toast, "id">, duration = 4000) {
     clearTimeout(timer);
     toast.value = { ...next, id: nextId++ };
     timer = setTimeout(dismiss, duration);

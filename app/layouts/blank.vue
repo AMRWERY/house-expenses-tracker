@@ -2,6 +2,7 @@
 <template>
   <div>
     <slot />
+    <app-toast />
   </div>
 </template>
 
