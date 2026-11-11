@@ -124,7 +124,7 @@ watch(mode, auth.clearMessages)
             label-gap
             v-model="password"
             :autocomplete="mode === 'signin' ? 'current-password' : 'new-password'"
-            :placeholder="mode === 'signup' ? t('password_hint') : ''"
+            :placeholder="mode === 'signup' ? t('password_hint') : undefined"
           />
 
           <VButton class="lock-btn" type="submit" :disabled="!canSubmit" :busy="busy">

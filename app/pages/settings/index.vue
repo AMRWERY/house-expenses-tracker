@@ -54,6 +54,7 @@
             label-gap
             v-model="confirmPassword"
             autocomplete="new-password"
+            :placeholder="t('confirm_password_placeholder')"
           />
           <VError v-if="mismatch" inline>
             {{ t("passwords_mismatch") }}

@@ -1071,6 +1071,12 @@
     color: var(--text-2);
     opacity: 0.7;
   }
+  /* Some inputs force dir="ltr" for their typed value (email, password). While the
+     placeholder shows, follow the page direction so it starts at the right in Arabic. */
+  .field-input:placeholder-shown {
+    direction: inherit;
+    text-align: start;
+  }
   .field-input {
     outline: 0;
   }

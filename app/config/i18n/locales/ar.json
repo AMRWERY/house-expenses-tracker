@@ -82,6 +82,8 @@
   "email_label": "البريد الإلكتروني",
   "password_label": "كلمة المرور",
   "password_hint": "8 أحرف على الأقل",
+  "password_placeholder": "اكتب كلمة المرور",
+  "confirm_password_placeholder": "أعد كتابة كلمة المرور الجديدة",
   "signin_pw_btn": "تسجيل الدخول",
   "signup_pw_btn": "إنشاء حساب",
   "invalid_email": "اكتب بريدًا صحيحًا مثل test{'@'}house.com",

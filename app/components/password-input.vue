@@ -9,7 +9,7 @@
       dir="ltr"
       maxlength="72"
       :autocomplete="autocomplete"
-      :placeholder="placeholder"
+      :placeholder="placeholder ?? t('password_placeholder')"
     />
     <VIconButton
       class="pw-toggle"
