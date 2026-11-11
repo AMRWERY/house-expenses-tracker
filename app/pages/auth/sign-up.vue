@@ -7,6 +7,8 @@
         :src="avatar || DEFAULT_AVATAR"
         :label="avatar ? t('change_photo') : t('upload_photo')"
         :hint="t('photo_optional')"
+        :removable="!!avatar"
+        @remove="avatar = ''"
         @pick="
           avatar = $event;
           auth.clearMessages();

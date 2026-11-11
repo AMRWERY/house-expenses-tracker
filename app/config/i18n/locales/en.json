@@ -169,6 +169,8 @@
   "wrong_current_password": "Your current password is wrong",
   "same_password": "The new password must be different from the current one",
   "password_changed": "Password updated",
+  "remove_photo": "Remove photo",
+  "avatar_removed": "Photo removed",
   "tab_preferences": "Preferences",
   "tab_profile": "Profile",
   "tab_security": "Security",

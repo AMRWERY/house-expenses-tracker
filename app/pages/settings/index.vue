@@ -56,7 +56,9 @@
               :label="t('change_photo')"
               :hint="t('photo_formats')"
               :busy="avatarBusy"
+              :removable="hasAvatar === true"
               @pick="changeAvatar"
+              @remove="removePhoto"
               @error="avatarError = $event"
             />
             <VError v-if="avatarError" inline role="alert">{{
@@ -100,7 +102,9 @@
                 ><app-icon name="user"
               /></span>
               <div class="row-text">
-                <div class="row-title row-email" dir="ltr">{{ user.email }}</div>
+                <div class="row-title row-email" dir="ltr">
+                  {{ user.email }}
+                </div>
                 <div class="row-cat">{{ t("signed_in") }}</div>
               </div>
             </div>
@@ -112,7 +116,11 @@
       <template v-else-if="tab === 'security' && user">
         <section class="setting rise" style="--i: 0">
           <h2>{{ t("change_password") }}</h2>
-          <form class="setting-card" novalidate @submit.prevent="changePassword">
+          <form
+            class="setting-card"
+            novalidate
+            @submit.prevent="changePassword"
+          >
             <password-input
               id="current-password"
               :label="t('current_password')"
@@ -211,7 +219,12 @@ const langOptions = [
 const auth = useAuthStore();
 const { user } = storeToRefs(auth);
 const { passwordBusy, passwordError, passwordNotice } = storeToRefs(auth);
-const { avatarUrl, avatarBusy, avatarError } = storeToRefs(auth);
+const { avatarUrl, avatarBusy, avatarError, hasAvatar } = storeToRefs(auth);
+if (import.meta.client && user.value) auth.loadAvatarStatus();
+async function removePhoto() {
+  if (await auth.removeAvatar())
+    useToastStore().show({ text: t("avatar_removed") });
+}
 
 // Tabs: Preferences is always there; Profile and Security need a signed-in user (not in the dev-only preview).
 type Tab = "preferences" | "profile" | "security";

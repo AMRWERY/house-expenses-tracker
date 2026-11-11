@@ -169,6 +169,8 @@
   "wrong_current_password": "كلمة المرور الحالية غير صحيحة",
   "same_password": "يجب أن تختلف كلمة المرور الجديدة عن الحالية",
   "password_changed": "تم تحديث كلمة المرور",
+  "remove_photo": "إزالة الصورة",
+  "avatar_removed": "تمت إزالة الصورة",
   "tab_preferences": "التفضيلات",
   "tab_profile": "الملف الشخصي",
   "tab_security": "الأمان",

@@ -50,6 +50,27 @@ export async function saveAvatar(userId: string, avatar: { mime: string; bytes: 
   }
 }
 
+/** Does this person have an uploaded picture? */
+export async function hasAvatar(userId: string) {
+  await ensureBucket()
+  const { data, error } = await useSupabase().storage.from(BUCKET).list('', { search: userId, limit: 5 })
+  if (error) {
+    console.error('[avatar] list', error.message)
+    throw createError({ statusCode: 500, message: 'avatar_failed' })
+  }
+  return (data ?? []).some((f) => f.name === userId)
+}
+
+/** Delete the person's picture so the default one is used again. Removing a missing file is fine. */
+export async function removeAvatar(userId: string) {
+  await ensureBucket()
+  const { error } = await useSupabase().storage.from(BUCKET).remove([userId])
+  if (error) {
+    console.error('[avatar] remove', error.message)
+    throw createError({ statusCode: 500, message: 'avatar_failed' })
+  }
+}
+
 /** The person's picture, or null when they never uploaded one. */
 export async function readAvatar(userId: string) {
   await ensureBucket()

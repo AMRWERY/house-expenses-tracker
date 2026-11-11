@@ -190,6 +190,34 @@ export const useAuthStore = defineStore("auth", () => {
   const avatarVersion = ref(0);
   const avatarUrl = computed(() => `/api/avatar?v=${avatarVersion.value}`);
   const avatarBusy = ref(false);
+  /** Whether an uploaded picture exists (null until known). Drives the remove (x) button. */
+  const hasAvatar = ref<boolean | null>(null);
+
+  async function loadAvatarStatus() {
+    try {
+      hasAvatar.value = (await $fetch<{ has: boolean }>("/api/avatar/status")).has;
+    } catch {
+      hasAvatar.value = null;
+    }
+  }
+
+  /** Delete the uploaded picture; the default one shows again. Resolves true on success. */
+  async function removeAvatar() {
+    if (avatarBusy.value) return false;
+    avatarBusy.value = true;
+    avatarError.value = "";
+    try {
+      await $fetch("/api/avatar", { method: "DELETE" });
+      hasAvatar.value = false;
+      avatarVersion.value++;
+      return true;
+    } catch {
+      avatarError.value = "avatar_failed";
+      return false;
+    } finally {
+      avatarBusy.value = false;
+    }
+  }
   const avatarError = ref<AuthMessageKey | "">("");
 
   /** Resolves true when the new picture was saved. */
@@ -200,6 +228,7 @@ export const useAuthStore = defineStore("auth", () => {
     try {
       await $fetch("/api/avatar", { method: "POST", body: { image } });
       avatarVersion.value++;
+      hasAvatar.value = true;
       return true;
     } catch (e) {
       const msg = (e as { data?: { message?: string } }).data?.message;
@@ -240,5 +269,8 @@ export const useAuthStore = defineStore("auth", () => {
     avatarBusy,
     avatarError,
     uploadAvatar,
+    hasAvatar,
+    loadAvatarStatus,
+    removeAvatar,
   };
 });
