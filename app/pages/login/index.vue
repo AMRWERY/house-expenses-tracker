@@ -47,14 +47,15 @@ watch(mode, auth.clearMessages)
 
 <template>
   <main class="auth-page">
-    <nuxt-link
+    <!-- A plain link: <nuxt-link> also navigates on click and raced with the animated switch below. -->
+    <a
       class="auth-lang"
-      :to="switchLocalePath(otherLocale)"
+      :href="switchLocalePath(otherLocale)"
       :hreflang="otherLocale"
       @click.prevent="withViewTransition(() => navigateTo(switchLocalePath(otherLocale)), 'locale')"
     >
       {{ otherLocale === 'ar' ? 'عربي' : 'English' }}
-    </nuxt-link>
+    </a>
 
     <div class="lock-card">
       <div>

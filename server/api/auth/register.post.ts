@@ -9,7 +9,17 @@ export default defineEventHandler(async (event) => {
   const avatar = rawAvatar ? parseAvatar(rawAvatar) : null
 
   // The name is kept on the Supabase account (user_metadata), so every sign-in can read it back.
-  const { data, error } = await newAuthClient().auth.signUp({ email, password, options: { data: { name } } })
+  // Where the confirmation link lands. Without this Supabase uses the project's dashboard "Site URL",
+  // which was still http://localhost:3000, so production users were sent to localhost. SITE_URL pins it;
+  // otherwise it is the address this request came in on. Supabase only honours it if it is also listed
+  // under Authentication > URL Configuration > Redirect URLs.
+  const siteUrl = (process.env.SITE_URL || getRequestURL(event).origin).replace(/\/+$/, '')
+
+  const { data, error } = await newAuthClient().auth.signUp({
+    email,
+    password,
+    options: { data: { name }, emailRedirectTo: `${siteUrl}/` },
+  })
 
   if (error) {
     if (error.status === 429 || error.code === 'over_request_rate_limit' || error.code === 'over_email_send_rate_limit') {
