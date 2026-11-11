@@ -2,6 +2,7 @@
 const LIMITS: Record<string, { limit: number; windowMs: number }> = {
   '/api/auth/register': { limit: 3, windowMs: 10 * 60_000 }, // each one can send an email
   '/api/auth/login': { limit: 10, windowMs: 60_000 },
+  '/api/auth/confirm': { limit: 10, windowMs: 60_000 },
   '/api/auth/password': { limit: 10, windowMs: 60_000 },
 }
 

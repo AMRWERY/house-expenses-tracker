@@ -36,6 +36,14 @@ const canSubmit = computed(
 )
 const showEmailError = computed(() => emailTouched.value && email.value.trim() !== '' && !emailValid.value)
 
+// Remaining wait on the sign-up button: 59:30, or 1:02:03 when it is an hour or more.
+const cooldownClock = computed(() => {
+  const s = signUpCooldown.value
+  const pad = (n: number) => String(n).padStart(2, '0')
+  const [h, m, sec] = [Math.floor(s / 3600), Math.floor((s % 3600) / 60), s % 60]
+  return h > 0 ? `${h}:${pad(m)}:${pad(sec)}` : `${pad(m)}:${pad(sec)}`
+})
+
 const otherLocale = computed(() => (locale.value === 'ar' ? 'en' : 'ar'))
 // The language link keeps the current tab: the new page reads it from ?mode= (see `mode` above).
 const otherLocaleHref = computed(
@@ -120,7 +128,7 @@ watch(mode, auth.clearMessages)
           />
 
           <VButton class="lock-btn" type="submit" :disabled="!canSubmit" :busy="busy">
-            {{ mode === 'signin' ? (busy ? t('signing_in') : t('signin_pw_btn')) : (busy ? t('creating_account') : signUpCooldown > 0 ? `${t('signup_pw_btn')} (${signUpCooldown})` : t('signup_pw_btn')) }}
+            {{ mode === 'signin' ? (busy ? t('signing_in') : t('signin_pw_btn')) : (busy ? t('creating_account') : signUpCooldown > 0 ? `${t('signup_pw_btn')} (${cooldownClock})` : t('signup_pw_btn')) }}
           </VButton>
 
           <p v-if="notice" class="auth-notice" role="status">{{ t(notice) }}</p>

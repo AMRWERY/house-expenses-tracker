@@ -90,6 +90,8 @@
   "email_not_confirmed": "Please confirm your email first using the message we sent you",
   "email_exists": "That email is already registered",
   "check_email": "We sent a confirmation message to your email. Open it, then sign in",
+  "email_confirmed": "Email confirmed. Welcome!",
+  "confirm_failed": "This confirmation link is invalid or has expired. Please sign in, or sign up again",
   "rate_limited": "Too many attempts. Please wait {time} before trying again",
   "wait_seconds": "{n} second | {n} seconds",
   "wait_minutes": "{n} minute | {n} minutes",

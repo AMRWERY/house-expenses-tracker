@@ -79,8 +79,10 @@ export const useAuthStore = defineStore("auth", () => {
       await navigateTo(useNuxtApp().$localePath("/"));
     } catch (e) {
       const key = describe(e);
-      if (asToast) showToast(key, "error");
-      else error.value = key;
+      if (asToast) {
+        showToast(key, "error");
+        if (key === "rate_limited") startSignUpCooldown(retryAfter.value);
+      } else error.value = key;
     } finally {
       busy.value = false;
     }
@@ -95,28 +97,21 @@ export const useAuthStore = defineStore("auth", () => {
       return "done";
     });
 
-  // After a sign-up attempt the button stays disabled for a few seconds, so it can't be spammed
-  // (each success sends a confirmation email, and email sending is what Supabase limits hardest).
-  const SIGNUP_COOLDOWN_S = 30;
+  // When sign-up is rate limited the button stays disabled for exactly the wait the server reported
+  // (the same time the toast shows), counting down once a second.
   const signUpCooldown = ref(0);
   let cooldownTimer: ReturnType<typeof setInterval> | undefined;
 
-  function startSignUpCooldown() {
+  function startSignUpCooldown(seconds: number) {
     clearInterval(cooldownTimer);
-    signUpCooldown.value = SIGNUP_COOLDOWN_S;
+    signUpCooldown.value = seconds;
     cooldownTimer = setInterval(() => {
       if (--signUpCooldown.value <= 0) clearInterval(cooldownTimer);
     }, 1000);
   }
 
-  const signUp = async (email: string, password: string, name: string, avatar?: string) => {
-    if (signUpCooldown.value > 0) return;
-    await signUpRequest(email, password, name, avatar);
-  };
-
-  const signUpRequest = (email: string, password: string, name: string, avatar?: string) =>
+  const signUp = (email: string, password: string, name: string, avatar?: string) =>
     run(async () => {
-      startSignUpCooldown();
       const res = await $fetch<{ needsConfirmation: boolean }>(
         "/api/auth/register",
         {
