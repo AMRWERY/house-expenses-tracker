@@ -42,10 +42,12 @@ const { toast } = storeToRefs(toastStore);
   padding: 12px 12px 12px 18px;
   padding-inline: 18px 12px;
   border-radius: 16px;
-  background: var(--text);
-  color: var(--bg);
+  /* Follows the theme: light card in light mode, dark card in dark mode */
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border);
   font-size: 15px;
-  box-shadow: 0 12px 32px rgba(15, 23, 42, 0.3);
+  box-shadow: 0 12px 32px rgba(15, 23, 42, 0.18);
 }
 
 .toast-center {
@@ -64,7 +66,7 @@ const { toast } = storeToRefs(toastStore);
   border-radius: 12px;
   font-weight: 700;
   color: var(--primary);
-  background: color-mix(in srgb, var(--bg) 12%, transparent);
+  background: var(--surface-alt);
   transition:
     transform 0.1s,
     background-color 0.2s;

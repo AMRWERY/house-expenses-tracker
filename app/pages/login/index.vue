@@ -37,6 +37,10 @@ const canSubmit = computed(
 const showEmailError = computed(() => emailTouched.value && email.value.trim() !== '' && !emailValid.value)
 
 const otherLocale = computed(() => (locale.value === 'ar' ? 'en' : 'ar'))
+// The language link keeps the current tab: the new page reads it from ?mode= (see `mode` above).
+const otherLocaleHref = computed(
+  () => switchLocalePath(otherLocale.value) + (mode.value === 'signup' ? '?mode=signup' : ''),
+)
 
 function submit() {
   if (!canSubmit.value) return
@@ -54,9 +58,9 @@ watch(mode, auth.clearMessages)
     <!-- A plain link: <nuxt-link> also navigates on click and raced with the animated switch below. -->
     <a
       class="auth-lang"
-      :href="switchLocalePath(otherLocale)"
+      :href="otherLocaleHref"
       :hreflang="otherLocale"
-      @click.prevent="withViewTransition(() => navigateTo(switchLocalePath(otherLocale)), 'locale')"
+      @click.prevent="withViewTransition(() => navigateTo(otherLocaleHref), 'locale')"
     >
       {{ otherLocale === 'ar' ? 'عربي' : 'English' }}
     </a>
