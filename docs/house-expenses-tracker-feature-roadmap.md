@@ -178,26 +178,7 @@ Requirements:
 - Validation, loading, errors, and successful saving use the existing patterns.
 - Arabic-Indic and Western digits are handled consistently with existing amount inputs.
 
-### 2.3 Duplicate an expense
-
-**Goal:** Make repeated one-off purchases faster to enter.
-
-Requirements:
-
-- Add a duplicate action to an existing expense's edit/details experience.
-- Copy the category, amount, note/description, and merchant when available.
-- Default the duplicated record's date to today, unless the user explicitly changes it.
-- Never reuse the original database ID.
-- Open the add flow with copied values so the user can review and save.
-- Do not create a new expense until the user confirms by pressing Save/Add.
-
-**Acceptance criteria:**
-
-- Duplicating an expense never edits or deletes the source expense.
-- The duplicate receives a new record ID after saving.
-- The date default is clear and predictable.
-
-### 2.4 Expense templates and frequently used expenses
+### 2.3 Expense templates and frequently used expenses
 
 **Goal:** Support expenses that happen often but do not have a fixed schedule.
 
@@ -215,50 +196,8 @@ Requirements:
 - Editing a template does not modify past expenses created from it.
 - Template-based expenses follow normal validation and save behavior.
 
-### 2.5 CSV export
 
-**Goal:** Let users take their expense data to a spreadsheet.
-
-Requirements:
-
-- Export the currently selected month or date range.
-- Provide an option to export all expenses.
-- Include useful columns such as date, amount, currency, category, note/description, merchant, and payment method when those fields exist.
-- Use stable date and decimal formats.
-- Escape CSV values correctly, including commas, quotes, and newlines.
-- Use a filename that includes the export type and date/month.
-- Ensure Arabic text is preserved in common spreadsheet applications; consider UTF-8 BOM compatibility.
-- Generate the export from authorized data only.
-
-**Acceptance criteria:**
-
-- The exported file opens correctly in common spreadsheet software.
-- The export respects the selected filters when exporting a filtered selection.
-- No other user's data can appear in the export.
-
-### 2.6 Full JSON backup and restore
-
-**Goal:** Give users a portable backup of their household expense data.
-
-Requirements:
-
-- Provide an explicit “Download backup” action.
-- Include the user's supported data: expenses, categories, monthly amounts, templates, recurring rules, and related settings as those features are introduced.
-- Include a backup version/schema version and export timestamp.
-- Provide a restore/import flow that validates the file before changing data.
-- Show a preview/summary of records to be imported.
-- Define duplicate handling and conflict behavior clearly.
-- Make restore transactional where possible: a failed restore must not leave partially imported data.
-- Never trust IDs or ownership fields from an uploaded JSON file. Assign ownership based on the authenticated user or authorized household.
-- Do not overwrite existing data silently. Offer a clearly explained merge or replace mode only if both can be implemented safely.
-
-**Acceptance criteria:**
-
-- Invalid or unsupported backup files are rejected with a readable error.
-- Users can restore their own backup without importing another user's identity or ownership.
-- The restore result is reported clearly.
-
-### 2.7 Fix monthly comparison calculations
+### 2.4 Fix monthly comparison calculations
 
 **Current concern:** The comparison store appears to build months only from months that contain expenses or a saved main amount. It may therefore skip calendar months with no records and compare against the previous available month rather than the immediately preceding calendar month.
 
@@ -283,7 +222,7 @@ Requirements:
 
 ## Phase 2 — Smarter expense management
 
-### 2.8 Recurring expenses
+### 2.5 Recurring expenses
 
 **Goal:** Help users manage predictable household payments such as rent, internet, subscriptions, and regular bills.
 
@@ -313,7 +252,7 @@ Requirements:
 - Editing or deleting a recurring rule does not corrupt already-recorded expenses.
 - Due dates are correct around month ends, leap years, and timezone boundaries.
 
-### 2.9 Due-date reminders
+### 2.6 Due-date reminders
 
 **Goal:** Remind users about upcoming recurring payments.
 
@@ -330,7 +269,7 @@ Requirements:
 - Reminder state is tied to a specific recurring occurrence.
 - Notifications respect timezone and user preferences.
 
-### 2.10 Budget alerts
+### 2.7 Budget alerts
 
 **Goal:** Notify users when they approach or exceed their existing monthly or category budget limits.
 
@@ -355,7 +294,7 @@ Requirements:
 - Editing/deleting expenses updates the displayed budget status.
 - Alerts are available in Arabic and English and work in both themes.
 
-### 2.11 Merchant/store field
+### 2.8 Merchant/store field
 
 **Goal:** Record where the user made a purchase.
 
@@ -372,7 +311,7 @@ Requirements:
 - Merchant names can be searched.
 - The field is optional and validated server-side.
 
-### 2.12 Payment method
+### 2.9 Payment method
 
 **Goal:** Let users understand how household expenses are paid.
 
@@ -396,34 +335,11 @@ Requirements:
 - Only a payment-method label is stored; no card or banking credentials are collected.
 - Existing records remain compatible.
 
-### 2.13 Receipt attachments
-
-**Goal:** Attach a receipt photo or file to an expense.
-
-Requirements:
-
-- Allow selecting an image from the device and taking a photo on supported mobile devices.
-- Show a preview before upload and a preview when viewing an expense.
-- Allow deleting/replacing the attachment.
-- Validate file type and size on the server.
-- Store files in a private storage bucket or equivalent protected object storage.
-- Use authorized access/signed URLs; do not expose private receipts publicly.
-- Keep the attachment optional.
-- Design the data relationship so one expense can support one or more attachments if that is useful, but start with one attachment if it keeps the experience simpler.
-
-**Future enhancement:** OCR can later suggest the merchant, date, and amount from an uploaded receipt. Do not make OCR a dependency for the initial receipt feature.
-
-**Acceptance criteria:**
-
-- Only the owning user/authorized household members can access a receipt.
-- Deleting an expense or attachment follows a documented file-cleanup strategy.
-- Upload failures do not leave broken attachment records.
-
 ---
 
 ## Phase 3 — Broader financial management
 
-### 2.14 Income tracking
+### 2.10 Income tracking
 
 **Goal:** Track money coming into the household as well as expenses.
 
@@ -447,7 +363,7 @@ Requirements:
 - Monthly and date-range income totals are accurate.
 - Net balance calculations handle empty periods correctly.
 
-### 2.15 Monthly budget rollover
+### 2.11 Monthly budget rollover
 
 **Goal:** Optionally carry unused budget from one month into the next.
 
@@ -466,7 +382,7 @@ Requirements:
 - Rollover calculations are deterministic and tested.
 - Turning rollover off does not delete prior expense history.
 
-### 2.16 Simple monthly financial summary
+### 2.12 Simple monthly financial summary
 
 **Goal:** Give the user a short written summary, not a chart-heavy report.
 
@@ -493,7 +409,7 @@ Requirements:
 - Every statement can be traced to a correct calculation.
 - Empty or incomplete months are explained correctly.
 
-### 2.17 Spending-free days (optional, low priority)
+### 2.13 Spending-free days (optional, low priority)
 
 **Goal:** Offer a lightweight view of days with no recorded expenses.
 
@@ -515,7 +431,7 @@ Requirements:
 
 These features require careful architectural design. Do not treat them as small additions to the current single-user data model.
 
-### 2.18 Shared household
+### 2.14 Shared household
 
 **Goal:** Allow multiple family members to manage expenses within one household.
 
@@ -554,7 +470,7 @@ Requirements:
 - Ownership transfer and member removal are safe and tested.
 - Existing single-user records are migrated or assigned to a personal household without data loss.
 
-### 2.19 Expense splitting and member contributions
+### 2.15 Expense splitting and member contributions
 
 **Goal:** Track who owes or contributed what within a shared household.
 
@@ -572,29 +488,6 @@ Requirements:
 - Split totals always equal the original expense amount, including rounding remainder handling.
 - Changes to membership do not rewrite historical split participants.
 - Settlement state is auditable.
-
-### 2.20 PWA and offline support
-
-**Goal:** Let users install the application and record expenses when temporarily offline.
-
-Requirements:
-
-- First implement installability and a safe offline fallback.
-- Cache only safe static application assets by default.
-- Do not cache authenticated financial API responses in a shared/public cache.
-- For offline expense entry, use a local pending queue with clear pending/synced/failed states.
-- Synchronize when connectivity returns.
-- Use idempotency keys so retries do not create duplicate expenses.
-- Define conflict behavior for edits/deletes made on multiple devices.
-- Provide a way for users to retry failed sync operations.
-- Protect local financial data and provide a sign-out cleanup strategy.
-
-**Acceptance criteria:**
-
-- Refreshing while offline does not expose another user's cached information.
-- Queued expenses are not duplicated after retry.
-- Sync failures are visible and recoverable.
-- Online behavior remains unchanged when offline mode is unavailable.
 
 ---
 
