@@ -12,8 +12,10 @@
     }}</span>
     <span class="row-icon"><app-icon :name="category.icon" /></span>
     <div class="row-text">
-      <div class="row-title">{{ title }}</div>
-      <div class="row-cat">{{ subtitle ?? category.label }}</div>
+      <div class="row-title">
+        {{ title }}<app-icon v-if="expense.hasReceipt" name="paperclip" class="row-clip" :aria-label="t('receipt')" />
+      </div>
+      <div class="row-cat">{{ subline }}</div>
     </div>
     <div class="row-end">
       <div
@@ -49,6 +51,17 @@ const category = computed(() => info(props.expense.cat));
 const { budgets } = storeToRefs(useCategoriesStore());
 const budget = computed(() => budgets.value.get(category.value.key));
 
+// Second line: the day (or category), then the merchant and how it was paid, when given.
+const subline = computed(() =>
+  [
+    props.subtitle ?? category.value.label,
+    props.expense.merchant,
+    props.expense.paymentMethod ? t(`pay_${props.expense.paymentMethod}`) : undefined,
+  ]
+    .filter(Boolean)
+    .join(" · "),
+);
+
 const title = computed(() =>
   props.expense.titleKey
     ? t(props.expense.titleKey)
@@ -57,6 +70,13 @@ const title = computed(() =>
 </script>
 
 <style scoped>
+.row-clip {
+  width: 14px;
+  height: 14px;
+  margin-inline-start: 6px;
+  vertical-align: -2px;
+  color: var(--text-2);
+}
 .row-num {
   min-width: 22px;
   font-size: 13px;

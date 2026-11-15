@@ -1,4 +1,6 @@
 import type { Expense, ExpenseDraft } from "~/types/utils";
+import { isSearchActive, matchesSearch, parseAmountBound, type SearchFilter } from "~/utils/search";
+import { EARLIEST_DATE_ISO, MAX_YEAR, MIN_YEAR } from "#shared/utils/limits";
 
 /**
  * The signed-in person's expenses and the month being viewed.
@@ -31,6 +33,9 @@ export const useExpensesStore = defineStore("expenses", () => {
   const rangeFrom = ref("");
   const rangeTo = ref("");
 
+  /** The category of the last expense added on this device: the Add sheet starts there (stored only in this browser). */
+  const lastCat = useLocalStorage<string | null>("last-category", null);
+
   /** True until the first server load finishes (the home page shows skeleton rows meanwhile). */
   const loading = computed(() => !loaded.value && !demo);
   /** The expense being added right now: the list shows one skeleton row for it until the server answers. */
@@ -60,11 +65,37 @@ export const useExpensesStore = defineStore("expenses", () => {
       return d >= r.from && d <= r.to;
     });
   });
-  /** What the home page lists: the month (or the range), narrowed by the category filter. */
-  const items = computed(() =>
-    filterCat.value ? scoped.value.filter((e) => e.cat === filterCat.value) : scoped.value,
-  );
+  /** Search box: free text (note, merchant, amount) plus optional min/max amount. It narrows the month, range and category filters; it never replaces them. */
+  const searchQuery = ref("");
+  const minAmount = ref("");
+  const maxAmount = ref("");
+  const nuxtApp = useNuxtApp(); // captured here: composables are not available after an await
+  const payLabel = (e: Expense) => (e.paymentMethod ? nuxtApp.$i18n.t(`pay_${e.paymentMethod}`) : undefined);
+  const searchFilter = computed<SearchFilter>(() => ({
+    q: searchQuery.value,
+    min: parseAmountBound(minAmount.value),
+    max: parseAmountBound(maxAmount.value),
+  }));
+  const searchActive = computed(() => isSearchActive(searchFilter.value));
+  const clearSearch = () => (searchQuery.value = minAmount.value = maxAmount.value = "");
+
+  /** What the home page lists: the month (or the range), narrowed by the category filter and the search. */
+  const items = computed(() => {
+    const byCat = filterCat.value ? scoped.value.filter((e) => e.cat === filterCat.value) : scoped.value;
+    return searchActive.value ? byCat.filter((e) => matchesSearch({ ...e, paymentLabel: payLabel(e) }, searchFilter.value)) : byCat;
+  });
   const total = computed(() => items.value.reduce((s, e) => s + e.amount, 0));
+
+  /** Merchant names used before (most recent first): suggestions for the merchant field. */
+  const merchants = computed(() => {
+    const seen = new Map<string, string>();
+    for (const e of [...expenses.value].sort((a, b) => b.y - a.y || b.m - a.m || b.day - a.day || b.id - a.id)) {
+      const key = e.merchant?.toLowerCase();
+      if (e.merchant && key && !seen.has(key)) seen.set(key, e.merchant);
+      if (seen.size >= 30) break;
+    }
+    return [...seen.values()];
+  });
 
   /** The viewed month's expenses grouped by category (biggest spend first); inside a group, newest day first. */
   const categoryGroups = computed(() => {
@@ -101,6 +132,7 @@ export const useExpensesStore = defineStore("expenses", () => {
     loaded.value = false;
     filterCat.value = null;
     rangeFrom.value = rangeTo.value = "";
+    clearSearch();
     pending.value = null;
     busyId.value = null;
   }
@@ -114,17 +146,14 @@ export const useExpensesStore = defineStore("expenses", () => {
     if (filterCat.value === from) filterCat.value = null; // the filtered category is gone
   }
 
-  /** The home page never goes back before this month (November 2026). The dev preview is not limited. */
-  const FIRST_MONTH = { y: 2026, m: 10 };
-  const FIRST_DAY_ISO = toISODate(FIRST_MONTH.y, FIRST_MONTH.m, 1);
-  const canGoPrev = computed(
-    () => demo || view.value.y * 12 + view.value.m > FIRST_MONTH.y * 12 + FIRST_MONTH.m,
-  );
+  /** Historical expenses are allowed back to the supported range (shared/utils/limits.ts), the same one the server enforces. */
+  const FIRST_DAY_ISO = EARLIEST_DATE_ISO;
+  const canGoPrev = computed(() => view.value.y > MIN_YEAR || view.value.m > 0);
 
   function shiftMonth(delta: number) {
     const d = new Date(view.value.y, view.value.m + delta, 1);
     const target = { y: d.getFullYear(), m: d.getMonth() };
-    if (!demo && target.y * 12 + target.m < FIRST_MONTH.y * 12 + FIRST_MONTH.m) return;
+    if (target.y < MIN_YEAR || target.y > MAX_YEAR) return;
     view.value = target;
   }
   const prevMonth = () => shiftMonth(-1);
@@ -145,6 +174,8 @@ export const useExpensesStore = defineStore("expenses", () => {
       m: mo - 1,
       day: d,
       note: draft.note.trim() || undefined,
+      merchant: draft.merchant.trim() || undefined,
+      paymentMethod: draft.paymentMethod ?? undefined,
     };
     const editing = id !== undefined;
 
@@ -180,12 +211,23 @@ export const useExpensesStore = defineStore("expenses", () => {
     }
     pending.value = null;
     busyId.value = null;
+    if (!editing) lastCat.value = data.cat;
     expenses.value = editing
       ? expenses.value.map((e) => (e.id === id ? record : e))
       : [...expenses.value, record];
     view.value = { y, m: mo - 1 };
     // A category filter would hide an expense saved under a different category until a reload.
     if (filterCat.value && filterCat.value !== data.cat) filterCat.value = null;
+  }
+
+  /** A receipt was attached or removed on the server: mirror the flag so the row shows it. */
+  function setReceipt(id: number, has: boolean) {
+    expenses.value = expenses.value.map((e) => (e.id === id ? { ...e, hasReceipt: has || undefined } : e));
+  }
+
+  /** Add a record the server just created elsewhere (e.g. a confirmed recurring expense). */
+  function insertRecord(e: Expense) {
+    expenses.value = [...expenses.value, e];
   }
 
   /** Delete an expense; returns what was removed so the caller can offer Undo. */
@@ -203,7 +245,14 @@ export const useExpensesStore = defineStore("expenses", () => {
 
   /** Undo a delete: add the same expense back (it gets a new id). */
   async function restore(e: Expense) {
-    await save({ cat: e.cat, amount: e.amount, date: toISODate(e.y, e.m, e.day), note: e.note ?? "" });
+    await save({
+      cat: e.cat,
+      amount: e.amount,
+      date: toISODate(e.y, e.m, e.day),
+      note: e.note ?? "",
+      merchant: e.merchant ?? "",
+      paymentMethod: e.paymentMethod ?? null,
+    });
   }
 
   return {
@@ -218,10 +267,18 @@ export const useExpensesStore = defineStore("expenses", () => {
     rangeTo,
     range,
     clearRange,
+    lastCat,
+    merchants,
+    searchQuery,
+    minAmount,
+    maxAmount,
+    searchActive,
+    clearSearch,
     loading,
     pending,
     busyId,
     monthItems,
+    scoped,
     items,
     total,
     categoryGroups,
@@ -236,5 +293,7 @@ export const useExpensesStore = defineStore("expenses", () => {
     save,
     remove,
     restore,
+    insertRecord,
+    setReceipt,
   };
 });

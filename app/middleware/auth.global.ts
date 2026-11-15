@@ -15,6 +15,11 @@ export default defineNuxtRouteMiddleware(async (to) => {
   const expenses = useExpensesStore()
   const categories = useCategoriesStore()
   const monthAmounts = useMonthAmountStore()
+  const budgetAlerts = useBudgetAlertsStore()
+  const templates = useTemplatesStore()
+  const recurring = useRecurringStore()
+  const incomes = useIncomeStore()
+  const settings = useSettingsStore()
   const localePath = useLocalePath()
 
   const isAuthPage = path === '/auth' || path === '/auth/sign-up'
@@ -31,12 +36,12 @@ export default defineNuxtRouteMiddleware(async (to) => {
   }
 
   try {
-    await Promise.all([expenses.load(), categories.load(), monthAmounts.load()])
+    await Promise.all([expenses.load(), categories.load(), monthAmounts.load(), budgetAlerts.load(), templates.load(), recurring.load(), incomes.load(), settings.load()])
   } catch (first) {
     if (statusOf(first) === 401) return signOut()
     try {
       await new Promise(resolve => setTimeout(resolve, 800))
-      await Promise.all([expenses.load(), categories.load(), monthAmounts.load()])
+      await Promise.all([expenses.load(), categories.load(), monthAmounts.load(), budgetAlerts.load(), templates.load(), recurring.load(), incomes.load(), settings.load()])
     } catch (second) {
       if (statusOf(second) === 401) return signOut()
     }

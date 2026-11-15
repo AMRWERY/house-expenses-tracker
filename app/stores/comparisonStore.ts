@@ -1,91 +1,15 @@
-import type { MonthSummary } from "~/types/composables";
-import type { CategoryKey } from "~/utils/categories";
-
-/** Totals per month, newest first, each compared with the month before it. */
+/** Totals per calendar month, newest first, each compared with the calendar month right before it. */
 export const useComparisonStore = defineStore("comparison", () => {
   const expensesStore = useExpensesStore();
   const monthAmountStore = useMonthAmountStore();
 
-  const months = computed<MonthSummary[]>(() => {
-    const byMonth = new Map<
-      string,
-      {
-        y: number;
-        m: number;
-        total: number;
-        cats: Partial<Record<CategoryKey, number>>;
-      }
-    >();
-    for (const e of expensesStore.expenses) {
-      const key = `${e.y}-${e.m}`;
-      const row = byMonth.get(key) ?? { y: e.y, m: e.m, total: 0, cats: {} };
-      row.total += e.amount;
-      row.cats[e.cat] = (row.cats[e.cat] ?? 0) + e.amount;
-      byMonth.set(key, row);
-    }
-    // A month with a main amount is listed even before its first expense.
-    for (const a of monthAmountStore.amounts) {
-      const key = `${a.y}-${a.m}`;
-      if (!byMonth.has(key)) byMonth.set(key, { y: a.y, m: a.m, total: 0, cats: {} });
-    }
-
-    const sorted = [...byMonth.values()].sort(
-      (a, b) => b.y * 12 + b.m - (a.y * 12 + a.m),
-    );
-    const max = Math.max(1, ...sorted.map((r) => r.total));
-    const { current } = expensesStore;
-
-    return sorted.map((r, i) => {
-      const isCurrent = r.y === current.y && r.m === current.m;
-      const older = sorted[i + 1];
-      const top = (Object.entries(r.cats) as [CategoryKey, number][]).sort(
-        (a, b) => b[1] - a[1],
-      )[0];
-      const amount = monthAmountStore.amountFor(r.y, r.m);
-      return {
-        key: `${r.y}-${r.m}`,
-        y: r.y,
-        m: r.m,
-        total: r.total,
-        // With a main amount the bar shows how much of it was spent; otherwise it is relative to the biggest month.
-        pct: Math.min(
-          100,
-          Math.max(2, Math.round((r.total / (amount ?? max)) * 100)),
-        ),
-        topCat: top?.[0] ?? "other",
-        isCurrent,
-        amount,
-        left: amount === null ? null : Math.round((amount - r.total) * 100) / 100,
-        delta:
-          !isCurrent && older && older.total > 0
-            ? Math.round(((r.total - older.total) / older.total) * 100)
-            : null,
-      };
-    });
-  });
-
-  // Stats over completed months only (the current month is still in progress).
-  const completed = computed(() => months.value.filter((m) => !m.isCurrent));
-  const average = computed(() =>
-    completed.value.length
-      ? Math.round(
-          completed.value.reduce((s, m) => s + m.total, 0) /
-            completed.value.length,
-        )
-      : 0,
+  const months = computed(() =>
+    buildMonthSummaries(expensesStore.expenses, monthAmountStore.amounts, expensesStore.current),
   );
-  const highest = computed(() =>
-    completed.value.reduce<MonthSummary | null>(
-      (a, m) => (!a || m.total > a.total ? m : a),
-      null,
-    ),
-  );
-  const lowest = computed(() =>
-    completed.value.reduce<MonthSummary | null>(
-      (a, m) => (!a || m.total < a.total ? m : a),
-      null,
-    ),
-  );
+  const stats = computed(() => summarizeMonths(months.value, expensesStore.current));
+  const average = computed(() => stats.value.average);
+  const highest = computed(() => stats.value.highest);
+  const lowest = computed(() => stats.value.lowest);
 
   return { months, average, highest, lowest };
 });

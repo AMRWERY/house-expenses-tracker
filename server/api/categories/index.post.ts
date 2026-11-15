@@ -1,5 +1,5 @@
 export default defineEventHandler(async (event) => {
-  const { user } = await requireUserSession(event)
+  const scope = await requireScope(event, 'admin')
   const input = parseCategoryInput(await readBody(event))
-  return createCategory(user.id, input)
+  return createCategory(scope, input)
 })

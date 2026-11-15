@@ -43,6 +43,23 @@
             />
           </div>
         </section>
+
+        <section v-if="user" class="setting rise" style="--i: 2">
+          <h2>{{ t("rollover_title") }}</h2>
+          <div class="setting-card">
+            <segmented-control
+              :model-value="settingsStore.rolloverEnabled ? 'on' : 'off'"
+              :options="rolloverOptions"
+              :label="t('rollover_title')"
+              @update:model-value="settingsStore.setRollover($event === 'on')"
+            />
+            <p class="field-hint">{{ t("rollover_hint") }}</p>
+            <p v-if="settingsStore.rolloverEnabled && settingsStore.rolloverSince" class="field-hint">
+              {{ t("rollover_since", { month: monthName(settingsStore.rolloverSince.y, settingsStore.rolloverSince.m) }) }}
+            </p>
+            <VError v-if="settingsStore.error" inline role="alert">{{ t(settingsStore.error) }}</VError>
+          </div>
+        </section>
       </template>
 
       <!-- Profile: picture, name, email -->
@@ -197,6 +214,7 @@
         </section>
       </template>
     </main>
+
   </div>
 </template>
 
@@ -249,6 +267,14 @@ const tab = computed<Tab>({
     router.replace({ query: { ...route.query, tab: value } });
   },
 });
+
+// Budget rollover (opt-in)
+const settingsStore = useSettingsStore();
+const { monthName } = useDateLabels();
+const rolloverOptions = computed(() => [
+  { value: "off", label: t("rollover_off") },
+  { value: "on", label: t("rollover_on") },
+]);
 
 // Display name
 const { nameBusy, nameError } = storeToRefs(auth);

@@ -1,6 +1,6 @@
 // Set (or change) the main amount for one month: body { y, m, amount }.
 export default defineEventHandler(async (event) => {
-  const { user } = await requireUserSession(event)
+  const scope = await requireScope(event, 'admin')
   const input = parseMonthAmountInput(await readBody(event))
-  return setMonthAmount(user.id, input)
+  return setMonthAmount(scope, input)
 })

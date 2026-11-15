@@ -14,6 +14,8 @@ export interface MonthSummary {
   topCat: string;
   /** the month in progress (its total is "so far", so it has no comparison) */
   isCurrent: boolean;
-  /** % change vs the month before; null when there is nothing to compare */
+  /** % change vs the calendar month before; null unless deltaState is 'pct' */
   delta: number | null;
+  /** 'pct' = a percentage; 'new' = the month before had no expenses (no percentage); 'none' = nothing to compare */
+  deltaState: 'pct' | 'new' | 'none';
 }

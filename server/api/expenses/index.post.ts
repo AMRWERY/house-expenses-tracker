@@ -1,5 +1,5 @@
 export default defineEventHandler(async (event) => {
-  const { user } = await requireUserSession(event)
+  const scope = await requireScope(event, 'member')
   const input = parseExpenseInput(await readBody(event))
-  return createExpense(user.id, input)
+  return createExpense(scope, input)
 })

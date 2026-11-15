@@ -34,6 +34,10 @@
         </div>
       </div>
 
+      <p v-if="level" class="budget-status mamt-note" role="status">
+        <app-icon name="alert" />{{ t(`budget_status_${level}`) }}
+      </p>
+
       <p v-if="setAside > 0" class="mamt-note">
         {{
           t("ma_set_aside", {
@@ -69,6 +73,8 @@
 </template>
 
 <script lang="ts" setup>
+import { budgetLevel } from "#shared/utils/budgetAlerts";
+
 const { t } = useI18n();
 const { monthLabel } = useDateLabels();
 
@@ -76,4 +82,5 @@ const store = useMonthAmountStore();
 const { amount, spent, left, setAside, notSetAside, canAsk } =
   storeToRefs(store);
 const { loading } = storeToRefs(useExpensesStore());
+const level = computed(() => (amount.value === null ? 0 : budgetLevel(spent.value, amount.value)));
 </script>

@@ -132,6 +132,11 @@ export const useAuthStore = defineStore("auth", () => {
     expensesStore.reset();
     categoriesStore.reset();
     monthAmountStore.reset();
+    useBudgetAlertsStore().reset();
+    useTemplatesStore().reset();
+    useRecurringStore().reset();
+    useIncomeStore().reset();
+    useSettingsStore().reset();
     sheetStore.close();
   }
 

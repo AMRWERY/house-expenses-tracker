@@ -71,8 +71,11 @@
                 >
                 <span v-else />
 
+                <span v-if="m.deltaState === 'new'" class="delta" :aria-label="t('delta_new_aria')">
+                  {{ t("delta_new") }}
+                </span>
                 <span
-                  v-if="m.delta !== null"
+                  v-else-if="m.delta !== null"
                   class="delta"
                   :class="m.delta > 0 ? 'up' : m.delta < 0 ? 'down' : ''"
                   :aria-label="`${deltaText(m.delta)} ${t('vs_prev')}`"

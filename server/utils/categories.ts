@@ -14,6 +14,7 @@ const DEFAULT_CATEGORIES: { key: string; color: string }[] = [
   { key: "fun", color: "#F43F5E" },
   { key: "other", color: "#64748B" },
 ];
+export const DEFAULT_CATEGORY_KEYS = DEFAULT_CATEGORIES.map((c) => c.key);
 export const MAX_CATEGORIES = 30;
 
 export interface CategoryRecord {
@@ -72,9 +73,9 @@ const toRecord = (r: Tables<"categories">): CategoryRecord => ({
 });
 
 /** A brand-new account has no categories yet: give it the defaults. (Deleting the last one is refused.) */
-async function ensureSeeded(userId: string) {
+async function ensureSeeded(scope: Scope) {
   const db = useSupabase();
-  const { count, error } = await db.from("categories").select("id", { count: "exact", head: true }).eq("user_id", userId);
+  const { count, error } = await db.from("categories").select("id", { count: "exact", head: true }).eq("household_id", scope.householdId);
   if (error) {
     console.error("[supabase]", error.code, error.message);
     throw createError({ statusCode: 500, message: "database_error" });
@@ -82,7 +83,7 @@ async function ensureSeeded(userId: string) {
   if ((count ?? 0) > 0) return;
 
   // No categories because the person deleted them all (see deleteCategory): don't bring the defaults back.
-  const done = must(await db.from("category_seed_done").select("user_id").eq("user_id", userId).maybeSingle());
+  const done = must(await db.from("category_seed_done").select("user_id").eq("household_id", scope.householdId).maybeSingle());
   if (done) return;
 
   // Dated far back, one millisecond apart, so the defaults keep their order and sort before custom ones.
@@ -90,49 +91,49 @@ async function ensureSeeded(userId: string) {
   must(
     await db.from("categories").upsert(
       DEFAULT_CATEGORIES.map((c, i) => ({
-        user_id: userId,
+        user_id: scope.userId, household_id: scope.householdId,
         key: c.key,
         name: null,
         color: c.color,
         icon: c.key,
         created_at: new Date(base + i + 1).toISOString(),
       })),
-      { onConflict: "user_id,key", ignoreDuplicates: true },
+      { onConflict: "household_id,key", ignoreDuplicates: true },
     ),
   );
 }
 
-export async function listCategories(userId: string) {
-  await ensureSeeded(userId);
+export async function listCategories(scope: Scope) {
+  await ensureSeeded(scope);
   const rows = must(
-    await useSupabase().from("categories").select("*").eq("user_id", userId).order("created_at").order("id"),
+    await useSupabase().from("categories").select("*").eq("household_id", scope.householdId).order("created_at").order("id"),
   );
   return (rows ?? []).map(toRecord);
 }
 
-export async function createCategory(userId: string, input: CategoryInput) {
+export async function createCategory(scope: Scope, input: CategoryInput) {
   if (input.name === null) throw bad("invalid_name"); // custom categories need a name
-  await ensureSeeded(userId);
+  await ensureSeeded(scope);
   const db = useSupabase();
-  const { count, error } = await db.from("categories").select("id", { count: "exact", head: true }).eq("user_id", userId);
+  const { count, error } = await db.from("categories").select("id", { count: "exact", head: true }).eq("household_id", scope.householdId);
   if (error) {
     console.error("[supabase]", error.code, error.message);
     throw createError({ statusCode: 500, message: "database_error" });
   }
   if ((count ?? 0) >= MAX_CATEGORIES) throw createError({ statusCode: 409, message: "category_limit" });
 
-  const row = must(await db.from("categories").insert({ user_id: userId, key: null, ...input }).select().single());
+  const row = must(await db.from("categories").insert({ user_id: scope.userId, household_id: scope.householdId, key: null, ...input }).select().single());
   return toRecord(row!);
 }
 
 /** Returns null when the category doesn't exist or belongs to someone else. */
-export async function updateCategory(userId: string, id: string, input: CategoryInput) {
+export async function updateCategory(scope: Scope, id: string, input: CategoryInput) {
   const db = useSupabase();
-  const existing = must(await db.from("categories").select("id, key").eq("id", id).eq("user_id", userId).maybeSingle());
+  const existing = must(await db.from("categories").select("id, key").eq("id", id).eq("household_id", scope.householdId).maybeSingle());
   if (!existing) return null;
   if (existing.key === null && input.name === null) throw bad("invalid_name"); // a custom category keeps a name
 
-  const row = must(await db.from("categories").update(input).eq("id", id).eq("user_id", userId).select().maybeSingle());
+  const row = must(await db.from("categories").update(input).eq("id", id).eq("household_id", scope.householdId).select().maybeSingle());
   return row ? toRecord(row) : null;
 }
 
@@ -142,10 +143,10 @@ export async function updateCategory(userId: string, id: string, input: Category
  * too: its expenses stay as they are (`movedTo` is null).
  * Returns null when it doesn't exist or belongs to someone else, otherwise what the expenses moved to.
  */
-export async function deleteCategory(userId: string, id: string) {
+export async function deleteCategory(scope: Scope, id: string) {
   const db = useSupabase();
   const rows =
-    must(await db.from("categories").select("id, key").eq("user_id", userId).order("created_at").order("id")) ?? [];
+    must(await db.from("categories").select("id, key").eq("household_id", scope.householdId).order("created_at").order("id")) ?? [];
   const target = rows.find((r) => r.id === id);
   if (!target) return null;
 
@@ -155,21 +156,23 @@ export async function deleteCategory(userId: string, id: string) {
   // The last category: nothing to move the expenses to. They keep their label, and the person must add a
   // category before adding or editing expenses. Remember it, so the defaults are not seeded again.
   if (!fallback) {
-    must(await db.from("category_seed_done").upsert({ user_id: userId }, { onConflict: "user_id" }));
-    must(await db.from("categories").delete().eq("id", id).eq("user_id", userId));
+    must(await db.from("category_seed_done").upsert({ user_id: scope.userId, household_id: scope.householdId }, { onConflict: "household_id" }));
+    must(await db.from("categories").delete().eq("id", id).eq("household_id", scope.householdId));
     return { movedTo: null };
   }
 
   const movedTo = refOf(fallback);
-  must(await db.from("expenses").update({ cat: movedTo }).eq("user_id", userId).eq("cat", refOf(target)));
-  must(await db.from("categories").delete().eq("id", id).eq("user_id", userId));
+  must(await db.from("expenses").update({ cat: movedTo }).eq("household_id", scope.householdId).eq("cat", refOf(target)));
+  must(await db.from("expense_templates").update({ cat: movedTo }).eq("household_id", scope.householdId).eq("cat", refOf(target)));
+  must(await db.from("recurring_expenses").update({ cat: movedTo }).eq("household_id", scope.householdId).eq("cat", refOf(target)));
+  must(await db.from("categories").delete().eq("id", id).eq("household_id", scope.householdId));
   return { movedTo };
 }
 
 /** An expense may only use one of THIS user's categories (a default's key, or a custom id). */
-export async function assertCategoryAllowed(userId: string, cat: string) {
-  await ensureSeeded(userId);
+export async function assertCategoryAllowed(scope: Scope, cat: string) {
+  await ensureSeeded(scope);
   const column = UUID_RE.test(cat) ? "id" : "key";
-  const row = must(await useSupabase().from("categories").select("id").eq("user_id", userId).eq(column, cat).maybeSingle());
+  const row = must(await useSupabase().from("categories").select("id").eq("household_id", scope.householdId).eq(column, cat).maybeSingle());
   if (!row) throw bad("invalid_category");
 }

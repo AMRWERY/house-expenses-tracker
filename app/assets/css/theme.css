@@ -868,9 +868,17 @@
     width: 100%;
   }
   .btn-text {
-    display: block;
+    /* icon + label side by side, centered; a long label wraps and the button grows instead of overflowing */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
     width: 100%;
-    height: 48px;
+    min-height: 48px;
+    padding-block: 8px;
+    padding-inline: 12px;
+    line-height: 1.3;
+    text-align: center;
     margin-top: 8px;
     border-radius: 12px;
     font-weight: 600;
@@ -1510,9 +1518,11 @@
       grid-column: 3;
       grid-row: 1;
       margin-inline-start: auto;
+      
     }
     /* the category chips use the whole header width, not one grid column */
     .header .filter-row,
+    .header .search,
     .header .range-row,
     .header .cat-entry {
       grid-column: 1 / -1;
@@ -2368,4 +2378,62 @@
   .auth-lang:active {
     transform: none;
   }
+}
+/* Add sheet: the "More details" toggle (Quick Add) */
+.more-toggle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 12px;
+}
+
+/* Budget status line on the month card (text + icon, never colour alone) */
+.mamt .budget-status {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 600;
+  color: #b45309;
+}
+:root[data-theme="dark"] .mamt .budget-status {
+  color: #fbbf24;
+}
+
+/* Templates: the quick-pick row in the Add sheet and the list in Settings */
+.tpl-row {
+  margin-bottom: 12px;
+  overflow-x: auto;
+  flex-wrap: nowrap;
+  scrollbar-width: none;
+}
+.tpl-row .chip {
+  flex: none;
+}
+.tpl-item {
+  width: 100%;
+  text-align: start;
+}
+
+/* Count badge on the Recurring chip */
+.chip-badge {
+  display: inline-grid;
+  place-items: center;
+  min-width: 20px;
+  height: 20px;
+  margin-inline-start: 6px;
+  padding-inline: 6px;
+  border-radius: 999px;
+  background: var(--primary);
+  color: var(--on-primary);
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+/* Rollover line under a category budget */
+.budget-roll {
+  display: block;
+  width: 100%;
+  text-align: center;
+  color: var(--text-2);
 }

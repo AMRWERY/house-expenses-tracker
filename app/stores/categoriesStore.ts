@@ -1,5 +1,6 @@
 import type { Category, CategoryDraft } from "~/types/stores/categoriesStore";
 import { ICONS, type IconName } from "~/utils/icons";
+import { rolloverFor } from "~/utils/rollover";
 
 /** What the server sends for a category. */
 interface CategoryRecord {
@@ -32,6 +33,7 @@ const FALLBACK: Category = { key: "other", id: "other", defaultKey: "other", col
 export const useCategoriesStore = defineStore("categories", () => {
   const expensesStore = useExpensesStore();
   const demo = isDemo(useRouter().currentRoute.value.query); // preview: local only, nothing is saved
+  const nuxtApp = useNuxtApp(); // captured here: composables are not available after an await
 
   // ---- State
   const all = ref<Category[]>(demo ? demoCategories() : []);
@@ -49,6 +51,12 @@ export const useCategoriesStore = defineStore("categories", () => {
   }
 
   // ---- Getters
+  /** The name to show for a category key (the person's own name, or the translated default). */
+  function label(key: string): string {
+    const c = byKey(key);
+    return c.name ?? (c.defaultKey ? nuxtApp.$i18n.t(`categories.${c.defaultKey}`) : c.key);
+  }
+
   /** A category by the key stored on an expense; unknown (e.g. just deleted) falls back to "other". */
   function byKey(key: string): Category {
     return all.value.find((c) => c.key === key) ?? all.value.find((c) => c.key === "other") ?? all.value[0] ?? FALLBACK;
@@ -58,15 +66,46 @@ export const useCategoriesStore = defineStore("categories", () => {
    * Budget status of every category that has a monthly budget, for the month being viewed:
    * `left` = budget − what's been spent in that category (negative = over budget).
    */
+  /** What was spent per category and month, so rollover can walk back through months quickly. */
+  const spentIndex = computed(() => {
+    const index = new Map<string, number>();
+    for (const e of expensesStore.expenses) {
+      const k = `${e.cat}|${e.y}|${e.m}`;
+      index.set(k, (index.get(k) ?? 0) + e.amount);
+    }
+    return index;
+  });
+
+  /**
+   * A category's budget for a month: its base budget plus what rolled over from the months before (only when the person turned
+   * rollover on). Null when the category has no budget.
+   */
+  function availableFor(c: Category, y: number, m: number): { base: number; rollover: number; available: number } | null {
+    if (c.budget === undefined) return null;
+    const settings = useSettingsStore();
+    const since = settings.rolloverEnabled ? settings.rolloverSince : null;
+    if (!since) return { base: c.budget, rollover: 0, available: c.budget };
+    const r = rolloverFor({
+      base: c.budget,
+      spentIn: (yy, mm) => spentIndex.value.get(`${c.key}|${yy}|${mm}`) ?? 0,
+      since,
+      y,
+      m,
+    });
+    return { base: c.budget, ...r };
+  }
+
   const budgets = computed(() => {
     const spent = new Map<string, number>();
     for (const e of expensesStore.monthItems) spent.set(e.cat, (spent.get(e.cat) ?? 0) + e.amount);
 
-    const status = new Map<string, { budget: number; spent: number; left: number }>();
+    const { y, m } = expensesStore.view;
+    const status = new Map<string, { budget: number; base: number; rollover: number; spent: number; left: number }>();
     for (const c of all.value) {
-      if (c.budget === undefined) continue;
+      const a = availableFor(c, y, m);
+      if (!a) continue;
       const s = spent.get(c.key) ?? 0;
-      status.set(c.key, { budget: c.budget, spent: s, left: Math.round((c.budget - s) * 100) / 100 });
+      status.set(c.key, { budget: a.available, base: a.base, rollover: a.rollover, spent: s, left: Math.round((a.available - s) * 100) / 100 });
     }
     return status;
   });
@@ -125,8 +164,12 @@ export const useCategoriesStore = defineStore("categories", () => {
       movedTo = (await $fetch<{ movedTo: string | null }>(`/api/categories/${category.id}`, { method: "DELETE" })).movedTo;
     }
     all.value = all.value.filter((c) => c.id !== category.id);
-    if (movedTo !== null) expensesStore.reassignCategory(category.key, movedTo);
+    if (movedTo !== null) {
+      expensesStore.reassignCategory(category.key, movedTo);
+      useTemplatesStore().reassignCategory(category.key, movedTo);
+      useRecurringStore().reassignCategory(category.key, movedTo);
+    }
   }
 
-  return { all, loaded, budgets, budgetSummary, byKey, load, reset, add, update, remove };
+  return { all, loaded, budgets, budgetSummary, availableFor, byKey, label, load, reset, add, update, remove };
 });

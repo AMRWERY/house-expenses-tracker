@@ -6,6 +6,7 @@ type Sheet = { mode: "add" | "edit"; expense?: Expense } | null;
 export const useSheetStore = defineStore("sheet", () => {
   const expensesStore = useExpensesStore();
   const toastStore = useToastStore();
+  const budgetAlerts = useBudgetAlertsStore();
   const nuxtApp = useNuxtApp(); // captured here: composables are not available after an await
 
   const sheet = ref<Sheet>(null);
@@ -39,7 +40,13 @@ export const useSheetStore = defineStore("sheet", () => {
     const editing = sheet.value?.mode === "edit";
     await run("save", () => expensesStore.save(draft, sheet.value?.expense?.id));
     // run() swallows failures (the sheet stays open with an error), so only a closed sheet means it worked
-    if (!sheet.value) toastStore.show({ text: nuxtApp.$i18n.t(editing ? "expense_updated" : "expense_added") });
+    if (!sheet.value) {
+      const { t } = nuxtApp.$i18n;
+      const saved = editing ? t("expense_updated") : t("expense_added");
+      // A budget that just crossed 70%, 85% or 100% is announced once, in the same message
+      const alert = budgetAlerts.announceFor(expensesStore.view.y, expensesStore.view.m);
+      toastStore.show({ text: alert ? `${saved}. ${alert}` : saved }, alert ? 6000 : 4000);
+    }
   }
 
   async function remove() {

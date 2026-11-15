@@ -1,6 +1,13 @@
 <template>
   <VSheet :title="title" @close="sheetStore.close()">
       <form novalidate @submit.prevent="submit">
+        <!-- Templates: tap one to fill the form (nothing is saved until you press Add) -->
+        <div v-if="mode === 'add' && templates.length" class="chips tpl-row" role="group" :aria-label="t('templates')">
+          <VChip v-for="tp in templates" :key="tp.id" icon="bookmark" @click="applyTemplate(tp)">
+            {{ tp.name }}
+          </VChip>
+        </div>
+
         <!-- Amount -->
         <div class="amount" :class="{ 'has-error': amountError }">
           <label class="sr-only" for="amount">{{ t("amount") }}</label>
@@ -46,8 +53,14 @@
           </VButton>
         </div>
 
+        <!-- Quick Add: date and note stay out of the way until asked for (today is the default) -->
+        <VButton v-if="!showMore" variant="text" class="more-toggle" :aria-expanded="false" @click="showMore = true">
+          {{ t("more_details") }}
+          <app-icon name="chevronDown" />
+        </VButton>
+
         <!-- Date -->
-        <div class="field-block">
+        <div v-if="showMore" class="field-block">
           <span class="field-label">{{ t("date") }}</span>
           <label class="field field-date">
             <app-icon name="calendar" />
@@ -64,7 +77,7 @@
         </div>
 
         <!-- Note -->
-        <div class="field-block">
+        <div v-if="showMore" class="field-block">
           <VTextField
             id="note"
             v-model="note"
@@ -74,6 +87,32 @@
             :placeholder="t('note_placeholder')"
           />
         </div>
+
+        <template v-if="showMore">
+          <!-- Merchant (optional), with the names used before as suggestions -->
+          <div class="field-block">
+            <VTextField
+              id="merchant"
+              v-model="merchant"
+              :label="t('merchant')"
+              type="text"
+              maxlength="60"
+              list="merchant-list"
+              autocomplete="off"
+              :placeholder="t('merchant_placeholder')"
+            />
+            <datalist id="merchant-list">
+              <option v-for="m in merchants" :key="m" :value="m" />
+            </datalist>
+          </div>
+
+          <!-- Payment method (optional): tap again to clear -->
+          <div class="field-block">
+            <span class="field-label" id="pay-label">{{ t("payment_method") }}</span>
+            <payment-method-picker v-model="paymentMethod" labelledby="pay-label" />
+          </div>
+          <receipt-field v-if="edited && !edited.titleKey" :expense-id="edited.id" :has-receipt="!!edited.hasReceipt" />
+        </template>
 
         <VError v-if="saveError" sheet role="alert">
           {{ t(saveError) }}
@@ -91,6 +130,9 @@
               : t(mode === "edit" ? "save" : "add")
           }}
         </VButton>
+        <VButton variant="text" :disabled="!!busy || !categories.all.length" @click="saveAsTemplate">
+          <app-icon name="bookmark" />{{ t("save_as_template") }}
+        </VButton>
         <VButton
           v-if="mode === 'edit'"
           variant="text"
@@ -106,6 +148,9 @@
 </template>
 
 <script lang="ts" setup>
+import type { ExpenseTemplate } from "~/types/stores/templatesStore";
+import type { PaymentMethod } from "#shared/utils/payment";
+
 const { t } = useI18n();
 
 const sheetStore = useSheetStore();
@@ -118,13 +163,20 @@ const { info } = useCategoryInfo();
 // What the sheet was opened for, captured once: the store clears it on close, while the leave
 // animation is still playing. (The page re-creates this component per expense via :key.)
 const { mode = "add", expense: e } = sheetStore.sheet ?? {};
+const edited = e;
+const lastCat = useExpensesStore().lastCat; // the category used last on this device (a plain value, read once)
 const title = mode === "edit" ? t("edit_expense") : t("add_expense");
 
 // Form state (prefilled when editing; sample rows use their translated title as the note)
 const amount = ref(e ? String(e.amount) : "");
-const cat = ref<string>(categories.byKey(e?.cat ?? "groceries").key); // an unknown/deleted category shows as "other"
+// New expenses start on the category used last (kept on this device); an unknown/deleted one shows as "other"
+const cat = ref<string>(categories.byKey(e?.cat ?? lastCat ?? "groceries").key);
 const date = ref(e ? toISODate(e.y, e.m, e.day) : today);
+const showMore = ref(mode === "edit");
 const note = ref(e ? (e.titleKey ? t(e.titleKey) : (e.note ?? "")) : "");
+const merchant = ref(e?.merchant ?? "");
+const paymentMethod = ref<PaymentMethod | null>(e?.paymentMethod ?? null);
+const { merchants } = storeToRefs(useExpensesStore());
 const amountError = ref(false);
 const amountEl = ref<HTMLInputElement>();
 
@@ -160,6 +212,40 @@ function addCategoryFirst() {
   categorySheet.startAdd();
 }
 
+const templatesStore = useTemplatesStore();
+const { templates } = storeToRefs(templatesStore);
+
+/** Fill the form from a template. Only the form changes; no expense exists until it is saved. */
+function applyTemplate(tp: ExpenseTemplate) {
+  amount.value = tp.amount !== null ? String(tp.amount) : "";
+  amountError.value = false;
+  cat.value = categories.byKey(tp.cat).key;
+  note.value = tp.note ?? "";
+  merchant.value = tp.merchant ?? "";
+  paymentMethod.value = tp.paymentMethod ?? null;
+  if (tp.note || tp.merchant || tp.paymentMethod) showMore.value = true;
+  amountEl.value?.focus({ preventScroll: true });
+}
+
+/** Keep what is typed here as a template. The name is the note, the merchant or the category. */
+async function saveAsTemplate() {
+  const value = Number(amount.value);
+  const name = (note.value.trim() || merchant.value.trim() || info(cat.value).label).slice(0, 40);
+  try {
+    await templatesStore.add({
+      name,
+      amount: value > 0 ? value : null,
+      cat: cat.value,
+      note: note.value.trim() || undefined,
+      merchant: merchant.value.trim() || undefined,
+      paymentMethod: paymentMethod.value ?? undefined,
+    });
+    useToastStore().show({ text: t("template_saved") });
+  } catch {
+    useToastStore().show({ text: t("template_save_failed"), kind: "error" });
+  }
+}
+
 function submit() {
   const value = Number(amount.value);
   if (!(value > 0)) {
@@ -172,6 +258,8 @@ function submit() {
     cat: cat.value,
     date: date.value || today,
     note: note.value,
+    merchant: merchant.value,
+    paymentMethod: paymentMethod.value,
   });
 }
 

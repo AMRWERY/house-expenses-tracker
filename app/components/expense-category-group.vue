@@ -44,6 +44,9 @@
             :style="{ width: Math.min(budgetPct, 100) + '%' }"
           />
         </div>
+        <p v-if="level" class="budget-status" role="status">
+          <app-icon name="alert" />{{ t(`budget_status_${level}`) }}
+        </p>
         <div class="cat-budget-text">
           <span>{{
             budget.left < 0 ? t("budget_over_label") : t("budget_left_label")
@@ -54,6 +57,9 @@
           >
           <small>{{
             t("budget_of", { total: formatNumber(budget.budget) })
+          }}</small>
+          <small v-if="budget.rollover > 0" class="budget-roll">{{
+            t("budget_rollover_line", { base: formatNumber(budget.base), roll: formatNumber(budget.rollover) })
           }}</small>
         </div>
       </div>
@@ -114,10 +120,9 @@
 
 <script lang="ts" setup>
 import type { Expense } from "~/types/utils";
+import { budgetLevel } from "#shared/utils/budgetAlerts";
 
 const PAGE_SIZE = 8;
-/** from this share of the budget on, the bar turns amber */
-const WARN_AT = 80;
 
 const props = defineProps<{
   cat: string;
@@ -146,13 +151,9 @@ const budgetPct = computed(() =>
     ? (budget.value.spent / budget.value.budget) * 100
     : 0,
 );
-const budgetState = computed(() =>
-  budgetPct.value > 100
-    ? "is-over"
-    : budgetPct.value >= WARN_AT
-      ? "is-warn"
-      : "",
-);
+// 70% approaching, 85% warning, 100% reached: shown as text with an icon as well as the bar colour
+const level = computed(() => (budget.value ? budgetLevel(budget.value.spent, budget.value.budget) : 0));
+const budgetState = computed(() => (level.value === 3 ? "is-over" : level.value > 0 ? "is-warn" : ""));
 
 // Each category pages on its own; deleting rows can leave the page past the end, so it is clamped.
 const page = ref(1);
@@ -264,6 +265,24 @@ const nextIcon = computed(() =>
   --state: var(--primary);
 }
 
+.budget-status {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-2);
+}
+.cat-budget.is-warn .budget-status {
+  color: #b45309;
+}
+:root[data-theme="dark"] .cat-budget.is-warn .budget-status {
+  color: #fbbf24;
+}
+.cat-budget.is-over .budget-status {
+  color: var(--expense);
+}
 .cat-budget.is-warn {
   --state: #f59e0b;
 }

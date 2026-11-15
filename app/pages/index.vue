@@ -8,16 +8,26 @@
         </VButton>
       </template>
       <month-switcher />
-      <div class="cat-entry">
+      <div class="cat-entry space-x-3">
         <VChip icon="tag" @click="categorySheetStore.open()">
           {{ t("manage_categories") }}
         </VChip>
+        <VChip icon="trendUp" @click="incomeStore.openSheet()">
+          {{ t("income") }}
+        </VChip>
+        <VChip icon="repeat" @click="recurring.openList()">
+          {{ t("recurring") }}<span v-if="recurring.due.length" class="chip-badge">{{ recurring.due.length }}</span>
+        </VChip>
       </div>
       <category-filter />
+      <expense-search />
       <date-range-filter />
     </Header>
 
     <main>
+      <!-- Recurring payments that are due (or about to be) -->
+      <recurring-due-card />
+
       <!-- This month's main amount (or a prompt to set it, e.g. at the start of a new month) -->
       <month-amount-card />
 
@@ -47,11 +57,15 @@
       <div v-else class="layout">
         <aside class="summary">
           <total-card />
+          <month-summary />
         </aside>
         <div class="list">
-          <p v-if="!items.length" class="filter-empty">
-            {{ t(range ? "no_in_range" : "no_filtered") }}
-          </p>
+          <div v-if="!items.length" class="filter-empty" role="status">
+            <p>{{ t(searchActive ? "no_search_results" : range ? "no_in_range" : "no_filtered") }}</p>
+            <VButton v-if="searchActive" variant="text" @click="expensesStore.clearSearch()">
+              {{ t("search_clear_all") }}
+            </VButton>
+          </div>
           <TransitionGroup name="grp" tag="div">
             <expense-category-group
               v-for="(g, i) in categoryGroups"
@@ -84,6 +98,14 @@
     <Transition name="sheet" appear>
       <month-amount-sheet v-if="monthAmount.sheetOpen" />
     </Transition>
+
+    <Transition name="sheet" appear>
+      <recurring-sheet v-if="recurring.sheet" />
+    </Transition>
+
+    <Transition name="sheet" appear>
+      <income-sheet v-if="incomeStore.sheetOpen" />
+    </Transition>
   </div>
 </template>
 
@@ -91,12 +113,13 @@
 const { t } = useI18n();
 const expensesStore = useExpensesStore();
 const sheetStore = useSheetStore();
-const { view, monthItems, items, categoryGroups, loading, pending, range } =
+const { view, monthItems, items, categoryGroups, loading, pending, range, searchActive } =
   storeToRefs(expensesStore);
 
 // If the first load didn't finish before the page opened (slow or failed), try again here:
 // the page shows skeletons meanwhile instead of a wrongly empty month.
 onMounted(() => {
+  recurring.announceReminders(); // once per due occurrence
   if (expensesStore.loading)
     Promise.all([
       expensesStore.load(),
@@ -108,6 +131,8 @@ onMounted(() => {
 const route = useRoute();
 const categorySheetStore = useCategorySheetStore();
 const monthAmount = useMonthAmountStore();
+const recurring = useRecurringStore();
+const incomeStore = useIncomeStore();
 
 sheetStore.openFromQuery(route.query);
 
@@ -117,5 +142,7 @@ onBeforeUnmount(() => {
   sheetStore.close();
   categorySheetStore.close();
   monthAmount.closeSheet();
+  recurring.close();
+  incomeStore.closeSheet();
 });
 </script>
