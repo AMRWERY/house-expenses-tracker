@@ -1,5 +1,6 @@
 <template>
   <section
+    ref="root"
     class="day cat-group rise"
     :class="{ 'is-collapsed': collapsed }"
     :style="{ '--i': index, '--c': category.color }"
@@ -70,7 +71,7 @@
       <div class="cat-body-inner">
         <!-- No comments inside the group: they become nodes that break hydration.
              The row being updated/deleted, and the one being added, show as skeletons. -->
-        <TransitionGroup name="xrow" tag="div" class="rows">
+        <TransitionGroup :name="paging ? '' : 'xrow'" tag="div" class="rows">
           <template v-for="(e, i) in pageItems">
             <expense-row-skeleton v-if="e.id === busyId" :key="e.id" />
 
@@ -96,7 +97,7 @@
             class="pager-btn"
             :disabled="current === 1"
             :aria-label="t('prev_page')"
-            @click="page = current - 1"
+            @click="goTo(current - 1)"
           >
             <app-icon :name="prevIcon" />
           </button>
@@ -108,7 +109,7 @@
             class="pager-btn"
             :disabled="current === pageCount"
             :aria-label="t('next_page')"
-            @click="page = current + 1"
+            @click="goTo(current + 1)"
           >
             <app-icon :name="nextIcon" />
           </button>
@@ -164,6 +165,23 @@ const current = computed(() => Math.min(page.value, pageCount.value));
 const pageItems = computed(() =>
   props.items.slice((current.value - 1) * PAGE_SIZE, current.value * PAGE_SIZE),
 );
+
+// Paging swaps every row at once. Animating that (leaving rows go absolute, entering rows slide in)
+// makes the list height jump, so the pager moves and the page scrolls. Page changes swap instantly
+// instead, then bring the category back into view if its top was scrolled off the screen.
+const root = ref<HTMLElement | null>(null);
+const paging = ref(false);
+const goTo = async (n: number) => {
+  paging.value = true;
+  page.value = n;
+  await nextTick();
+  const el = root.value;
+  if (el && el.getBoundingClientRect().top < 0) {
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    el.scrollIntoView({ block: "start", behavior: reduce ? "auto" : "smooth" });
+  }
+  paging.value = false;
+};
 
 // "Previous" sits at the inline-start edge, so the chevron direction flips with the locale.
 const prevIcon = computed(() =>
