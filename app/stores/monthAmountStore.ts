@@ -54,32 +54,32 @@ export const useMonthAmountStore = defineStore("monthAmount", () => {
 
   // ---- Actions
   /** Load every month's amount from the server (once per session). */
-  async function load() {
+  const load = async () => {
     if (loaded.value || demo) return;
     const fetcher = useRequestFetch(); // forwards the session cookie during SSR
     amounts.value = await fetcher<MonthAmount[]>("/api/month-amounts");
     loaded.value = true;
-  }
+  };
 
   /** Forget the previous user's data (on sign-out). */
-  function reset() {
+  const reset = () => {
     amounts.value = [];
     loaded.value = false;
     sheetOpen.value = false;
     saving.value = false;
     saveError.value = "";
-  }
+  };
 
-  function openSheet() {
+  const openSheet = () => {
     saveError.value = "";
     sheetOpen.value = true;
-  }
-  function closeSheet() {
+  };
+  const closeSheet = () => {
     sheetOpen.value = false;
-  }
+  };
 
   /** Save the viewed month's amount. The server must accept it before the sheet closes. */
-  async function save(value: number) {
+  const save = async (value: number) => {
     if (saving.value) return;
     saving.value = true;
     saveError.value = "";
@@ -95,7 +95,7 @@ export const useMonthAmountStore = defineStore("monthAmount", () => {
     } finally {
       saving.value = false;
     }
-  }
+  };
 
   return {
     amounts,

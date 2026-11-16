@@ -11,14 +11,14 @@ const isInt = (v: unknown, min: number, max: number): v is number =>
   typeof v === "number" && Number.isInteger(v) && v >= min && v <= max;
 
 /** Body: { rolloverEnabled, y, m } where (y, m) is the person's current month (used as the start when turning rollover on). */
-export function parseSettingsInput(body: unknown) {
+export const parseSettingsInput = (body: unknown) => {
   const b = (body ?? {}) as Record<string, unknown>;
   if (typeof b.rolloverEnabled !== "boolean") throw bad("invalid_setting");
   if (!isInt(b.y, MIN_YEAR, MAX_YEAR) || !isInt(b.m, 0, 11)) throw bad("invalid_date");
   return { rolloverEnabled: b.rolloverEnabled, y: b.y, m: b.m };
-}
+};
 
-export async function getSettings(scope: Scope): Promise<SettingsRecord> {
+export const getSettings = async (scope: Scope): Promise<SettingsRecord> => {
   const row = must(await useSupabase().from("user_settings").select("*").eq("household_id", scope.householdId).maybeSingle());
   if (!row) return { rolloverEnabled: false, rolloverSince: null };
   return {
@@ -26,13 +26,13 @@ export async function getSettings(scope: Scope): Promise<SettingsRecord> {
     rolloverSince:
       row.rollover_since_y !== null && row.rollover_since_m !== null ? { y: row.rollover_since_y, m: row.rollover_since_m } : null,
   };
-}
+};
 
 /**
  * Turn rollover on or off. Turning it ON when it was off starts it this month (the past is never rewritten);
  * turning it OFF keeps every expense and budget as it was.
  */
-export async function saveSettings(scope: Scope, input: { rolloverEnabled: boolean; y: number; m: number }) {
+export const saveSettings = async (scope: Scope, input: { rolloverEnabled: boolean; y: number; m: number }) => {
   const current = await getSettings(scope);
   const since =
     input.rolloverEnabled && !current.rolloverEnabled ? { y: input.y, m: input.m } : current.rolloverSince;
@@ -51,4 +51,4 @@ export async function saveSettings(scope: Scope, input: { rolloverEnabled: boole
       ),
   );
   return getSettings(scope);
-}
+};

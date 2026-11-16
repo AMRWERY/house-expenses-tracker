@@ -12,15 +12,15 @@ type DocWithVT = Document & { startViewTransition?: (update: () => Promise<void>
 let point: { x: number; y: number } | null = null;
 
 /** Client only, once: remember the last pointer position. */
-export function trackPointer() {
+export const trackPointer = () => {
   window.addEventListener("pointerdown", (e) => (point = { x: e.clientX, y: e.clientY }), {
     capture: true,
     passive: true,
   });
-}
+};
 
 /** Run `update` (which changes the page) inside an animated transition. Resolves once the animation is done. */
-export async function withViewTransition(update: () => Promise<void> | void, kind: ViewTransitionKind) {
+export const withViewTransition = async (update: () => Promise<void> | void, kind: ViewTransitionKind) => {
   const doc = document as DocWithVT;
   if (!doc.startViewTransition || window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
     await update();
@@ -55,4 +55,4 @@ export async function withViewTransition(update: () => Promise<void> | void, kin
   } finally {
     delete root.dataset.vt;
   }
-}
+};

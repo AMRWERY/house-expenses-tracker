@@ -6,7 +6,7 @@ const MAX_SOURCE_BYTES = 15 * 1024 * 1024;
  * Resizing here keeps uploads small and strips whatever the original carried (location data, huge dimensions).
  * Throws `invalid_image` for anything that is not a readable png/jpeg/webp.
  */
-export async function fileToReceipt(file: File, maxSide = 1600): Promise<string> {
+export const fileToReceipt = async (file: File, maxSide = 1600): Promise<string> => {
   if (!ACCEPTED.includes(file.type) || file.size > MAX_SOURCE_BYTES) throw new Error("invalid_image");
   let bitmap: ImageBitmap;
   try {
@@ -25,4 +25,4 @@ export async function fileToReceipt(file: File, maxSide = 1600): Promise<string>
   ctx.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
   bitmap.close();
   return canvas.toDataURL("image/jpeg", 0.8);
-}
+};

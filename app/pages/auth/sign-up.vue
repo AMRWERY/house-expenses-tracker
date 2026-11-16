@@ -120,7 +120,7 @@ const cooldownClock = computed(() => {
   return h > 0 ? `${h}:${pad(m)}:${pad(sec)}` : `${pad(m)}:${pad(sec)}`;
 });
 
-function submit() {
+const submit = () => {
   if (!canSubmit.value) return;
   auth.signUp(
     email.value.trim().toLowerCase(),
@@ -128,5 +128,5 @@ function submit() {
     name.value,
     avatar.value || undefined,
   );
-}
+};
 </script>

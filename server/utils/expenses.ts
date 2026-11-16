@@ -19,7 +19,7 @@ const isInt = (v: unknown, min: number, max: number): v is number =>
   typeof v === "number" && Number.isInteger(v) && v >= min && v <= max;
 
 /** Validate a request body; never trust the client's shape. (The database re-checks the same rules.) */
-export function parseExpenseInput(body: unknown): ExpenseInput {
+export const parseExpenseInput = (body: unknown): ExpenseInput => {
   const b = (body ?? {}) as Record<string, unknown>;
 
   // Shape only: whether it is a built-in key or one of THIS user's categories is checked in
@@ -82,13 +82,13 @@ export function parseExpenseInput(body: unknown): ExpenseInput {
     paidBy,
     splitWith,
   };
-}
+};
 
-export function parseId(raw: string | undefined) {
+export const parseId = (raw: string | undefined) => {
   const id = Number(raw);
   if (!Number.isInteger(id) || id < 1) throw bad("invalid_id");
   return id;
-}
+};
 
 // ---- Supabase access. Every query is scoped by household_id: the secret key bypasses RLS, so this is the guard. ----
 
@@ -124,7 +124,7 @@ export const expenseColumns = (i: ExpenseInput) => ({
   payment_method: i.paymentMethod ?? null,
 });
 
-export async function listExpenses(scope: Scope) {
+export const listExpenses = async (scope: Scope) => {
   const db = useSupabase();
   const [rows, splits] = await Promise.all([
     db.from("expenses").select("*").eq("household_id", scope.householdId).order("y").order("m").order("day").order("id"),
@@ -133,18 +133,18 @@ export async function listExpenses(scope: Scope) {
   const byExpense = new Map<number, SplitRow[]>();
   for (const s of must(splits) ?? []) byExpense.set(Number(s.expense_id), [...(byExpense.get(Number(s.expense_id)) ?? []), s]);
   return (must(rows) ?? []).map((r) => toRecord(r, byExpense.get(Number(r.id))));
-}
+};
 
 /** paidBy and splitWith may only name CURRENT members of this household. */
-async function assertMembers(scope: Scope, input: ExpenseInput) {
+const assertMembers = async (scope: Scope, input: ExpenseInput) => {
   const named = [...(input.paidBy ? [input.paidBy] : []), ...(input.splitWith ?? [])];
   if (!named.length) return;
   const members = await memberIds(scope.householdId);
   if (named.some((id) => !members.has(id))) throw createError({ statusCode: 400, message: "invalid_member" });
-}
+};
 
 /** Write an equal split: the payer's own share is settled from the start. Shares add up to the amount exactly. */
-async function writeSplits(scope: Scope, expenseId: number, amount: number, payer: string, participants: string[]) {
+const writeSplits = async (scope: Scope, expenseId: number, amount: number, payer: string, participants: string[]) => {
   const db = useSupabase();
   must(await db.from("expense_splits").delete().eq("expense_id", expenseId).eq("household_id", scope.householdId));
   if (!participants.length) return;
@@ -164,9 +164,9 @@ async function writeSplits(scope: Scope, expenseId: number, amount: number, paye
       })),
     ),
   );
-}
+};
 
-export async function createExpense(scope: Scope, input: ExpenseInput) {
+export const createExpense = async (scope: Scope, input: ExpenseInput) => {
   await assertCategoryAllowed(scope, input.cat);
   await assertMembers(scope, input);
   const paidBy = input.paidBy ?? scope.userId;
@@ -192,15 +192,15 @@ export async function createExpense(scope: Scope, input: ExpenseInput) {
     }
   }
   return (await getExpense(scope, Number(row.id))) ?? toRecord(row);
-}
+};
 
-async function getExpense(scope: Scope, id: number) {
+const getExpense = async (scope: Scope, id: number) => {
   const db = useSupabase();
   const row = must(await db.from("expenses").select("*").eq("id", id).eq("household_id", scope.householdId).maybeSingle());
   if (!row) return null;
   const splits = must(await db.from("expense_splits").select("*").eq("expense_id", id).eq("household_id", scope.householdId)) ?? [];
   return toRecord(row, splits);
-}
+};
 
 /** A split with someone's share already settled is locked: changing it would rewrite what people agreed. */
 const isLocked = (splits: SplitRow[], payer: string | null) => splits.some((s) => s.settled_at !== null && s.user_id !== payer);
@@ -209,7 +209,7 @@ const isLocked = (splits: SplitRow[], payer: string | null) => splits.some((s) =
  * Returns null when the expense doesn't exist in this household. Members may change their own expenses; admins and owners
  * anyone's (403 otherwise).
  */
-export async function updateExpense(scope: Scope, id: number, input: ExpenseInput) {
+export const updateExpense = async (scope: Scope, id: number, input: ExpenseInput) => {
   await assertCategoryAllowed(scope, input.cat);
   await assertMembers(scope, input);
   const db = useSupabase();
@@ -241,10 +241,10 @@ export async function updateExpense(scope: Scope, id: number, input: ExpenseInpu
     await writeSplits(scope, id, input.amount, paidBy, participants);
   }
   return getExpense(scope, id);
-}
+};
 
 /** Returns false when the expense doesn't exist in this household; 403 when it is someone else's and you are a plain member. */
-export async function deleteExpense(scope: Scope, id: number) {
+export const deleteExpense = async (scope: Scope, id: number) => {
   const db = useSupabase();
   const existing = must(await db.from("expenses").select("id, created_by").eq("id", id).eq("household_id", scope.householdId).maybeSingle());
   if (!existing) return false;
@@ -254,10 +254,10 @@ export async function deleteExpense(scope: Scope, id: number) {
   );
   if (row?.receipt_path) await deleteReceiptFile(row.receipt_path);
   return !!row;
-}
+};
 
 /** Mark one participant's share settled or not. The payer's own share can't change. Every change is logged. */
-export async function setShareSettled(scope: Scope, expenseId: number, participantId: string, settled: boolean) {
+export const setShareSettled = async (scope: Scope, expenseId: number, participantId: string, settled: boolean) => {
   if (!UUID_RE.test(participantId)) throw createError({ statusCode: 400, message: "invalid_member" });
   const db = useSupabase();
   const expense = must(await db.from("expenses").select("id, paid_by").eq("id", expenseId).eq("household_id", scope.householdId).maybeSingle());
@@ -286,4 +286,4 @@ export async function setShareSettled(scope: Scope, expenseId: number, participa
     }),
   );
   return getExpense(scope, expenseId);
-}
+};

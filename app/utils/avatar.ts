@@ -9,7 +9,7 @@ const MAX_SOURCE_BYTES = 10 * 1024 * 1024;
  * Resizing here keeps uploads tiny and strips whatever the original carried (location data, huge dimensions).
  * Throws `invalid_image` for anything that is not a readable png/jpeg/webp.
  */
-export async function fileToAvatar(file: File, size = 256): Promise<string> {
+export const fileToAvatar = async (file: File, size = 256): Promise<string> => {
   if (!ACCEPTED.includes(file.type) || file.size > MAX_SOURCE_BYTES) throw new Error("invalid_image");
   let bitmap: ImageBitmap;
   try {
@@ -27,4 +27,4 @@ export async function fileToAvatar(file: File, size = 256): Promise<string> {
   ctx.drawImage(bitmap, (bitmap.width - side) / 2, (bitmap.height - side) / 2, side, side, 0, 0, size, size);
   bitmap.close();
   return canvas.toDataURL("image/jpeg", 0.85);
-}
+};

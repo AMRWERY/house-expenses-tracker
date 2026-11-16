@@ -10,25 +10,25 @@ export const useSettingsStore = defineStore("settings", () => {
   const saving = ref(false);
   const error = ref<"save_failed" | "">("");
 
-  async function load() {
+  const load = async () => {
     if (loaded.value || demo) return;
     const fetcher = useRequestFetch(); // forwards the session cookie during SSR
     const s = await fetcher<{ rolloverEnabled: boolean; rolloverSince: { y: number; m: number } | null }>("/api/settings");
     rolloverEnabled.value = s.rolloverEnabled;
     rolloverSince.value = s.rolloverSince;
     loaded.value = true;
-  }
+  };
 
-  function reset() {
+  const reset = () => {
     rolloverEnabled.value = false;
     rolloverSince.value = null;
     loaded.value = false;
     saving.value = false;
     error.value = "";
-  }
+  };
 
   /** Turn rollover on or off. The server must accept it before the screen changes. */
-  async function setRollover(enabled: boolean) {
+  const setRollover = async (enabled: boolean) => {
     if (saving.value) return;
     saving.value = true;
     error.value = "";
@@ -47,7 +47,7 @@ export const useSettingsStore = defineStore("settings", () => {
     } finally {
       saving.value = false;
     }
-  }
+  };
 
   return { rolloverEnabled, rolloverSince, loaded, saving, error, load, reset, setRollover };
 });

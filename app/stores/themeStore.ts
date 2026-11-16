@@ -27,12 +27,12 @@ export const useThemeStore = defineStore("theme", () => {
   });
   const resolved = mode;
 
-  function pin(value: unknown) {
+  const pin = (value: unknown) => {
     override.value = value === "light" || value === "dark" ? value : null;
-  }
+  };
 
   /** Client only, once: follow the OS setting and write the resolved theme onto <html>. */
-  function init() {
+  const init = () => {
     const mq = window.matchMedia("(prefers-color-scheme: dark)");
     // Earlier versions kept the choice in localStorage: carry it over once.
     if (!stored.value) {
@@ -51,7 +51,7 @@ export const useThemeStore = defineStore("theme", () => {
       },
       { immediate: true },
     );
-  }
+  };
 
   return { mode, resolved, pin, init };
 });

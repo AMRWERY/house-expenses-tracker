@@ -4,32 +4,32 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/
 const bad = (statusCode: number, message: string) => createError({ statusCode, message })
 
 /** Emails are case-insensitive: store and compare them lowercase. */
-export function parseEmail(value: unknown) {
+export const parseEmail = (value: unknown) => {
   const email = typeof value === 'string' ? value.trim().toLowerCase() : ''
   if (email.length > 254 || !EMAIL_RE.test(email)) throw bad(400, 'invalid_email')
   return email
-}
+};
 
 /** The name a person types at sign-up: 1-40 characters, extra spaces collapsed. */
-export function parseName(value: unknown) {
+export const parseName = (value: unknown) => {
   const name = typeof value === 'string' ? value.replace(/\s+/g, ' ').trim() : ''
   if (name.length < 1 || name.length > 40) throw bad(400, 'invalid_name')
   return name
-}
+};
 
 /** The name to greet someone with: their sign-up name (kept in Supabase user_metadata), else the part of the email before "@". */
-export function displayNameOf(user: { email?: string | null; user_metadata?: Record<string, unknown> | null }, fallbackEmail: string) {
+export const displayNameOf = (user: { email?: string | null; user_metadata?: Record<string, unknown> | null }, fallbackEmail: string) => {
   const raw = user.user_metadata?.name
   const name = typeof raw === 'string' ? raw.replace(/\s+/g, ' ').trim().slice(0, 40) : ''
   return name || (user.email ?? fallbackEmail).split('@')[0] || ''
-}
+};
 
 /**
  * Validate an email + password request body.
  * `isNew` enforces the password rules (sign-up); sign-in only needs something to check.
  * 72 is the bcrypt limit Supabase uses; longer passwords would be silently truncated.
  */
-export function parseCredentials(body: unknown, isNew: boolean) {
+export const parseCredentials = (body: unknown, isNew: boolean) => {
   const b = (body ?? {}) as Record<string, unknown>
   const email = parseEmail(b.email)
   const password = typeof b.password === 'string' ? b.password : ''
@@ -40,10 +40,10 @@ export function parseCredentials(body: unknown, isNew: boolean) {
     throw bad(401, 'invalid_credentials') // same answer as a wrong password: don't hint
   }
   return { email, password }
-}
+};
 
 /** Validate a change-password request body: the current password and a new one that follows the sign-up rules. */
-export function parsePasswordChange(body: unknown) {
+export const parsePasswordChange = (body: unknown) => {
   const b = (body ?? {}) as Record<string, unknown>
   const currentPassword = typeof b.currentPassword === 'string' ? b.currentPassword : ''
   const newPassword = typeof b.newPassword === 'string' ? b.newPassword : ''
@@ -52,4 +52,4 @@ export function parsePasswordChange(body: unknown) {
   if (newPassword.length < 8 || newPassword.length > 72) throw bad(400, 'weak_password')
   if (newPassword === currentPassword) throw bad(400, 'same_password')
   return { currentPassword, newPassword }
-}
+};

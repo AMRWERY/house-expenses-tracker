@@ -51,19 +51,19 @@ let audio: HTMLAudioElement | undefined;
 const clock = (sec: number) =>
   `${Math.floor(sec / 60)}:${String(Math.floor(sec % 60)).padStart(2, "0")}`;
 
-function stop() {
+const stop = () => {
   audio?.pause();
   audio = undefined;
   playing.value = false;
   current.value = 0;
-}
+};
 
 const close = () => {
   stop();
   store.close();
 };
 
-function ensureAudio() {
+const ensureAudio = () => {
   if (audio || !ayah.value?.audio) return audio;
   audio = new Audio(ayah.value.audio);
   audio.addEventListener(
@@ -82,23 +82,23 @@ function ensureAudio() {
   });
   audio.addEventListener("error", stop);
   return audio;
-}
+};
 
 // Play or pause.
-function toggle() {
+const toggle = () => {
   const el = ensureAudio();
   if (!el) return;
   if (!el.paused) return el.pause();
   el.play().catch(stop);
-}
+};
 
-function seek(ev: Event) {
+const seek = (ev: Event) => {
   const el = ensureAudio();
   if (!el || !duration.value) return;
   el.currentTime =
     (Number((ev.target as HTMLInputElement).value) / 100) * duration.value;
   current.value = el.currentTime;
-}
+};
 
 const onKey = (ev: KeyboardEvent) => ev.key === "Escape" && close();
 

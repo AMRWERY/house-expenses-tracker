@@ -16,24 +16,24 @@ interface Searchable {
 const ARABIC_INDIC = "٠١٢٣٤٥٦٧٨٩";
 
 /** Latin digits, "." as the decimal mark, lowercase, no Arabic diacritics: so "٢٥٠" finds 250 and "قهوة" ignores marks. */
-export function normalizeText(s: string) {
+export const normalizeText = (s: string) => {
   return s
     .replace(/[٠-٩]/g, (d) => String(ARABIC_INDIC.indexOf(d)))
     .replace(/٫/g, ".")
     .replace(/[\u064B-\u065F\u0670\u0640]/g, "")
     .toLowerCase()
     .trim();
-}
+};
 
 /** Parse an amount typed in a filter box; empty or invalid = no limit. */
-export function parseAmountBound(s: string): number | null {
+export const parseAmountBound = (s: string): number | null => {
   const n = Number(normalizeText(s).replace(/,/g, "."));
   return s.trim() !== "" && Number.isFinite(n) && n >= 0 ? n : null;
-}
+};
 
 export const isSearchActive = (f: SearchFilter) => f.q.trim() !== "" || f.min !== null || f.max !== null;
 
-export function matchesSearch(e: Searchable, f: SearchFilter) {
+export const matchesSearch = (e: Searchable, f: SearchFilter) => {
   if (f.min !== null && e.amount < f.min) return false;
   if (f.max !== null && e.amount > f.max) return false;
   const q = normalizeText(f.q);
@@ -47,4 +47,4 @@ export function matchesSearch(e: Searchable, f: SearchFilter) {
     if (String(e.amount).includes(typed) || e.amount.toFixed(2).includes(typed)) return true;
   }
   return false;
-}
+};

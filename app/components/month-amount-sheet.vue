@@ -50,7 +50,7 @@ const amountError = ref(false);
 const amountEl = ref<HTMLInputElement>();
 
 // Accept Arabic-Indic digits, keep digits and one decimal point.
-function onAmountInput() {
+const onAmountInput = () => {
   const latin = amount.value
     .replace(/[٠-٩]/g, (d) => String("٠١٢٣٤٥٦٧٨٩".indexOf(d)))
     .replace(/[٫,]/g, ".")
@@ -58,9 +58,9 @@ function onAmountInput() {
   const [int = "", ...rest] = latin.split(".");
   amount.value = rest.length ? `${int}.${rest.join("")}` : int;
   if (amountError.value && Number(amount.value) > 0) amountError.value = false;
-}
+};
 
-function submit() {
+const submit = () => {
   const value = Number(amount.value);
   if (!(value > 0)) {
     amountError.value = true;
@@ -68,7 +68,7 @@ function submit() {
     return;
   }
   store.save(value);
-}
+};
 
 // Esc closes; body doesn't scroll behind the sheet.
 const onKey = (ev: KeyboardEvent) => ev.key === "Escape" && store.closeSheet();

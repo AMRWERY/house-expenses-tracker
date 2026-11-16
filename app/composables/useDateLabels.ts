@@ -1,5 +1,5 @@
 /** Language-dependent date text for the expense screens (the stores hold only raw numbers). */
-export function useDateLabels() {
+export const useDateLabels = () => {
   const { t, locale } = useI18n();
   const expensesStore = useExpensesStore();
 
@@ -37,4 +37,4 @@ export function useDateLabels() {
   };
 
   return { dateLocale, monthName, monthLabel, dayLabel, isoLabel };
-}
+};

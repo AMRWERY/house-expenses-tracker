@@ -214,14 +214,14 @@ const heading = computed(() =>
 const { status, dueText, repeatText } = useRecurringText();
 
 // ---- amount typing (Arabic-Indic digits accepted, like the expense form)
-function cleanAmount(v: string) {
+const cleanAmount = (v: string) => {
   const latin = v
     .replace(/[٠-٩]/g, (d) => String("٠١٢٣٤٥٦٧٨٩".indexOf(d)))
     .replace(/[٫,]/g, ".")
     .replace(/[^0-9.]/g, "");
   const [int = "", ...rest] = latin.split(".");
   return rest.length ? `${int}.${rest.join("")}` : int;
-}
+};
 const openPicker = (ev: Event) => (ev.target as HTMLInputElement).showPicker?.();
 
 // ---- form state (prefilled when editing, or from the rule being confirmed)
@@ -241,7 +241,7 @@ const showMore = ref(false);
 const formError = ref("");
 
 /** (Re)fill the fields for the view that just opened: the rule being edited or confirmed, or a blank new one. */
-function init() {
+const init = () => {
   const r0 = formRule.value ?? confirmRule.value;
   title.value = r0?.title ?? "";
   amountText.value = r0 ? String(r0.amount) : "";
@@ -257,11 +257,11 @@ function init() {
   paymentMethod.value = r0?.paymentMethod ?? null;
   showMore.value = !!(r0?.note || r0?.merchant || r0?.paymentMethod);
   formError.value = "";
-}
+};
 init();
 watch(() => store.sheet, init);
 
-async function submitForm() {
+const submitForm = async () => {
   formError.value = "";
   const value = Number(amountText.value);
   amountError.value = !(value > 0);
@@ -291,25 +291,25 @@ async function submitForm() {
     useToastStore().show({ text: t(editing.value ? "recurring_updated" : "recurring_added") });
     store.openList();
   }
-}
+};
 
-async function removeRule() {
+const removeRule = async () => {
   if (formRule.value && (await store.remove(formRule.value.id))) {
     useToastStore().show({ text: t("recurring_deleted") });
     store.openList();
   }
-}
+};
 
 // ---- confirm
-async function submitConfirm() {
+const submitConfirm = async () => {
   const value = Number(amountText.value);
   amountError.value = !(value > 0);
   if (amountError.value || !confirmRule.value) return;
   if (await store.confirm(confirmRule.value, value)) store.openList();
-}
-async function skipOne() {
+};
+const skipOne = async () => {
   if (confirmRule.value && (await store.skip(confirmRule.value))) store.openList();
-}
+};
 
 // Esc closes; body doesn't scroll behind the sheet.
 const onKey = (ev: KeyboardEvent) => ev.key === "Escape" && store.close();

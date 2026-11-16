@@ -119,15 +119,15 @@ export const useExpensesStore = defineStore("expenses", () => {
 
   // ---- Actions
   /** Load the signed-in user's expenses from the server (once per session). */
-  async function load() {
+  const load = async () => {
     if (loaded.value) return;
     const fetcher = useRequestFetch(); // forwards the session cookie during SSR
     expenses.value = await fetcher<Expense[]>("/api/expenses");
     loaded.value = true;
-  }
+  };
 
   /** Forget the previous user's data (on sign-out). */
-  function reset() {
+  const reset = () => {
     expenses.value = [];
     loaded.value = false;
     filterCat.value = null;
@@ -135,27 +135,27 @@ export const useExpensesStore = defineStore("expenses", () => {
     clearSearch();
     pending.value = null;
     busyId.value = null;
-  }
+  };
 
   const setFilter = (key: string | null) => (filterCat.value = key);
   const clearRange = () => (rangeFrom.value = rangeTo.value = "");
 
   /** After a category is deleted the server moves its expenses; mirror that here. */
-  function reassignCategory(from: string, to: string) {
+  const reassignCategory = (from: string, to: string) => {
     expenses.value = expenses.value.map((e) => (e.cat === from ? { ...e, cat: to } : e));
     if (filterCat.value === from) filterCat.value = null; // the filtered category is gone
-  }
+  };
 
   /** Historical expenses are allowed back to the supported range (shared/utils/limits.ts), the same one the server enforces. */
   const FIRST_DAY_ISO = EARLIEST_DATE_ISO;
   const canGoPrev = computed(() => view.value.y > MIN_YEAR || view.value.m > 0);
 
-  function shiftMonth(delta: number) {
+  const shiftMonth = (delta: number) => {
     const d = new Date(view.value.y, view.value.m + delta, 1);
     const target = { y: d.getFullYear(), m: d.getMonth() };
     if (target.y < MIN_YEAR || target.y > MAX_YEAR) return;
     view.value = target;
-  }
+  };
   const prevMonth = () => shiftMonth(-1);
   const nextMonth = () => shiftMonth(1);
 
@@ -163,7 +163,7 @@ export const useExpensesStore = defineStore("expenses", () => {
    * Add (no id) or update (with id) from a sheet draft, then jump to that month (and drop a non-matching category filter) so it's visible.
    * Saved on the server first; the list only changes once the server accepts it (throws otherwise).
    */
-  async function save(draft: ExpenseDraft, id?: number) {
+  const save = async (draft: ExpenseDraft, id?: number) => {
     const [y = current.y, mo = current.m + 1, d = 1] = draft.date
       .split("-")
       .map(Number);
@@ -218,20 +218,20 @@ export const useExpensesStore = defineStore("expenses", () => {
     view.value = { y, m: mo - 1 };
     // A category filter would hide an expense saved under a different category until a reload.
     if (filterCat.value && filterCat.value !== data.cat) filterCat.value = null;
-  }
+  };
 
   /** A receipt was attached or removed on the server: mirror the flag so the row shows it. */
-  function setReceipt(id: number, has: boolean) {
+  const setReceipt = (id: number, has: boolean) => {
     expenses.value = expenses.value.map((e) => (e.id === id ? { ...e, hasReceipt: has || undefined } : e));
-  }
+  };
 
   /** Add a record the server just created elsewhere (e.g. a confirmed recurring expense). */
-  function insertRecord(e: Expense) {
+  const insertRecord = (e: Expense) => {
     expenses.value = [...expenses.value, e];
-  }
+  };
 
   /** Delete an expense; returns what was removed so the caller can offer Undo. */
-  async function remove(id: number) {
+  const remove = async (id: number) => {
     const removed = expenses.value.find((e) => e.id === id);
     busyId.value = id; // its row shows as a skeleton until the server answers
     try {
@@ -241,10 +241,10 @@ export const useExpensesStore = defineStore("expenses", () => {
       busyId.value = null; // on failure the row comes back and the sheet shows the error
     }
     return removed;
-  }
+  };
 
   /** Undo a delete: add the same expense back (it gets a new id). */
-  async function restore(e: Expense) {
+  const restore = async (e: Expense) => {
     await save({
       cat: e.cat,
       amount: e.amount,
@@ -253,7 +253,7 @@ export const useExpensesStore = defineStore("expenses", () => {
       merchant: e.merchant ?? "",
       paymentMethod: e.paymentMethod ?? null,
     });
-  }
+  };
 
   return {
     expenses,

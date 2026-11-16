@@ -60,7 +60,7 @@ const removeLabel = computed(() => t("remove_photo"));
 
 const input = ref<HTMLInputElement>();
 
-async function onChange() {
+const onChange = async () => {
   const file = input.value?.files?.[0];
   if (!file) return;
   try {
@@ -70,7 +70,7 @@ async function onChange() {
   } finally {
     if (input.value) input.value.value = ""; // picking the same file again must still fire
   }
-}
+};
 </script>
 
 <style scoped>

@@ -24,7 +24,7 @@ export interface RandomAyah {
 }
 
 /** One random Ayah in Arabic, plus the English translation when `withTranslation` is set. */
-export async function fetchRandomAyah(withTranslation: boolean): Promise<RandomAyah> {
+export const fetchRandomAyah = async (withTranslation: boolean): Promise<RandomAyah> => {
   const number = Math.floor(Math.random() * TOTAL_AYAHS) + 1
   const editions = withTranslation ? `${ARABIC},${RECITER},${ENGLISH}` : `${ARABIC},${RECITER}`
   const res = await $fetch<{ data: ApiAyah[] }>(`${API}/ayah/${number}/editions/${editions}`, {
@@ -40,4 +40,4 @@ export async function fetchRandomAyah(withTranslation: boolean): Promise<RandomA
     surahName: arabic.surah.name,
     surahEnglishName: arabic.surah.englishName,
   }
-}
+};

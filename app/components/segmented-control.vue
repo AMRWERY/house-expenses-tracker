@@ -40,12 +40,12 @@ const index = computed(() =>
 );
 
 // Arrow keys move the selection; "next" follows the reading direction.
-function onKey(e: KeyboardEvent) {
+const onKey = (e: KeyboardEvent) => {
   const dir = e.key === "ArrowRight" ? 1 : e.key === "ArrowLeft" ? -1 : 0;
   if (!dir) return;
   e.preventDefault();
   const step = locale.value === "ar" ? -dir : dir;
   const n = props.options.length;
   emit("update:modelValue", props.options[(index.value + step + n) % n]!.value);
-}
+};
 </script>

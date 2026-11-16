@@ -58,25 +58,25 @@ const isInt = (v: unknown, min: number, max: number): v is number =>
   typeof v === "number" && Number.isInteger(v) && v >= min && v <= max;
 
 /** A YYYY-MM-DD in the supported years. */
-function parseDate(v: unknown, error = "invalid_date"): string {
+const parseDate = (v: unknown, error = "invalid_date"): string => {
   if (typeof v !== "string") throw bad(error);
   const p = parseISO(v);
   if (!p || p.y < MIN_YEAR || p.y > MAX_YEAR) throw bad(error);
   return v;
-}
+};
 
 /**
  * The client's "today" must be a real date close to the server's (any time zone is within a day of UTC):
  * it is trusted only for choosing where a schedule resumes, never for authorization.
  */
-export function parseToday(v: unknown): string {
+export const parseToday = (v: unknown): string => {
   const today = parseDate(v);
   const server = new Date().toISOString().slice(0, 10);
   if (today < addDays(server, -2) || today > addDays(server, 2)) throw bad("invalid_date");
   return today;
-}
+};
 
-export function parseRecurringInput(body: unknown): RecurringInput {
+export const parseRecurringInput = (body: unknown): RecurringInput => {
   const b = (body ?? {}) as Record<string, unknown>;
   if (typeof b.title !== "string" || b.title.trim().length < 1 || b.title.trim().length > 60) throw bad("invalid_name");
   if (typeof b.amount !== "number" || !Number.isFinite(b.amount) || b.amount <= 0 || b.amount > 1e9) throw bad("invalid_amount");
@@ -113,10 +113,10 @@ export function parseRecurringInput(body: unknown): RecurringInput {
     remindDaysBefore: b.remindDaysBefore,
     today: parseToday(b.today),
   };
-}
+};
 
 /** Body of confirm/skip: which occurrence, and (confirm only) an amount different from the rule's. */
-export function parseOccurrenceAction(body: unknown) {
+export const parseOccurrenceAction = (body: unknown) => {
   const b = (body ?? {}) as Record<string, unknown>;
   const date = parseDate(b.date);
   let amount: number | undefined;
@@ -125,7 +125,7 @@ export function parseOccurrenceAction(body: unknown) {
     amount = Math.round(b.amount * 100) / 100;
   }
   return { date, amount };
-}
+};
 
 // ---- Supabase access. Every query is scoped by user_id: the secret key bypasses RLS, so this is the guard. ----
 
@@ -147,15 +147,15 @@ const toRecord = (r: Tables<"recurring_expenses">): RecurringRecord => ({
   lastRemindedFor: r.last_reminded_for,
 });
 
-async function getRule(scope: Scope, id: string) {
+const getRule = async (scope: Scope, id: string) => {
   const row = must(await useSupabase().from("recurring_expenses").select("*").eq("id", id).eq("household_id", scope.householdId).maybeSingle());
   return row ?? null;
-}
+};
 
-export async function listRecurring(scope: Scope) {
+export const listRecurring = async (scope: Scope) => {
   const rows = must(await useSupabase().from("recurring_expenses").select("*").eq("household_id", scope.householdId).order("created_at").order("id"));
   return (rows ?? []).map(toRecord);
-}
+};
 
 const columns = (i: RecurringInput) => ({
   title: i.title,
@@ -171,7 +171,7 @@ const columns = (i: RecurringInput) => ({
   remind_days_before: i.remindDaysBefore,
 });
 
-export async function createRecurring(scope: Scope, input: RecurringInput) {
+export const createRecurring = async (scope: Scope, input: RecurringInput) => {
   await assertCategoryAllowed(scope, input.cat);
   const db = useSupabase();
   const { count, error } = await db.from("recurring_expenses").select("id", { count: "exact", head: true }).eq("household_id", scope.householdId);
@@ -185,10 +185,10 @@ export async function createRecurring(scope: Scope, input: RecurringInput) {
     await db.from("recurring_expenses").insert({ user_id: scope.userId, household_id: scope.householdId, ...columns(input), next_due: input.startDate }).select().single(),
   );
   return toRecord(row!);
-}
+};
 
 /** Returns null when the rule doesn't exist or belongs to someone else. Expenses already recorded are never touched. */
-export async function updateRecurring(scope: Scope, id: string, input: RecurringInput) {
+export const updateRecurring = async (scope: Scope, id: string, input: RecurringInput) => {
   await assertCategoryAllowed(scope, input.cat);
   const current = await getRule(scope, id);
   if (!current) return null;
@@ -214,10 +214,10 @@ export async function updateRecurring(scope: Scope, id: string, input: Recurring
       .maybeSingle(),
   );
   return row ? toRecord(row) : null;
-}
+};
 
 /** Pause keeps the rule and its history. Resuming skips whatever fell due while it was paused. */
-export async function setRecurringActive(scope: Scope, id: string, active: boolean, today: string) {
+export const setRecurringActive = async (scope: Scope, id: string, active: boolean, today: string) => {
   const current = await getRule(scope, id);
   if (!current) return null;
   let nextDue = current.next_due;
@@ -240,15 +240,15 @@ export async function setRecurringActive(scope: Scope, id: string, active: boole
       .maybeSingle(),
   );
   return row ? toRecord(row) : null;
-}
+};
 
-export async function deleteRecurring(scope: Scope, id: string) {
+export const deleteRecurring = async (scope: Scope, id: string) => {
   const row = must(await useSupabase().from("recurring_expenses").delete().eq("id", id).eq("household_id", scope.householdId).select("id").maybeSingle());
   return !!row;
-}
+};
 
 /** Remember that the reminder for this occurrence was shown, so it is shown once. */
-export async function markReminded(scope: Scope, id: string, date: string) {
+export const markReminded = async (scope: Scope, id: string, date: string) => {
   const row = must(
     await useSupabase()
       .from("recurring_expenses")
@@ -260,10 +260,10 @@ export async function markReminded(scope: Scope, id: string, date: string) {
       .maybeSingle(),
   );
   return row ? toRecord(row) : null;
-}
+};
 
 /** Move the rule on to its next occurrence after `date` was handled. */
-async function advanceRule(scope: Scope, rule: Tables<"recurring_expenses">, date: string) {
+const advanceRule = async (scope: Scope, rule: Tables<"recurring_expenses">, date: string) => {
   const next = advance(date, rule.start_date, rule.frequency as Frequency, rule.interval_count, rule.end_date);
   const row = must(
     await useSupabase()
@@ -276,18 +276,18 @@ async function advanceRule(scope: Scope, rule: Tables<"recurring_expenses">, dat
       .maybeSingle(),
   );
   return row ? toRecord(row) : toRecord((await getRule(scope, rule.id)) ?? rule);
-}
+};
 
 /**
  * Handle one occurrence: confirm (adds the expense) or skip (adds nothing). The occurrence row is written FIRST: its unique
  * key is the guard against duplicates. If adding the expense then fails, the claim is released so the person can try again.
  */
-export async function handleOccurrence(
+export const handleOccurrence = async (
   scope: Scope,
   id: string,
   action: { date: string; amount?: number },
   status: "confirmed" | "skipped",
-) {
+) => {
   const rule = await getRule(scope, id);
   if (!rule) return null;
   if (!rule.active) throw createError({ statusCode: 409, message: "recurring_paused" });
@@ -331,4 +331,4 @@ export async function handleOccurrence(
   }
   const updated = await advanceRule(scope, rule, action.date);
   return { rule: updated, expense };
-}
+};

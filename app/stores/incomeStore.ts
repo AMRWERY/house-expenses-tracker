@@ -29,18 +29,18 @@ export const useIncomeStore = defineStore("income", () => {
       }, 0) * 100,
     ) / 100;
 
-  async function load() {
+  const load = async () => {
     if (loaded.value || demo) return;
     const fetcher = useRequestFetch(); // forwards the session cookie during SSR
     incomes.value = await fetcher<Income[]>("/api/incomes");
     loaded.value = true;
-  }
+  };
 
-  function reset() {
+  const reset = () => {
     incomes.value = [];
     loaded.value = false;
     sheetOpen.value = false;
-  }
+  };
 
   const openSheet = () => (sheetOpen.value = true);
   const closeSheet = () => (sheetOpen.value = false);
@@ -51,7 +51,7 @@ export const useIncomeStore = defineStore("income", () => {
   };
 
   /** Add (no id) or update (with id). Saved on the server first; the list only changes once it accepts (throws otherwise). */
-  async function save(draft: IncomeDraft, id?: number) {
+  const save = async (draft: IncomeDraft, id?: number) => {
     const body = toBody(draft);
     const record = demo
       ? { id: id ?? Math.max(0, ...incomes.value.map((i) => i.id)) + 1, ...body }
@@ -59,13 +59,13 @@ export const useIncomeStore = defineStore("income", () => {
     incomes.value = id ? incomes.value.map((i) => (i.id === id ? record : i)) : [...incomes.value, record];
     expensesStore.view = { y: record.y, m: record.m }; // jump to the month it belongs in, so it is visible
     toastStore.show({ text: nuxtApp.$i18n.t(id ? "income_updated" : "income_added") });
-  }
+  };
 
-  async function remove(id: number) {
+  const remove = async (id: number) => {
     if (!demo) await $fetch(`/api/incomes/${id}`, { method: "DELETE" });
     incomes.value = incomes.value.filter((i) => i.id !== id);
     toastStore.show({ text: nuxtApp.$i18n.t("income_deleted") });
-  }
+  };
 
   return { incomes, loaded, sheetOpen, monthIncomes, totalBetween, load, reset, openSheet, closeSheet, save, remove };
 });

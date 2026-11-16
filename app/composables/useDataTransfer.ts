@@ -1,7 +1,7 @@
 /** Settings > Data: export expenses as CSV, download a JSON backup, restore from one. */
 const MAX_BACKUP_BYTES = 20 * 1024 * 1024;
 
-export function useDataTransfer() {
+export const useDataTransfer = () => {
   const { t } = useI18n();
   const expensesStore = useExpensesStore();
   const categoriesStore = useCategoriesStore();
@@ -16,7 +16,7 @@ export function useDataTransfer() {
   const error = ref("");
 
   /** Every expense, oldest first, as a spreadsheet file. Built in the browser from the person's own loaded data. */
-  function exportCsv() {
+  const exportCsv = () => {
     error.value = "";
     const expenseRows = [...expensesStore.expenses]
       .sort((a, b) => toISODate(a.y, a.m, a.day).localeCompare(toISODate(b.y, b.m, b.day)) || a.id - b.id)
@@ -36,9 +36,9 @@ export function useDataTransfer() {
     const header = [t("csv_type"), t("date"), t("amount"), t("category"), t("merchant"), t("payment_method"), t("note")];
     downloadFile(`expenses-${expensesStore.todayISO}.csv`, "text/csv", toCsv([header, ...rows]));
     toast.show({ text: t("export_done", { n: rows.length }) });
-  }
+  };
 
-  async function downloadBackup() {
+  const downloadBackup = async () => {
     if (busy.value) return;
     busy.value = "backup";
     error.value = "";
@@ -51,10 +51,10 @@ export function useDataTransfer() {
     } finally {
       busy.value = "";
     }
-  }
+  };
 
   /** Add a backup file's data to the account (nothing is deleted; restoring twice adds nothing new). */
-  async function restore(file: File) {
+  const restore = async (file: File) => {
     if (busy.value) return;
     error.value = "";
     if (file.size > MAX_BACKUP_BYTES) {
@@ -84,7 +84,7 @@ export function useDataTransfer() {
     } finally {
       busy.value = "";
     }
-  }
+  };
 
   return { busy, error, exportCsv, downloadBackup, restore };
-}
+};

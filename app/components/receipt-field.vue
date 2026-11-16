@@ -30,7 +30,7 @@ const has = ref(props.hasReceipt);
 const version = ref(0); // changes the URL after a replace, so the browser fetches the new picture
 const url = computed(() => `/api/expenses/${props.expenseId}/receipt?v=${version.value}`);
 
-async function pick(ev: Event) {
+const pick = async (ev: Event) => {
   const el = ev.target as HTMLInputElement;
   const file = el.files?.[0];
   el.value = ""; // picking the same file again must still fire
@@ -49,9 +49,9 @@ async function pick(ev: Event) {
   } finally {
     busy.value = false;
   }
-}
+};
 
-async function remove() {
+const remove = async () => {
   if (busy.value) return;
   busy.value = true;
   error.value = "";
@@ -64,7 +64,7 @@ async function remove() {
   } finally {
     busy.value = false;
   }
-}
+};
 </script>
 
 <style scoped>

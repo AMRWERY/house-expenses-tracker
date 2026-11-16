@@ -36,7 +36,7 @@ export interface BackupFile {
 const bad = () => createError({ statusCode: 400, message: "invalid_backup" });
 
 /** Validate an uploaded backup; never trust its shape. Throws 400 invalid_backup. */
-export function parseBackup(body: unknown): BackupFile {
+export const parseBackup = (body: unknown): BackupFile => {
   const b = (body ?? {}) as Record<string, unknown>;
   if (b.version !== BACKUP_VERSION) throw bad();
   const { categories, expenses, monthAmounts } = b;
@@ -69,9 +69,9 @@ export function parseBackup(body: unknown): BackupFile {
   } catch {
     throw bad(); // whatever field was wrong, the file is not a valid backup
   }
-}
+};
 
-export async function buildBackup(scope: Scope): Promise<BackupFile> {
+export const buildBackup = async (scope: Scope): Promise<BackupFile> => {
   const [categories, expenses, monthAmounts, incomes] = await Promise.all([
     listCategories(scope),
     listExpenses(scope),
@@ -93,12 +93,12 @@ export async function buildBackup(scope: Scope): Promise<BackupFile> {
     monthAmounts,
     incomes: incomes.map(({ id: _id, ...rest }) => rest),
   };
-}
+};
 
 const signature = (e: ExpenseInput) =>
   `${e.cat}|${e.amount}|${e.y}|${e.m}|${e.day}|${e.note ?? ""}|${e.merchant ?? ""}|${e.paymentMethod ?? ""}`;
 
-export async function restoreBackup(scope: Scope, file: BackupFile) {
+export const restoreBackup = async (scope: Scope, file: BackupFile) => {
   const db = useSupabase();
   const existing = await listCategories(scope); // also creates the defaults for a brand-new account
 
@@ -175,4 +175,4 @@ export async function restoreBackup(scope: Scope, file: BackupFile) {
     monthAmounts: file.monthAmounts.length,
     categories: file.categories.length,
   };
-}
+};

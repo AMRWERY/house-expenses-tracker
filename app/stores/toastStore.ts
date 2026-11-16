@@ -16,23 +16,23 @@ export const useToastStore = defineStore("toast", () => {
   let timer: ReturnType<typeof setTimeout> | undefined;
   let nextId = 1;
 
-  function dismiss() {
+  const dismiss = () => {
     clearTimeout(timer);
     toast.value = null;
-  }
+  };
 
-  function show(next: Omit<Toast, "id">, duration = 4000) {
+  const show = (next: Omit<Toast, "id">, duration = 4000) => {
     clearTimeout(timer);
     toast.value = { ...next, id: nextId++ };
     timer = setTimeout(dismiss, duration);
-  }
+  };
 
   /** Run the toast's action once, then close it. */
-  async function runAction() {
+  const runAction = async () => {
     const action = toast.value?.onAction;
     dismiss();
     await action?.();
-  }
+  };
 
   return { toast, show, dismiss, runAction };
 });

@@ -5,7 +5,7 @@ import type { CategoryKey } from '~/utils/categories'
  * Sample expenses for the dev-only preview (?demo=1): the current month (days counted back from `today`,
  * clamped to the 1st, total 8,450) plus category totals for the 5 previous months so Compare has data.
  */
-export function buildDemoExpenses(today: Date): Expense[] {
+export const buildDemoExpenses = (today: Date): Expense[] => {
   const ago = (n: number) => Math.max(1, today.getDate() - n)
   const base = { y: today.getFullYear(), m: today.getMonth() }
   const sample: Omit<Expense, 'id' | 'y' | 'm'>[] = [
@@ -36,4 +36,4 @@ export function buildDemoExpenses(today: Date): Expense[] {
     }))
   })
   return [...current, ...past]
-}
+};

@@ -174,14 +174,14 @@ const nameError = ref(false);
 const confirming = ref(false);
 
 // Accept Arabic-Indic digits, keep digits and one decimal point.
-function onBudgetInput() {
+const onBudgetInput = () => {
   const latin = budget.value
     .replace(/[٠-٩]/g, (d) => String("٠١٢٣٤٥٦٧٨٩".indexOf(d)))
     .replace(/[٫,]/g, ".")
     .replace(/[^0-9.]/g, "");
   const [int = "", ...rest] = latin.split(".");
   budget.value = rest.length ? `${int}.${rest.join("")}` : int;
-}
+};
 const nameEl = ref<HTMLInputElement>();
 
 // Budgets are set aside out of the viewed month's main amount: show what stays unclaimed after this change.
@@ -200,7 +200,7 @@ const freeAfter = computed(() => {
   );
 });
 
-function submit() {
+const submit = () => {
   if (!name.value.trim()) {
     nameError.value = true;
     nameEl.value?.focus();
@@ -221,13 +221,13 @@ function submit() {
     icon: icon.value,
     budget: budgetValue,
   });
-}
+};
 
 /** Close the dialog first, then delete (the sheet goes back to the list while it runs). */
-function confirmDelete() {
+const confirmDelete = () => {
   confirming.value = false;
   sheet.remove();
-}
+};
 
 // Esc closes just the dialog, not the sheet behind it.
 const onDialogKey = (ev: KeyboardEvent) => {

@@ -35,12 +35,8 @@ export const useCategoriesStore = defineStore("categories", () => {
   const demo = isDemo(useRouter().currentRoute.value.query); // preview: local only, nothing is saved
   const nuxtApp = useNuxtApp(); // captured here: composables are not available after an await
 
-  // ---- State
-  const all = ref<Category[]>(demo ? demoCategories() : []);
-  const loaded = ref(false);
-
   /** The preview has no server, so it starts with the 7 defaults locally. */
-  function demoCategories(): Category[] {
+  const demoCategories = (): Category[] => {
     return CATEGORY_KEYS.map((key) => ({
       key,
       id: key,
@@ -48,19 +44,23 @@ export const useCategoriesStore = defineStore("categories", () => {
       color: CATEGORY_COLORS[key],
       icon: key as IconName,
     }));
-  }
+  };
+
+  // ---- State
+  const all = ref<Category[]>(demo ? demoCategories() : []);
+  const loaded = ref(false);
 
   // ---- Getters
   /** The name to show for a category key (the person's own name, or the translated default). */
-  function label(key: string): string {
+  const label = (key: string): string => {
     const c = byKey(key);
     return c.name ?? (c.defaultKey ? nuxtApp.$i18n.t(`categories.${c.defaultKey}`) : c.key);
-  }
+  };
 
   /** A category by the key stored on an expense; unknown (e.g. just deleted) falls back to "other". */
-  function byKey(key: string): Category {
+  const byKey = (key: string): Category => {
     return all.value.find((c) => c.key === key) ?? all.value.find((c) => c.key === "other") ?? all.value[0] ?? FALLBACK;
-  }
+  };
 
   /**
    * Budget status of every category that has a monthly budget, for the month being viewed:
@@ -80,7 +80,7 @@ export const useCategoriesStore = defineStore("categories", () => {
    * A category's budget for a month: its base budget plus what rolled over from the months before (only when the person turned
    * rollover on). Null when the category has no budget.
    */
-  function availableFor(c: Category, y: number, m: number): { base: number; rollover: number; available: number } | null {
+  const availableFor = (c: Category, y: number, m: number): { base: number; rollover: number; available: number } | null => {
     if (c.budget === undefined) return null;
     const settings = useSettingsStore();
     const since = settings.rolloverEnabled ? settings.rolloverSince : null;
@@ -93,7 +93,7 @@ export const useCategoriesStore = defineStore("categories", () => {
       m,
     });
     return { base: c.budget, ...r };
-  }
+  };
 
   const budgets = computed(() => {
     const spent = new Map<string, number>();
@@ -123,39 +123,39 @@ export const useCategoriesStore = defineStore("categories", () => {
 
   // ---- Actions
   /** Load the signed-in user's categories from the server (once per session). */
-  async function load() {
+  const load = async () => {
     if (loaded.value || demo) return;
     const fetcher = useRequestFetch(); // forwards the session cookie during SSR
     all.value = (await fetcher<CategoryRecord[]>("/api/categories")).map(toCategory);
     loaded.value = true;
-  }
+  };
 
   /** Forget the previous user's data (on sign-out). */
-  function reset() {
+  const reset = () => {
     all.value = demo ? demoCategories() : [];
     loaded.value = false;
-  }
+  };
 
   /** Saved on the server first; the list only changes once the server accepts it (throws otherwise). */
-  async function add(draft: CategoryDraft) {
+  const add = async (draft: CategoryDraft) => {
     const record = demo
       ? { id: `demo-${Date.now()}`, key: null, ...draft }
       : await $fetch<CategoryRecord>("/api/categories", { method: "POST", body: draft });
     all.value = [...all.value, toCategory(record)];
-  }
+  };
 
-  async function update(category: Category, draft: CategoryDraft) {
+  const update = async (category: Category, draft: CategoryDraft) => {
     const record = demo
       ? { id: category.id, key: category.defaultKey ?? null, ...draft }
       : await $fetch<CategoryRecord>(`/api/categories/${category.id}`, { method: "PUT", body: draft });
     all.value = all.value.map((c) => (c.id === category.id ? toCategory(record) : c));
-  }
+  };
 
   /**
    * Delete one; its expenses move to another category, mirrored here from what the server did.
    * Deleting the last category is allowed: there is nowhere to move its expenses (`movedTo` is null), so they stay.
    */
-  async function remove(category: Category) {
+  const remove = async (category: Category) => {
     let movedTo: string | null;
     if (demo) {
       const rest = all.value.filter((c) => c.id !== category.id);
@@ -168,7 +168,7 @@ export const useCategoriesStore = defineStore("categories", () => {
       expensesStore.reassignCategory(category.key, movedTo);
       useRecurringStore().reassignCategory(category.key, movedTo);
     }
-  }
+  };
 
   return { all, loaded, budgets, budgetSummary, availableFor, byKey, label, load, reset, add, update, remove };
 });

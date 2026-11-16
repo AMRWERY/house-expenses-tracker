@@ -23,7 +23,7 @@ const iso = (e: { y: number; m: number; day: number }) =>
  * Everything the short written summary says, as plain numbers: each statement the screen shows is one of these values,
  * calculated only from the person's records.
  */
-export function summarize(i: SummaryInput) {
+export const summarize = (i: SummaryInput) => {
   const expenseTotal = round2(i.expenses.reduce((s, e) => s + e.amount, 0));
   const byCat = new Map<string, number>();
   for (const e of i.expenses) byCat.set(e.cat, (byCat.get(e.cat) ?? 0) + e.amount);
@@ -59,7 +59,7 @@ export function summarize(i: SummaryInput) {
     deltaPct,
     freeDays,
   };
-}
+};
 
 /** The last day of a month as YYYY-MM-DD (`m` is 0-based). */
 export const monthBounds = (y: number, m: number) => {

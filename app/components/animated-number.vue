@@ -13,7 +13,7 @@ const props = withDefaults(
 const shown = ref(props.value); // the server renders the final value; the count-up starts once mounted
 let raf = 0;
 
-function animate(from: number, to: number) {
+const animate = (from: number, to: number) => {
   cancelAnimationFrame(raf);
   if (
     from === to ||
@@ -31,7 +31,7 @@ function animate(from: number, to: number) {
     if (p < 1) raf = requestAnimationFrame(tick);
   };
   raf = requestAnimationFrame(tick);
-}
+};
 
 onMounted(() => animate(0, props.value));
 

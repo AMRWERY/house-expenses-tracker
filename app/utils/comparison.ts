@@ -21,11 +21,11 @@ const round2 = (n: number) => Math.round(n * 100) / 100;
  * A month without records is a zero-spend month. Each month is compared with the calendar month
  * right before it, never with "the previous month that has data".
  */
-export function buildMonthSummaries(
+export const buildMonthSummaries = (
   expenses: SpendRow[],
   amounts: AmountRow[],
   current: { y: number; m: number },
-): MonthSummary[] {
+): MonthSummary[] => {
   const totals = new Map<number, { total: number; cats: Record<string, number> }>();
   let first = Infinity;
   let last = -Infinity;
@@ -89,13 +89,13 @@ export function buildMonthSummaries(
       };
     })
     .reverse();
-}
+};
 
 /**
  * Average, highest and lowest over COMPLETED months only (the month in progress and later ones are left out).
  * Empty months inside the period count as zero.
  */
-export function summarizeMonths(months: MonthSummary[], current: { y: number; m: number }) {
+export const summarizeMonths = (months: MonthSummary[], current: { y: number; m: number }) => {
   const now = idx(current.y, current.m);
   const completed = months.filter((m) => idx(m.y, m.m) < now);
   const average = completed.length
@@ -108,4 +108,4 @@ export function summarizeMonths(months: MonthSummary[], current: { y: number; m:
     if (!lowest || m.total < lowest.total) lowest = m;
   }
   return { average, highest, lowest };
-}
+};

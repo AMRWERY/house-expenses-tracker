@@ -12,14 +12,14 @@ const MAX_MONTHS_BACK = 240; // a safety cap: 20 years of carry-over
  *
  * The base is the category's current budget for every month: past bases are not stored.
  */
-export function rolloverFor(opts: {
+export const rolloverFor = (opts: {
   base: number;
   /** what was spent in the category in a month */
   spentIn: (y: number, m: number) => number;
   since: { y: number; m: number };
   y: number;
   m: number;
-}): { rollover: number; available: number } {
+}): { rollover: number; available: number } => {
   const target = opts.y * 12 + opts.m;
   const first = Math.max(opts.since.y * 12 + opts.since.m, target - MAX_MONTHS_BACK);
   let carry = 0;
@@ -28,4 +28,4 @@ export function rolloverFor(opts: {
     carry = Math.max(0, round2(available - opts.spentIn(Math.floor(i / 12), i % 12)));
   }
   return { rollover: round2(carry), available: round2(opts.base + carry) };
-}
+};

@@ -13,13 +13,13 @@ const isInt = (v: unknown, min: number, max: number): v is number =>
   typeof v === "number" && Number.isInteger(v) && v >= min && v <= max;
 
 /** Validate a request body; never trust the client's shape. (The database re-checks the same rules.) */
-export function parseMonthAmountInput(body: unknown): MonthAmountRecord {
+export const parseMonthAmountInput = (body: unknown): MonthAmountRecord => {
   const b = (body ?? {}) as Record<string, unknown>;
   if (!isInt(b.y, MIN_YEAR, MAX_YEAR) || !isInt(b.m, 0, 11)) throw bad("invalid_date");
   if (typeof b.amount !== "number" || !Number.isFinite(b.amount) || b.amount <= 0 || b.amount > 1e9)
     throw bad("invalid_amount");
   return { y: b.y, m: b.m, amount: Math.round(b.amount * 100) / 100 };
-}
+};
 
 const toRecord = (r: Tables<"month_amounts">): MonthAmountRecord => ({
   y: r.y,
@@ -29,15 +29,15 @@ const toRecord = (r: Tables<"month_amounts">): MonthAmountRecord => ({
 
 // ---- Supabase access. Every query is scoped by user_id: the secret key bypasses RLS, so this is the guard. ----
 
-export async function listMonthAmounts(scope: Scope) {
+export const listMonthAmounts = async (scope: Scope) => {
   const rows = must(
     await useSupabase().from("month_amounts").select("*").eq("household_id", scope.householdId).order("y").order("m"),
   );
   return (rows ?? []).map(toRecord);
-}
+};
 
 /** Create or replace the amount for that month. */
-export async function setMonthAmount(scope: Scope, input: MonthAmountRecord) {
+export const setMonthAmount = async (scope: Scope, input: MonthAmountRecord) => {
   const row = must(
     await useSupabase()
       .from("month_amounts")
@@ -49,4 +49,4 @@ export async function setMonthAmount(scope: Scope, input: MonthAmountRecord) {
       .single(),
   );
   return toRecord(row!);
-}
+};

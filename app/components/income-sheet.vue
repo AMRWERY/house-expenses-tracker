@@ -116,7 +116,7 @@ const amountEl = ref<HTMLInputElement>();
 const busy = ref<"save" | "delete" | "">("");
 const error = ref("");
 
-function startForm(income?: Income) {
+const startForm = (income?: Income) => {
   editingIncome.value = income ?? null;
   amount.value = income ? String(income.amount) : "";
   source.value = income?.source ?? "salary";
@@ -132,20 +132,20 @@ function startForm(income?: Income) {
   error.value = "";
   mode.value = "form";
   nextTick(() => !income && amountEl.value?.focus({ preventScroll: true }));
-}
+};
 const backToList = () => (mode.value = "list");
 
-function cleanAmount(v: string) {
+const cleanAmount = (v: string) => {
   const latin = v
     .replace(/[٠-٩]/g, (d) => String("٠١٢٣٤٥٦٧٨٩".indexOf(d)))
     .replace(/[٫,]/g, ".")
     .replace(/[^0-9.]/g, "");
   const [int = "", ...rest] = latin.split(".");
   return rest.length ? `${int}.${rest.join("")}` : int;
-}
+};
 const openPicker = (ev: Event) => (ev.target as HTMLInputElement).showPicker?.();
 
-async function run(kind: "save" | "delete", action: () => Promise<void>) {
+const run = async (kind: "save" | "delete", action: () => Promise<void>) => {
   if (busy.value) return;
   busy.value = kind;
   error.value = "";
@@ -157,14 +157,14 @@ async function run(kind: "save" | "delete", action: () => Promise<void>) {
   } finally {
     busy.value = "";
   }
-}
+};
 
-function submit() {
+const submit = () => {
   const value = Number(amount.value);
   amountError.value = !(value > 0);
   if (amountError.value) return amountEl.value?.focus();
   return run("save", () => store.save({ amount: value, source: source.value, date: date.value || todayISO, note: note.value }, editingIncome.value?.id));
-}
+};
 const removeIncome = () => run("delete", () => store.remove(editingIncome.value!.id));
 
 // Esc closes; body doesn't scroll behind the sheet.

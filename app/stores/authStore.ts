@@ -31,7 +31,7 @@ export const useAuthStore = defineStore("auth", () => {
     return t("wait_seconds", Math.max(1, s));
   });
 
-  function describe(e: unknown): AuthMessageKey {
+  const describe = (e: unknown): AuthMessageKey => {
     const err = e as {
       statusCode?: number;
       status?: number;
@@ -55,20 +55,20 @@ export const useAuthStore = defineStore("auth", () => {
     if (status === 401 && msg === "invalid_credentials")
       return "invalid_credentials";
     return "auth_failed";
-  }
+  };
 
   // Sign-up results are shown as a toast (the message key is translated here, like the other stores do).
-  function showToast(key: AuthMessageKey, kind: "success" | "error") {
+  const showToast = (key: AuthMessageKey, kind: "success" | "error") => {
     useToastStore().show({ text: useNuxtApp().$i18n.t(key, { time: waitText.value }), kind, position: "center" });
-  }
+  };
 
-  function clearMessages() {
+  const clearMessages = () => {
     error.value = "";
     notice.value = "";
-  }
+  };
 
   /** `action` resolves 'done' (signed in), 'notice' (show the message, stay here) or false (failed). */
-  async function run(action: () => Promise<"done" | "notice">, asToast = false) {
+  const run = async (action: () => Promise<"done" | "notice">, asToast = false) => {
     if (busy.value) return;
     busy.value = true;
     clearMessages();
@@ -86,7 +86,7 @@ export const useAuthStore = defineStore("auth", () => {
     } finally {
       busy.value = false;
     }
-  }
+  };
 
   const signIn = (email: string, password: string) =>
     run(async () => {
@@ -102,13 +102,13 @@ export const useAuthStore = defineStore("auth", () => {
   const signUpCooldown = ref(0);
   let cooldownTimer: ReturnType<typeof setInterval> | undefined;
 
-  function startSignUpCooldown(seconds: number) {
+  const startSignUpCooldown = (seconds: number) => {
     clearInterval(cooldownTimer);
     signUpCooldown.value = seconds;
     cooldownTimer = setInterval(() => {
       if (--signUpCooldown.value <= 0) clearInterval(cooldownTimer);
     }, 1000);
-  }
+  };
 
   const signUp = (email: string, password: string, name: string, avatar?: string) =>
     run(async () => {
@@ -127,7 +127,7 @@ export const useAuthStore = defineStore("auth", () => {
     }, true);
 
   /** End the session and never leave one person's data in memory for the next. */
-  async function clearSession() {
+  const clearSession = async () => {
     await session.clear();
     expensesStore.reset();
     categoriesStore.reset();
@@ -137,20 +137,20 @@ export const useAuthStore = defineStore("auth", () => {
     useIncomeStore().reset();
     useSettingsStore().reset();
     sheetStore.close();
-  }
+  };
 
   // Change password (Settings). Has its own busy/message state so it never mixes with the sign-in form's.
   const passwordBusy = ref(false);
   const passwordError = ref<AuthMessageKey | "">("");
   const passwordNotice = ref<AuthMessageKey | "">("");
 
-  function clearPasswordMessages() {
+  const clearPasswordMessages = () => {
     passwordError.value = "";
     passwordNotice.value = "";
-  }
+  };
 
   /** Resolves true when the password was changed. */
-  async function changePassword(currentPassword: string, newPassword: string) {
+  const changePassword = async (currentPassword: string, newPassword: string) => {
     if (passwordBusy.value) return false;
     passwordBusy.value = true;
     clearPasswordMessages();
@@ -167,13 +167,13 @@ export const useAuthStore = defineStore("auth", () => {
     } finally {
       passwordBusy.value = false;
     }
-  }
+  };
 
   // Display name (Settings). Resolves true when the new name was saved.
   const nameBusy = ref(false);
   const nameError = ref<AuthMessageKey | "">("");
 
-  async function updateName(name: string) {
+  const updateName = async (name: string) => {
     if (nameBusy.value) return false;
     nameBusy.value = true;
     nameError.value = "";
@@ -187,7 +187,7 @@ export const useAuthStore = defineStore("auth", () => {
     } finally {
       nameBusy.value = false;
     }
-  }
+  };
 
   // Profile picture. The picture itself is served by /api/avatar; the version in the URL makes the browser
   // fetch it again after an upload (and the server answers with the default picture when there is none).
@@ -197,16 +197,16 @@ export const useAuthStore = defineStore("auth", () => {
   /** Whether an uploaded picture exists (null until known). Drives the remove (x) button. */
   const hasAvatar = ref<boolean | null>(null);
 
-  async function loadAvatarStatus() {
+  const loadAvatarStatus = async () => {
     try {
       hasAvatar.value = (await $fetch<{ has: boolean }>("/api/avatar/status")).has;
     } catch {
       hasAvatar.value = null;
     }
-  }
+  };
 
   /** Delete the uploaded picture; the default one shows again. Resolves true on success. */
-  async function removeAvatar() {
+  const removeAvatar = async () => {
     if (avatarBusy.value) return false;
     avatarBusy.value = true;
     avatarError.value = "";
@@ -221,11 +221,11 @@ export const useAuthStore = defineStore("auth", () => {
     } finally {
       avatarBusy.value = false;
     }
-  }
+  };
   const avatarError = ref<AuthMessageKey | "">("");
 
   /** Resolves true when the new picture was saved. */
-  async function uploadAvatar(image: string) {
+  const uploadAvatar = async (image: string) => {
     if (avatarBusy.value) return false;
     avatarBusy.value = true;
     avatarError.value = "";
@@ -241,12 +241,12 @@ export const useAuthStore = defineStore("auth", () => {
     } finally {
       avatarBusy.value = false;
     }
-  }
+  };
 
-  async function logout() {
+  const logout = async () => {
     await clearSession();
     await navigateTo(useNuxtApp().$localePath("/auth"));
-  }
+  };
 
   return {
     busy,

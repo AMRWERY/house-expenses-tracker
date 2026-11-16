@@ -24,24 +24,24 @@ export const useBudgetAlertsStore = defineStore("budgetAlerts", () => {
   const announced = ref(new Map<string, number>());
   const loaded = ref(false);
 
-  async function load() {
+  const load = async () => {
     if (loaded.value || demo) return;
     const fetcher = useRequestFetch(); // forwards the session cookie during SSR
     const rows = await fetcher<AlertRecord[]>("/api/budget-alerts");
     announced.value = new Map(rows.map((r) => [keyOf(r.scope, r.y, r.m), r.level]));
     loaded.value = true;
-  }
+  };
 
-  function reset() {
+  const reset = () => {
     announced.value = new Map();
     loaded.value = false;
-  }
+  };
 
   /**
    * After an expense in month (y, m) was saved: find budgets that crossed a threshold not announced yet, remember them,
    * and return the message for the most serious one (or null).
    */
-  function announceFor(y: number, m: number): string | null {
+  const announceFor = (y: number, m: number): string | null => {
     const { t } = nuxtApp.$i18n;
     const spentBy = new Map<string, number>();
     let monthSpent = 0;
@@ -75,7 +75,7 @@ export const useBudgetAlertsStore = defineStore("budgetAlerts", () => {
     return best.scope === "month"
       ? t(`budget_alert_month_${best.level}`)
       : t(`budget_alert_cat_${best.level}`, { name: best.name });
-  }
+  };
 
   return { announced, loaded, load, reset, announceFor };
 });

@@ -239,10 +239,10 @@ const { user } = storeToRefs(auth);
 const { passwordBusy, passwordError, passwordNotice } = storeToRefs(auth);
 const { avatarUrl, avatarBusy, avatarError, hasAvatar } = storeToRefs(auth);
 if (import.meta.client && user.value) auth.loadAvatarStatus();
-async function removePhoto() {
+const removePhoto = async () => {
   if (await auth.removeAvatar())
     useToastStore().show({ text: t("avatar_removed") });
-}
+};
 
 // Tabs: Preferences is always there; Profile and Security need a signed-in user (not in the dev-only preview).
 type Tab = "preferences" | "profile" | "security";
@@ -292,17 +292,17 @@ const canSaveName = computed(() => {
     !nameBusy.value
   );
 });
-async function saveName() {
+const saveName = async () => {
   if (!canSaveName.value) return;
   if (await auth.updateName(nameInput.value))
     useToastStore().show({ text: t("name_updated") });
-}
+};
 
 // Profile picture
-async function changeAvatar(image: string) {
+const changeAvatar = async (image: string) => {
   if (await auth.uploadAvatar(image))
     useToastStore().show({ text: t("avatar_updated") });
-}
+};
 
 // Change password
 const currentPassword = ref("");
@@ -328,7 +328,7 @@ const canChangePassword = computed(
 const LOGOUT_DELAY = 3;
 const logoutIn = ref(0);
 let logoutTimer: ReturnType<typeof setInterval> | undefined;
-function startLogoutCountdown() {
+const startLogoutCountdown = () => {
   clearInterval(logoutTimer);
   logoutIn.value = LOGOUT_DELAY;
   logoutTimer = setInterval(() => {
@@ -336,14 +336,14 @@ function startLogoutCountdown() {
     clearInterval(logoutTimer);
     signOut();
   }, 1000);
-}
-async function changePassword() {
+};
+const changePassword = async () => {
   if (!canChangePassword.value) return;
   if (await auth.changePassword(currentPassword.value, newPassword.value)) {
     currentPassword.value = newPassword.value = confirmPassword.value = "";
     startLogoutCountdown();
   }
-}
+};
 
 onBeforeUnmount(() => {
   clearInterval(logoutTimer);
@@ -353,7 +353,7 @@ onBeforeUnmount(() => {
 
 // Sign out
 const signingOut = ref(false);
-async function signOut() {
+const signOut = async () => {
   if (signingOut.value) return;
   signingOut.value = true;
   try {
@@ -361,7 +361,7 @@ async function signOut() {
   } finally {
     signingOut.value = false;
   }
-}
+};
 
 // "Back" points toward the inline-start edge, which flips with the language.
 const backIcon = computed<IconName>(() =>

@@ -16,27 +16,27 @@ export const useSheetStore = defineStore("sheet", () => {
   /** which request is in flight ("" = none); the sheet labels its buttons from it */
   const busy = ref<"save" | "delete" | "">("");
 
-  function openAdd() {
+  const openAdd = () => {
     saveError.value = "";
     sheet.value = { mode: "add" };
-  }
-  function openEdit(expense: Expense) {
+  };
+  const openEdit = (expense: Expense) => {
     saveError.value = "";
     sheet.value = { mode: "edit", expense };
-  }
-  function close() {
+  };
+  const close = () => {
     sheet.value = null;
-  }
+  };
 
   /** ?sheet=add|edit opens the sheet on load (used by the preview page). */
-  function openFromQuery(query: Record<string, unknown>) {
+  const openFromQuery = (query: Record<string, unknown>) => {
     if (query.sheet === "add") openAdd();
     else if (query.sheet === "edit" && expensesStore.items[0])
       openEdit(expensesStore.items[0]);
-  }
+  };
 
   /** The server must accept a change before the sheet closes. */
-  async function save(draft: ExpenseDraft) {
+  const save = async (draft: ExpenseDraft) => {
     const editing = sheet.value?.mode === "edit";
     await run("save", () => expensesStore.save(draft, sheet.value?.expense?.id));
     // run() swallows failures (the sheet stays open with an error), so only a closed sheet means it worked
@@ -47,9 +47,9 @@ export const useSheetStore = defineStore("sheet", () => {
       const alert = budgetAlerts.announceFor(expensesStore.view.y, expensesStore.view.m);
       toastStore.show({ text: alert ? `${saved}. ${alert}` : saved }, alert ? 6000 : 4000);
     }
-  }
+  };
 
-  async function remove() {
+  const remove = async () => {
     await run("delete", async () => {
       if (!sheet.value?.expense) return;
       const removed = await expensesStore.remove(sheet.value.expense.id);
@@ -62,10 +62,10 @@ export const useSheetStore = defineStore("sheet", () => {
         onAction: () => expensesStore.restore(removed),
       });
     });
-  }
+  };
 
   /** Run a server change with a busy flag (blocks double taps); close on success, show the error otherwise. */
-  async function run(kind: "save" | "delete", action: () => Promise<void>) {
+  const run = async (kind: "save" | "delete", action: () => Promise<void>) => {
     if (busy.value) return;
     busy.value = kind;
     saveError.value = "";
@@ -77,7 +77,7 @@ export const useSheetStore = defineStore("sheet", () => {
     } finally {
       busy.value = "";
     }
-  }
+  };
 
   return {
     sheet,

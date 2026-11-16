@@ -61,8 +61,8 @@ const showEmailError = computed(
   () => emailTouched.value && email.value.trim() !== "" && !emailValid.value,
 );
 
-function submit() {
+const submit = () => {
   if (!canSubmit.value) return;
   auth.signIn(email.value.trim().toLowerCase(), password.value);
-}
+};
 </script>

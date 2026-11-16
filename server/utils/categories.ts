@@ -37,13 +37,13 @@ const ICON_RE = /^[A-Za-z]{1,24}$/;
 /** What an expense stores for this category. */
 const refOf = (r: { id: string; key: string | null }) => r.key ?? r.id;
 
-export function parseCategoryId(raw: string | undefined) {
+export const parseCategoryId = (raw: string | undefined) => {
   if (!raw || !UUID_RE.test(raw)) throw bad("invalid_id");
   return raw;
-}
+};
 
 /** Validate a request body; never trust the client's shape. (The database re-checks the same rules.) */
-export function parseCategoryInput(body: unknown): CategoryInput {
+export const parseCategoryInput = (body: unknown): CategoryInput => {
   const b = (body ?? {}) as Record<string, unknown>;
   let name: string | null = null;
   if (b.name !== undefined && b.name !== null) {
@@ -59,7 +59,7 @@ export function parseCategoryInput(body: unknown): CategoryInput {
     budget = Math.round(b.budget * 100) / 100;
   }
   return { name, color: b.color.toUpperCase(), icon: b.icon, budget };
-}
+};
 
 // ---- Supabase access. Every query is scoped by user_id: the secret key bypasses RLS, so this is the guard. ----
 
@@ -73,7 +73,7 @@ const toRecord = (r: Tables<"categories">): CategoryRecord => ({
 });
 
 /** A brand-new account has no categories yet: give it the defaults. (Deleting the last one is refused.) */
-async function ensureSeeded(scope: Scope) {
+const ensureSeeded = async (scope: Scope) => {
   const db = useSupabase();
   const { count, error } = await db.from("categories").select("id", { count: "exact", head: true }).eq("household_id", scope.householdId);
   if (error) {
@@ -101,17 +101,17 @@ async function ensureSeeded(scope: Scope) {
       { onConflict: "household_id,key", ignoreDuplicates: true },
     ),
   );
-}
+};
 
-export async function listCategories(scope: Scope) {
+export const listCategories = async (scope: Scope) => {
   await ensureSeeded(scope);
   const rows = must(
     await useSupabase().from("categories").select("*").eq("household_id", scope.householdId).order("created_at").order("id"),
   );
   return (rows ?? []).map(toRecord);
-}
+};
 
-export async function createCategory(scope: Scope, input: CategoryInput) {
+export const createCategory = async (scope: Scope, input: CategoryInput) => {
   if (input.name === null) throw bad("invalid_name"); // custom categories need a name
   await ensureSeeded(scope);
   const db = useSupabase();
@@ -124,10 +124,10 @@ export async function createCategory(scope: Scope, input: CategoryInput) {
 
   const row = must(await db.from("categories").insert({ user_id: scope.userId, household_id: scope.householdId, key: null, ...input }).select().single());
   return toRecord(row!);
-}
+};
 
 /** Returns null when the category doesn't exist or belongs to someone else. */
-export async function updateCategory(scope: Scope, id: string, input: CategoryInput) {
+export const updateCategory = async (scope: Scope, id: string, input: CategoryInput) => {
   const db = useSupabase();
   const existing = must(await db.from("categories").select("id, key").eq("id", id).eq("household_id", scope.householdId).maybeSingle());
   if (!existing) return null;
@@ -135,7 +135,7 @@ export async function updateCategory(scope: Scope, id: string, input: CategoryIn
 
   const row = must(await db.from("categories").update(input).eq("id", id).eq("household_id", scope.householdId).select().maybeSingle());
   return row ? toRecord(row) : null;
-}
+};
 
 /**
  * Delete any category. Its expenses are kept and moved to "other" (or, if that's the one being deleted
@@ -143,7 +143,7 @@ export async function updateCategory(scope: Scope, id: string, input: CategoryIn
  * too: its expenses stay as they are (`movedTo` is null).
  * Returns null when it doesn't exist or belongs to someone else, otherwise what the expenses moved to.
  */
-export async function deleteCategory(scope: Scope, id: string) {
+export const deleteCategory = async (scope: Scope, id: string) => {
   const db = useSupabase();
   const rows =
     must(await db.from("categories").select("id, key").eq("household_id", scope.householdId).order("created_at").order("id")) ?? [];
@@ -166,12 +166,12 @@ export async function deleteCategory(scope: Scope, id: string) {
   must(await db.from("recurring_expenses").update({ cat: movedTo }).eq("household_id", scope.householdId).eq("cat", refOf(target)));
   must(await db.from("categories").delete().eq("id", id).eq("household_id", scope.householdId));
   return { movedTo };
-}
+};
 
 /** An expense may only use one of THIS user's categories (a default's key, or a custom id). */
-export async function assertCategoryAllowed(scope: Scope, cat: string) {
+export const assertCategoryAllowed = async (scope: Scope, cat: string) => {
   await ensureSeeded(scope);
   const column = UUID_RE.test(cat) ? "id" : "key";
   const row = must(await useSupabase().from("categories").select("id").eq("household_id", scope.householdId).eq(column, cat).maybeSingle());
   if (!row) throw bad("invalid_category");
-}
+};

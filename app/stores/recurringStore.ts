@@ -31,39 +31,39 @@ export const useRecurringStore = defineStore("recurring", () => {
   const overdueCount = computed(() => due.value.filter((r) => r.nextDue! < today.value).length);
 
   // ---- Actions
-  async function load() {
+  const load = async () => {
     if (loaded.value || demo) return;
     const fetcher = useRequestFetch(); // forwards the session cookie during SSR
     rules.value = await fetcher<Recurring[]>("/api/recurring");
     loaded.value = true;
-  }
+  };
 
-  function reset() {
+  const reset = () => {
     rules.value = [];
     loaded.value = false;
     sheet.value = null;
     busy.value = "";
     error.value = "";
-  }
+  };
 
-  function openList() {
+  const openList = () => {
     error.value = "";
     sheet.value = { view: "list" };
-  }
-  function openForm(rule?: Recurring) {
+  };
+  const openForm = (rule?: Recurring) => {
     error.value = "";
     sheet.value = { view: "form", rule };
-  }
-  function openConfirm(rule: Recurring) {
+  };
+  const openConfirm = (rule: Recurring) => {
     error.value = "";
     sheet.value = { view: "confirm", rule };
-  }
-  function close() {
+  };
+  const close = () => {
     sheet.value = null;
-  }
+  };
 
   /** Run a request with a busy flag (blocks double taps); the error key stays in the sheet on failure. */
-  async function run<T>(kind: Exclude<typeof busy.value, "">, action: () => Promise<T>): Promise<T | undefined> {
+  const run = async <T>(kind: Exclude<typeof busy.value, "">, action: () => Promise<T>): Promise<T | undefined> => {
     if (busy.value) return;
     busy.value = kind;
     error.value = "";
@@ -82,7 +82,7 @@ export const useRecurringStore = defineStore("recurring", () => {
     } finally {
       busy.value = "";
     }
-  }
+  };
 
   const body = (d: RecurringDraft) => ({
     title: d.title.trim(),
@@ -100,33 +100,33 @@ export const useRecurringStore = defineStore("recurring", () => {
   });
 
   /** Create or update a rule. Returns true when the server accepted it. */
-  async function save(draft: RecurringDraft, id?: string) {
+  const save = async (draft: RecurringDraft, id?: string) => {
     const record = await run("save", () =>
       $fetch<Recurring>(id ? `/api/recurring/${id}` : "/api/recurring", { method: id ? "PUT" : "POST", body: body(draft) }),
     );
     if (!record) return false;
     rules.value = id ? rules.value.map((r) => (r.id === id ? record : r)) : [...rules.value, record];
     return true;
-  }
+  };
 
-  async function remove(id: string) {
+  const remove = async (id: string) => {
     const ok = await run("delete", async () => {
       await $fetch(`/api/recurring/${id}`, { method: "DELETE" });
       return true;
     });
     if (ok) rules.value = rules.value.filter((r) => r.id !== id);
     return !!ok;
-  }
+  };
 
-  async function setActive(rule: Recurring, active: boolean) {
+  const setActive = async (rule: Recurring, active: boolean) => {
     const record = await run("toggle", () =>
       $fetch<Recurring>(`/api/recurring/${rule.id}/active`, { method: "PUT", body: { active, today: today.value } }),
     );
     if (record) rules.value = rules.value.map((r) => (r.id === rule.id ? record : r));
-  }
+  };
 
   /** Confirm the waiting occurrence: adds the expense (with the given amount, if it differs) and moves the rule on. */
-  async function confirm(rule: Recurring, amount: number) {
+  const confirm = async (rule: Recurring, amount: number) => {
     if (!rule.nextDue) return false;
     const result = await run("confirm", () =>
       $fetch<{ rule: Recurring; expense: Expense }>(`/api/recurring/${rule.id}/confirm`, {
@@ -141,9 +141,9 @@ export const useRecurringStore = defineStore("recurring", () => {
     const alert = useBudgetAlertsStore().announceFor(result.expense.y, result.expense.m);
     toastStore.show({ text: alert ? `${t("recurring_confirmed")}. ${alert}` : t("recurring_confirmed") }, alert ? 6000 : 4000);
     return true;
-  }
+  };
 
-  async function skip(rule: Recurring) {
+  const skip = async (rule: Recurring) => {
     if (!rule.nextDue) return false;
     const result = await run("skip", () =>
       $fetch<{ rule: Recurring }>(`/api/recurring/${rule.id}/skip`, { method: "POST", body: { date: rule.nextDue } }),
@@ -152,10 +152,10 @@ export const useRecurringStore = defineStore("recurring", () => {
     rules.value = rules.value.map((r) => (r.id === rule.id ? result.rule : r));
     toastStore.show({ text: nuxtApp.$i18n.t("recurring_skipped") });
     return true;
-  }
+  };
 
   /** On opening the app: say once which payments are due. Each occurrence is announced a single time (remembered on the server). */
-  function announceReminders() {
+  const announceReminders = () => {
     const fresh = due.value.filter((r) => r.lastRemindedFor !== r.nextDue);
     if (!fresh.length) return;
     const { t } = nuxtApp.$i18n;
@@ -168,12 +168,12 @@ export const useRecurringStore = defineStore("recurring", () => {
       r.lastRemindedFor = r.nextDue;
       if (!demo) $fetch(`/api/recurring/${r.id}/reminded`, { method: "PUT", body: { date: r.nextDue } }).catch(() => {});
     }
-  }
+  };
 
   /** A category was deleted: the server moved its rules, so mirror it here. */
-  function reassignCategory(from: string, to: string) {
+  const reassignCategory = (from: string, to: string) => {
     rules.value = rules.value.map((r) => (r.cat === from ? { ...r, cat: to } : r));
-  }
+  };
 
   return {
     rules,

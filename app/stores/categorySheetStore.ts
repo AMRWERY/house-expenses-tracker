@@ -15,37 +15,37 @@ export const useCategorySheetStore = defineStore("categorySheet", () => {
   /** The change in flight: the list shows a skeleton for that category (a new one at the end for "add"). */
   const pending = ref<{ kind: "add" | "update" | "delete"; id?: string } | null>(null);
 
-  function open() {
+  const open = () => {
     view.value = "list";
     editing.value = null;
     error.value = "";
     isOpen.value = true;
-  }
-  function close() {
+  };
+  const close = () => {
     isOpen.value = false;
-  }
+  };
 
-  function startAdd() {
+  const startAdd = () => {
     editing.value = null;
     error.value = "";
     view.value = "form";
-  }
-  function startEdit(category: Category) {
+  };
+  const startEdit = (category: Category) => {
     editing.value = category;
     error.value = "";
     view.value = "form";
-  }
-  function backToList() {
+  };
+  const backToList = () => {
     error.value = "";
     view.value = "list";
-  }
+  };
 
   /**
    * Run a server change. The list shows right away with a skeleton row for the category being added,
    * updated or deleted (held at least 1 second), then the whole dialog closes. A failure brings the form back,
    * with its input, and a message.
    */
-  async function run(kind: "add" | "update" | "delete", action: () => Promise<void>) {
+  const run = async (kind: "add" | "update" | "delete", action: () => Promise<void>) => {
     if (busy.value) return;
     busy.value = true;
     error.value = "";
@@ -63,7 +63,7 @@ export const useCategorySheetStore = defineStore("categorySheet", () => {
       busy.value = false;
       pending.value = null;
     }
-  }
+  };
 
   const save = (draft: CategoryDraft) =>
     run(editing.value ? "update" : "add", () =>
