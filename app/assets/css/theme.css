@@ -2415,20 +2415,6 @@
   color: #fbbf24;
 }
 
-/* Templates: the quick-pick row in the Add sheet and the list in Settings */
-.tpl-row {
-  margin-bottom: 12px;
-  overflow-x: auto;
-  flex-wrap: nowrap;
-  scrollbar-width: none;
-}
-.tpl-row .chip {
-  flex: none;
-}
-.tpl-item {
-  width: 100%;
-  text-align: start;
-}
 
 /* Count badge on the Recurring chip */
 .chip-badge {

@@ -133,7 +133,6 @@ export const useAuthStore = defineStore("auth", () => {
     categoriesStore.reset();
     monthAmountStore.reset();
     useBudgetAlertsStore().reset();
-    useTemplatesStore().reset();
     useRecurringStore().reset();
     useIncomeStore().reset();
     useSettingsStore().reset();

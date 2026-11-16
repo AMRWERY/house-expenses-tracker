@@ -166,7 +166,6 @@ export const useCategoriesStore = defineStore("categories", () => {
     all.value = all.value.filter((c) => c.id !== category.id);
     if (movedTo !== null) {
       expensesStore.reassignCategory(category.key, movedTo);
-      useTemplatesStore().reassignCategory(category.key, movedTo);
       useRecurringStore().reassignCategory(category.key, movedTo);
     }
   }

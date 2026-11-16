@@ -163,7 +163,6 @@ export async function deleteCategory(scope: Scope, id: string) {
 
   const movedTo = refOf(fallback);
   must(await db.from("expenses").update({ cat: movedTo }).eq("household_id", scope.householdId).eq("cat", refOf(target)));
-  must(await db.from("expense_templates").update({ cat: movedTo }).eq("household_id", scope.householdId).eq("cat", refOf(target)));
   must(await db.from("recurring_expenses").update({ cat: movedTo }).eq("household_id", scope.householdId).eq("cat", refOf(target)));
   must(await db.from("categories").delete().eq("id", id).eq("household_id", scope.householdId));
   return { movedTo };

@@ -1,13 +1,6 @@
 <template>
   <VSheet :title="title" @close="sheetStore.close()">
       <form novalidate @submit.prevent="submit">
-        <!-- Templates: tap one to fill the form (nothing is saved until you press Add) -->
-        <div v-if="mode === 'add' && templates.length" class="chips tpl-row" role="group" :aria-label="t('templates')">
-          <VChip v-for="tp in templates" :key="tp.id" icon="bookmark" @click="applyTemplate(tp)">
-            {{ tp.name }}
-          </VChip>
-        </div>
-
         <!-- Amount -->
         <div class="amount" :class="{ 'has-error': amountError }">
           <label class="sr-only" for="amount">{{ t("amount") }}</label>
@@ -130,9 +123,6 @@
               : t(mode === "edit" ? "save" : "add")
           }}
         </VButton>
-        <VButton variant="text" :disabled="!!busy || !categories.all.length" @click="saveAsTemplate">
-          <app-icon name="bookmark" />{{ t("save_as_template") }}
-        </VButton>
         <VButton
           v-if="mode === 'edit'"
           variant="text"
@@ -148,7 +138,6 @@
 </template>
 
 <script lang="ts" setup>
-import type { ExpenseTemplate } from "~/types/stores/templatesStore";
 import type { PaymentMethod } from "#shared/utils/payment";
 
 const { t } = useI18n();
@@ -210,40 +199,6 @@ function addCategoryFirst() {
   sheetStore.close();
   categorySheet.open();
   categorySheet.startAdd();
-}
-
-const templatesStore = useTemplatesStore();
-const { templates } = storeToRefs(templatesStore);
-
-/** Fill the form from a template. Only the form changes; no expense exists until it is saved. */
-function applyTemplate(tp: ExpenseTemplate) {
-  amount.value = tp.amount !== null ? String(tp.amount) : "";
-  amountError.value = false;
-  cat.value = categories.byKey(tp.cat).key;
-  note.value = tp.note ?? "";
-  merchant.value = tp.merchant ?? "";
-  paymentMethod.value = tp.paymentMethod ?? null;
-  if (tp.note || tp.merchant || tp.paymentMethod) showMore.value = true;
-  amountEl.value?.focus({ preventScroll: true });
-}
-
-/** Keep what is typed here as a template. The name is the note, the merchant or the category. */
-async function saveAsTemplate() {
-  const value = Number(amount.value);
-  const name = (note.value.trim() || merchant.value.trim() || info(cat.value).label).slice(0, 40);
-  try {
-    await templatesStore.add({
-      name,
-      amount: value > 0 ? value : null,
-      cat: cat.value,
-      note: note.value.trim() || undefined,
-      merchant: merchant.value.trim() || undefined,
-      paymentMethod: paymentMethod.value ?? undefined,
-    });
-    useToastStore().show({ text: t("template_saved") });
-  } catch {
-    useToastStore().show({ text: t("template_save_failed"), kind: "error" });
-  }
 }
 
 function submit() {
