@@ -2389,6 +2389,20 @@
   margin-top: 12px;
 }
 
+.more-toggle .ico {
+  transition: transform 0.25s ease-out;
+}
+
+.more-toggle.is-open .ico {
+  transform: rotate(180deg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .more-toggle .ico {
+    transition: none;
+  }
+}
+
 /* Budget status line on the month card (text + icon, never colour alone) */
 .mamt .budget-status {
   display: flex;

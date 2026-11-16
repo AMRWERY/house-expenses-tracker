@@ -155,10 +155,10 @@
         </div>
       </div>
 
-      <VButton v-if="!showMore" variant="text" class="more-toggle" :aria-expanded="false" @click="showMore = true">
+      <VButton variant="text" class="more-toggle" :class="{ 'is-open': showMore }" :aria-expanded="showMore" @click="showMore = !showMore">
         {{ t("more_details") }}<app-icon name="chevronDown" />
       </VButton>
-      <template v-else>
+      <template v-if="showMore">
         <div class="field-block">
           <VTextField id="rec-note" v-model="note" :label="t('note')" type="text" maxlength="80" autocomplete="off" :placeholder="t('note_placeholder')" />
         </div>

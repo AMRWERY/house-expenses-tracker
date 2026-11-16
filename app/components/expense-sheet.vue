@@ -54,7 +54,7 @@
         </div>
 
         <!-- Quick Add: date and note stay out of the way until asked for (today is the default) -->
-        <VButton v-if="!showMore" variant="text" class="more-toggle" :aria-expanded="false" @click="showMore = true">
+        <VButton variant="text" class="more-toggle" :class="{ 'is-open': showMore }" :aria-expanded="showMore" @click="showMore = !showMore">
           {{ t("more_details") }}
           <app-icon name="chevronDown" />
         </VButton>
