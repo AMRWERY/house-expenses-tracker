@@ -1964,6 +1964,8 @@
 .cat-entry {
   display: flex;
   justify-content: flex-start; /* inline-start edge, flips in RTL */
+  flex-wrap: wrap; /* three chips overflow narrow phones; wrap instead */
+  gap: 8px;
   margin-top: 12px;
 }
 

@@ -8,7 +8,7 @@
         </VButton>
       </template>
       <month-switcher />
-      <div class="cat-entry space-x-3">
+      <div class="cat-entry">
         <VChip icon="tag" @click="categorySheetStore.open()">
           {{ t("manage_categories") }}
         </VChip>

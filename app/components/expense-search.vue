@@ -88,10 +88,12 @@ const open = ref(Boolean(minAmount.value || maxAmount.value));
 .search-amounts {
   display: flex;
   flex: 1 1 100%;
+  min-width: 0;
   gap: 8px;
 }
 .search-amount {
-  flex: 1;
+  flex: 1 1 0;
+  min-width: 0;
   height: 44px;
   width: auto;
 }
